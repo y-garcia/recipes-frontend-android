@@ -1,4 +1,4 @@
-package com.yeraygarcia.recetas;
+package com.yeraygarcia.recipes;
 
 import org.junit.Test;
 
