@@ -27,9 +27,9 @@ public interface IngredientDao {
     void deleteAll();
 
     @Query("SELECT * from ingredient ORDER BY name ASC")
-    LiveData<List<Ingredient>> getAllIngredients();
+    LiveData<List<Ingredient>> findAll();
 
     @Query("SELECT * from ingredient WHERE id = :id")
-    LiveData<Ingredient> getIngredientById(long id);
+    LiveData<Ingredient> findById(long id);
 
 }

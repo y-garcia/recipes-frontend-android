@@ -18,7 +18,7 @@ public class RecipeRepository {
     public RecipeRepository(Application application) {
         AppDatabase db = AppDatabase.getDatabase(application);
         mRecipeDao = db.recipeDao();
-        mAllRecipes = mRecipeDao.getAllRecipes();
+        mAllRecipes = mRecipeDao.findAll();
     }
 
     public LiveData<List<Recipe>> getAllRecipes() {
@@ -26,7 +26,7 @@ public class RecipeRepository {
     }
 
     public LiveData<Recipe> getRecipeById(long id) {
-        return mRecipeDao.getRecipeById(id);
+        return mRecipeDao.findById(id);
     }
 
     public void insert(Recipe recipe) {

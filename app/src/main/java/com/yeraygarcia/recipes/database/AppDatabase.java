@@ -9,6 +9,7 @@ import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+import com.yeraygarcia.recipes.database.dao.AisleDao;
 import com.yeraygarcia.recipes.database.dao.IngredientDao;
 import com.yeraygarcia.recipes.database.dao.RecipeDao;
 import com.yeraygarcia.recipes.database.entity.Aisle;
@@ -61,32 +62,59 @@ public abstract class AppDatabase extends RoomDatabase {
     }
 
 
-
     public abstract RecipeDao recipeDao();
+
     public abstract IngredientDao ingredientDao();
+
+    public abstract AisleDao aisleDao();
 
     private static class PopulateDbAsync extends AsyncTask<Void, Void, Void> {
 
         private final RecipeDao mRecipeDao;
         private final IngredientDao mIngredientDao;
+        private final AisleDao mAisleDao;
 
         PopulateDbAsync(AppDatabase db) {
             mRecipeDao = db.recipeDao();
             mIngredientDao = db.ingredientDao();
+            mAisleDao = db.aisleDao();
         }
 
         @Override
         protected Void doInBackground(final Void... params) {
             mRecipeDao.deleteAll();
 
+            populateAisle();
             populateIngredient();
             populateRecipe();
 
             return null;
         }
 
-        private void populateIngredient(){
-            /*
+        private void populateAisle() {
+            mAisleDao.insert(
+                    new Aisle(1, "Nüsse & Trockenfrüchte"),
+                    new Aisle(2, "Gemüse"),
+                    new Aisle(3, "Obst"),
+                    new Aisle(4, "Konserven"),
+                    new Aisle(5, "Brotaufstrich"),
+                    new Aisle(6, "Dressings"),
+                    new Aisle(7, "Cerealien & Müsli"),
+                    new Aisle(8, "Frische & Kühlung"),
+                    new Aisle(9, "Brot"),
+                    new Aisle(10, "Asiatisch"),
+                    new Aisle(11, "Gewürze"),
+                    new Aisle(12, "Pasta & Reis"),
+                    new Aisle(13, "Backzutaten"),
+                    new Aisle(14, "Fleisch und Fisch"),
+                    new Aisle(15, "Kekse"),
+                    new Aisle(16, "Haushalt"),
+                    new Aisle(17, "Getränke"),
+                    new Aisle(18, "Tiefkühl")
+            );
+        }
+
+        private void populateIngredient() {
             mIngredientDao.insert(
                     new Ingredient(1, "Salz", 11),
                     new Ingredient(2, "Knoblauch", 2),
@@ -327,7 +355,6 @@ public abstract class AppDatabase extends RoomDatabase {
                     new Ingredient(238, "Ziegenfrischkäse", 8),
                     new Ingredient(239, "Zitronengras", 11)
             );
-            */
         }
 
         private void populateRecipe() {

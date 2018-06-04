@@ -7,29 +7,29 @@ import android.arch.persistence.room.Insert;
 import android.arch.persistence.room.Query;
 import android.arch.persistence.room.Update;
 
-import com.yeraygarcia.recipes.database.entity.Recipe;
+import com.yeraygarcia.recipes.database.entity.Aisle;
 
 import java.util.List;
 
 @Dao
-public interface RecipeDao {
+public interface AisleDao {
 
     @Insert
-    long[] insert(Recipe... recipes);
+    long[] insert(Aisle... aisles);
 
     @Update
-    int update(Recipe... recipes);
+    int update(Aisle... aisles);
 
     @Delete
-    int delete(Recipe... recipes);
+    int delete(Aisle... aisles);
 
-    @Query("DELETE FROM recipe")
+    @Query("DELETE FROM aisle")
     void deleteAll();
 
-    @Query("SELECT * from recipe ORDER BY name ASC")
-    LiveData<List<Recipe>> findAll();
+    @Query("SELECT * from aisle ORDER BY name ASC")
+    LiveData<List<Aisle>> findAll();
 
-    @Query("SELECT * from recipe WHERE id = :id")
-    LiveData<Recipe> findById(long id);
+    @Query("SELECT * from aisle WHERE id = :id")
+    LiveData<Aisle> findById(long id);
 
 }

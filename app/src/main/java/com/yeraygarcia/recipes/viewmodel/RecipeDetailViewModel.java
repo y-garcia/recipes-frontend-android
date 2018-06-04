@@ -11,7 +11,7 @@ public class RecipeDetailViewModel extends ViewModel {
     private LiveData<Recipe> recipe;
 
     RecipeDetailViewModel(AppDatabase database, long recipeId) {
-        recipe = database.recipeDao().getRecipeById(recipeId);
+        recipe = database.recipeDao().findById(recipeId);
     }
 
     public LiveData<Recipe> getRecipe() {
