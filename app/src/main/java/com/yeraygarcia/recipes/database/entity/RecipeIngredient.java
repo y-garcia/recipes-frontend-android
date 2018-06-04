@@ -6,7 +6,7 @@ import android.arch.persistence.room.ForeignKey;
 import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.Index;
 import android.arch.persistence.room.PrimaryKey;
-import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 @Entity(
         tableName = "recipe_ingredient",
@@ -32,10 +32,12 @@ public class RecipeIngredient {
     @ColumnInfo(name = "ingredient_id")
     private long ingredientId;
 
-    private double quantity;
+    @Nullable
+    private Double quantity;
 
+    @Nullable
     @ColumnInfo(name = "unit_id")
-    private long unitId;
+    private Long unitId;
 
     @ColumnInfo(name = "sort_order")
     private int sortOrder;
@@ -43,7 +45,7 @@ public class RecipeIngredient {
     // Constructors ////////////////////////////////////////////////////////////////////////////////
 
     @Ignore
-    public RecipeIngredient(long recipeId, long ingredientId, double quantity, long unitId, int sortOrder) {
+    public RecipeIngredient(long recipeId, long ingredientId, @Nullable Double quantity, @Nullable Long unitId, int sortOrder) {
         this.recipeId = recipeId;
         this.ingredientId = ingredientId;
         this.quantity = quantity;
@@ -51,7 +53,7 @@ public class RecipeIngredient {
         this.sortOrder = sortOrder;
     }
 
-    public RecipeIngredient(int id, long recipeId, long ingredientId, double quantity, long unitId, int sortOrder) {
+    public RecipeIngredient(long id, long recipeId, long ingredientId, @Nullable Double quantity, @Nullable Long unitId, int sortOrder) {
         this.id = id;
         this.recipeId = recipeId;
         this.ingredientId = ingredientId;
@@ -86,19 +88,21 @@ public class RecipeIngredient {
         this.ingredientId = ingredientId;
     }
 
-    public double getQuantity() {
+    @Nullable
+    public Double getQuantity() {
         return quantity;
     }
 
-    public void setQuantity(double quantity) {
+    public void setQuantity(@Nullable Double quantity) {
         this.quantity = quantity;
     }
 
-    public long getUnitId() {
+    @Nullable
+    public Long getUnitId() {
         return unitId;
     }
 
-    public void setUnitId(long unitId) {
+    public void setUnitId(@Nullable Long unitId) {
         this.unitId = unitId;
     }
 
@@ -108,5 +112,10 @@ public class RecipeIngredient {
 
     public void setSortOrder(int sortOrder) {
         this.sortOrder = sortOrder;
+    }
+
+    @Override
+    public String toString() {
+        return sortOrder + ". " + quantity + " (unit: " + unitId + ") (ingredient: " + ingredientId + ")";
     }
 }

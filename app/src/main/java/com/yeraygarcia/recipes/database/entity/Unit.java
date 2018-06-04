@@ -1,5 +1,6 @@
 package com.yeraygarcia.recipes.database.entity;
 
+import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.Index;
@@ -9,8 +10,8 @@ import android.support.annotation.NonNull;
 @Entity(
         tableName = "unit",
         indices = {
-                @Index(value = "nameSingular", unique = true),
-                @Index(value = "namePlural", unique = true)
+                @Index(value = "name_singular", unique = true),
+                @Index(value = "name_plural", unique = true)
         }
 )
 public class Unit {
@@ -19,9 +20,11 @@ public class Unit {
     private long id;
 
     @NonNull
+    @ColumnInfo(name = "name_singular")
     private String nameSingular;
 
     @NonNull
+    @ColumnInfo(name = "name_plural")
     private String namePlural;
 
     // Constructors ////////////////////////////////////////////////////////////////////////////////

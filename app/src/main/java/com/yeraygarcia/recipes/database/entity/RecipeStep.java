@@ -6,10 +6,9 @@ import android.arch.persistence.room.ForeignKey;
 import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.Index;
 import android.arch.persistence.room.PrimaryKey;
-import android.support.annotation.NonNull;
 
 @Entity(
-        tableName = "recipe_recipe_steptag",
+        tableName = "recipe_step",
         indices = {
                 @Index("recipe_id")
         },
@@ -91,5 +90,10 @@ public class RecipeStep {
 
     public void setSortOrder(int sortOrder) {
         this.sortOrder = sortOrder;
+    }
+
+    @Override
+    public String toString() {
+        return sortOrder + ". " + description + (section ? ":" : "");
     }
 }

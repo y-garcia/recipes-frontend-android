@@ -1,6 +1,5 @@
 package com.yeraygarcia.recipes.database.entity;
 
-import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.PrimaryKey;
@@ -93,9 +92,9 @@ public class Recipe {
 
     @Override
     public String toString() {
-        return "Recipe: " + getName() +
-                "\nPortions: " + getPortions() +
+        return "Recipe: " + name +
+                "\nPortions: " + portions +
                 "\nDuration: " + getDurationInMinutes() + " minutes" +
-                "\nSource: " + (getUrl() != null ? getUrl() : "-");
+                "\nSource: " + (url != null ? url : "(none)");
     }
 }

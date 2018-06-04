@@ -9,7 +9,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,8 +16,13 @@ import android.widget.TextView;
 
 import com.yeraygarcia.recipes.database.AppDatabase;
 import com.yeraygarcia.recipes.database.entity.Recipe;
+import com.yeraygarcia.recipes.database.entity.RecipeIngredient;
+import com.yeraygarcia.recipes.database.entity.RecipeStep;
+import com.yeraygarcia.recipes.util.Debug;
 import com.yeraygarcia.recipes.viewmodel.RecipeDetailViewModel;
 import com.yeraygarcia.recipes.viewmodel.RecipeDetailViewModelFactory;
+
+import java.util.List;
 
 /**
  * A fragment representing a single Recipe detail screen.
@@ -28,13 +32,8 @@ import com.yeraygarcia.recipes.viewmodel.RecipeDetailViewModelFactory;
  */
 public class RecipeDetailFragment extends Fragment {
 
-    private static final String TAG = "YGQ: " + RecipeDetailFragment.class.getSimpleName();
-    /**
-     * The fragment argument representing the item ID that this fragment represents.
-     */
-    public static final String EXTRA_RECIPE_ID = "recipe_id";
+    public static final String EXTRA_RECIPE_ID = "recipeId";
     public static final long DEFAULT_RECIPE_ID = -1;
-    // Extra for the task ID to be received after rotation
     public static final String INSTANCE_RECIPE_ID = "instanceTaskId";
 
     private long mRecipeId = DEFAULT_RECIPE_ID;
@@ -42,6 +41,8 @@ public class RecipeDetailFragment extends Fragment {
     private Activity mParentActivity;
     private CollapsingToolbarLayout mAppBarLayout;
     private TextView mDetailTextView;
+    private TextView mIngredientsTextView;
+    private TextView mStepsTextView;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -52,12 +53,13 @@ public class RecipeDetailFragment extends Fragment {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        Log.d(TAG, "onCreate(savedInstanceState)");
+        Debug.d(this, "onCreate(savedInstanceState)");
         super.onCreate(savedInstanceState);
 
-        if (initViews(getActivity())) {
+        mParentActivity = getActivity();
 
-            // initialize database
+        if (mParentActivity != null) {
+
             AppDatabase database = AppDatabase.getDatabase(getContext());
 
             // get recipe id from savedInstanceState (if not empty)
@@ -73,7 +75,7 @@ public class RecipeDetailFragment extends Fragment {
                 }
             }
 
-            // get viewmodel, observe recipe and populate ui with it
+            // get ViewModel from id, observe recipe and populate ui with it
             RecipeDetailViewModelFactory factory = new RecipeDetailViewModelFactory(database, mRecipeId);
             final RecipeDetailViewModel viewModel = ViewModelProviders.of(this, factory).get(RecipeDetailViewModel.class);
             viewModel.getRecipe().observe(this, new Observer<Recipe>() {
@@ -83,51 +85,85 @@ public class RecipeDetailFragment extends Fragment {
                     populateUI(recipe);
                 }
             });
+            viewModel.getRecipeIngredients().observe(this, new Observer<List<RecipeIngredient>>() {
+                @Override
+                public void onChanged(@Nullable List<RecipeIngredient> recipeIngredients) {
+                    viewModel.getRecipeIngredients().removeObserver(this);
+                    populateIngredientsUI(recipeIngredients);
+                }
+            });
+            viewModel.getRecipeSteps().observe(this, new Observer<List<RecipeStep>>() {
+                @Override
+                public void onChanged(@Nullable List<RecipeStep> recipeSteps) {
+                    viewModel.getRecipeSteps().removeObserver(this);
+                    populateStepsUI(recipeSteps);
+                }
+            });
         }
     }
 
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
-        Log.d(TAG, "onSaveInstanceState(outState)");
+        Debug.d(this, "onSaveInstanceState(outState)");
         outState.putLong(RecipeDetailFragment.INSTANCE_RECIPE_ID, mRecipeId);
         super.onSaveInstanceState(outState);
     }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        Log.d(TAG, "onCreateView(inflater, container, savedInstanceState)");
-        return inflater.inflate(R.layout.recipe_detail, container, false);
-    }
+        Debug.d(this, "onCreateView(inflater, container, savedInstanceState)");
+        View rootView = inflater.inflate(R.layout.recipe_detail, container, false);
 
-    private boolean initViews(Activity activity) {
-        Log.d(TAG, "initView(activity)");
-
-        if (activity == null) {
-            return false;
-        }
-
-        mParentActivity = activity;
-        mDetailTextView = mParentActivity.findViewById(R.id.recipe_detail);
         mAppBarLayout = mParentActivity.findViewById(R.id.toolbar_layout);
+        mDetailTextView = rootView.findViewById(R.id.recipe_general_detail);
+        mIngredientsTextView = rootView.findViewById(R.id.recipe_ingredients_detail);
+        mStepsTextView = rootView.findViewById(R.id.recipe_steps_detail);
 
-        return true;
+        return rootView;
     }
 
-    /**
-     * populate the UI when in update mode
-     *
-     * @param recipe the recipe to populate the UI
-     */
     private void populateUI(Recipe recipe) {
-        Log.d(TAG, "populateUI(recipe)");
+        Debug.d(this, "populateUI(recipe)");
 
         if (recipe == null) {
             return;
         }
 
-        if (mAppBarLayout != null && mDetailTextView != null || initViews(getActivity())) {
+        if (mAppBarLayout != null && mDetailTextView != null) {
             mAppBarLayout.setTitle(recipe.getName());
             mDetailTextView.setText(recipe.toString());
+        }
+    }
+
+    private void populateIngredientsUI(List<RecipeIngredient> recipeIngredients) {
+        Debug.d(this, "populateUI(recipeIngredients)");
+
+        if (recipeIngredients == null) {
+            return;
+        }
+
+        if (mIngredientsTextView != null) {
+            StringBuilder text = new StringBuilder();
+            for (RecipeIngredient ingredient : recipeIngredients) {
+                text.append(ingredient).append("\n");
+            }
+            mIngredientsTextView.setText(text);
+        }
+    }
+
+    private void populateStepsUI(List<RecipeStep> recipeSteps) {
+        Debug.d(this, "populateStepsUI(recipeSteps)");
+
+        if (recipeSteps == null) {
+            return;
+        }
+
+        if (mStepsTextView != null) {
+            StringBuilder text = new StringBuilder();
+            for (RecipeStep step : recipeSteps) {
+                text.append(step).append("\n");
+            }
+            mStepsTextView.setText(text);
         }
     }
 }
