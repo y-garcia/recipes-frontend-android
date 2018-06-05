@@ -2,7 +2,7 @@ package com.yeraygarcia.recipes.util;
 
 import android.util.Log;
 
-public class Debug {
+public final class Debug {
 
     private static final String PREFIX = "YGQ: ";
     private static final boolean DEBUG = true;

@@ -8,6 +8,8 @@ import android.arch.persistence.room.Index;
 import android.arch.persistence.room.PrimaryKey;
 import android.support.annotation.NonNull;
 
+import static android.arch.persistence.room.ForeignKey.CASCADE;
+
 @Entity(
         tableName = "recipe_tag",
         indices = {
@@ -16,8 +18,8 @@ import android.support.annotation.NonNull;
                 @Index("tag_id")
         },
         foreignKeys = {
-                @ForeignKey(entity = Recipe.class, parentColumns = "id", childColumns = "recipe_id"),
-                @ForeignKey(entity = Tag.class, parentColumns = "id", childColumns = "tag_id")
+                @ForeignKey(entity = Recipe.class, parentColumns = "id", childColumns = "recipe_id", onDelete = CASCADE),
+                @ForeignKey(entity = Tag.class, parentColumns = "id", childColumns = "tag_id", onDelete = CASCADE)
         }
 )
 public class RecipeTag {

@@ -15,6 +15,8 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.yeraygarcia.recipes.database.AppDatabase;
+import com.yeraygarcia.recipes.database.entity.custom.CustomRecipeIngredient;
+import com.yeraygarcia.recipes.database.entity.custom.RecipeDetail;
 import com.yeraygarcia.recipes.database.entity.Recipe;
 import com.yeraygarcia.recipes.database.entity.RecipeIngredient;
 import com.yeraygarcia.recipes.database.entity.RecipeStep;
@@ -78,25 +80,19 @@ public class RecipeDetailFragment extends Fragment {
             // get ViewModel from id, observe recipe and populate ui with it
             RecipeDetailViewModelFactory factory = new RecipeDetailViewModelFactory(database, mRecipeId);
             final RecipeDetailViewModel viewModel = ViewModelProviders.of(this, factory).get(RecipeDetailViewModel.class);
-            viewModel.getRecipe().observe(this, new Observer<Recipe>() {
+            viewModel.getRecipeDetail().observe(this, new Observer<RecipeDetail>() {
                 @Override
-                public void onChanged(@Nullable Recipe recipe) {
-                    viewModel.getRecipe().removeObserver(this);
-                    populateUI(recipe);
+                public void onChanged(@Nullable RecipeDetail recipeDetail) {
+                    viewModel.getRecipeDetail().removeObserver(this);
+                    populateUI(recipeDetail.getRecipe());
+                    populateStepsUI(recipeDetail.getSteps());
                 }
             });
-            viewModel.getRecipeIngredients().observe(this, new Observer<List<RecipeIngredient>>() {
+            viewModel.getRecipeIngredients().observe(this, new Observer<List<CustomRecipeIngredient>>() {
                 @Override
-                public void onChanged(@Nullable List<RecipeIngredient> recipeIngredients) {
+                public void onChanged(@Nullable List<CustomRecipeIngredient> recipeIngredient) {
                     viewModel.getRecipeIngredients().removeObserver(this);
-                    populateIngredientsUI(recipeIngredients);
-                }
-            });
-            viewModel.getRecipeSteps().observe(this, new Observer<List<RecipeStep>>() {
-                @Override
-                public void onChanged(@Nullable List<RecipeStep> recipeSteps) {
-                    viewModel.getRecipeSteps().removeObserver(this);
-                    populateStepsUI(recipeSteps);
+                    populateIngredientsUI(recipeIngredient);
                 }
             });
         }
@@ -135,7 +131,7 @@ public class RecipeDetailFragment extends Fragment {
         }
     }
 
-    private void populateIngredientsUI(List<RecipeIngredient> recipeIngredients) {
+    private void populateIngredientsUI(List<CustomRecipeIngredient> recipeIngredients) {
         Debug.d(this, "populateUI(recipeIngredients)");
 
         if (recipeIngredients == null) {
@@ -144,7 +140,7 @@ public class RecipeDetailFragment extends Fragment {
 
         if (mIngredientsTextView != null) {
             StringBuilder text = new StringBuilder();
-            for (RecipeIngredient ingredient : recipeIngredients) {
+            for (CustomRecipeIngredient ingredient : recipeIngredients) {
                 text.append(ingredient).append("\n");
             }
             mIngredientsTextView.setText(text);

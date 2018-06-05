@@ -7,13 +7,15 @@ import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.Index;
 import android.arch.persistence.room.PrimaryKey;
 
+import static android.arch.persistence.room.ForeignKey.CASCADE;
+
 @Entity(
         tableName = "recipe_step",
         indices = {
                 @Index("recipe_id")
         },
         foreignKeys = {
-                @ForeignKey(entity = Recipe.class, parentColumns = "id", childColumns = "recipe_id")
+                @ForeignKey(entity = Recipe.class, parentColumns = "id", childColumns = "recipe_id", onDelete = CASCADE)
         }
 )
 public class RecipeStep {
@@ -94,6 +96,6 @@ public class RecipeStep {
 
     @Override
     public String toString() {
-        return sortOrder + ". " + description + (section ? ":" : "");
+        return sortOrder + ". " + description;
     }
 }

@@ -8,6 +8,9 @@ import android.arch.persistence.room.Index;
 import android.arch.persistence.room.PrimaryKey;
 import android.support.annotation.Nullable;
 
+import static android.arch.persistence.room.ForeignKey.CASCADE;
+import static android.arch.persistence.room.ForeignKey.RESTRICT;
+
 @Entity(
         tableName = "recipe_ingredient",
         indices = {
@@ -16,9 +19,9 @@ import android.support.annotation.Nullable;
                 @Index("unit_id")
         },
         foreignKeys = {
-                @ForeignKey(entity = Recipe.class, parentColumns = "id", childColumns = "recipe_id"),
-                @ForeignKey(entity = Ingredient.class, parentColumns = "id", childColumns = "ingredient_id"),
-                @ForeignKey(entity = Unit.class, parentColumns = "id", childColumns = "unit_id")
+                @ForeignKey(entity = Recipe.class, parentColumns = "id", childColumns = "recipe_id", onDelete = CASCADE),
+                @ForeignKey(entity = Ingredient.class, parentColumns = "id", childColumns = "ingredient_id", onDelete = RESTRICT),
+                @ForeignKey(entity = Unit.class, parentColumns = "id", childColumns = "unit_id", onDelete = RESTRICT)
         }
 )
 public class RecipeIngredient {

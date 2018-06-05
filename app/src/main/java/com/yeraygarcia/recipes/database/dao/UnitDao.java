@@ -14,10 +14,10 @@ public abstract class UnitDao implements BaseDao<Unit> {
     @Query("DELETE FROM unit")
     public abstract void deleteAll();
 
-    @Query("SELECT * from unit ORDER BY name_singular ASC")
+    @Query("SELECT * FROM unit ORDER BY name_singular ASC")
     abstract LiveData<List<Unit>> findAll();
 
-    @Query("SELECT * from unit WHERE id = :id")
+    @Query("SELECT * FROM unit WHERE id = :id")
     abstract LiveData<Unit> findById(long id);
 
 }

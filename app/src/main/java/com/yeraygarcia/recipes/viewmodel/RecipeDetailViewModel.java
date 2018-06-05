@@ -4,33 +4,26 @@ import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.ViewModel;
 
 import com.yeraygarcia.recipes.database.AppDatabase;
-import com.yeraygarcia.recipes.database.entity.Recipe;
-import com.yeraygarcia.recipes.database.entity.RecipeIngredient;
-import com.yeraygarcia.recipes.database.entity.RecipeStep;
+import com.yeraygarcia.recipes.database.entity.custom.CustomRecipeIngredient;
+import com.yeraygarcia.recipes.database.entity.custom.RecipeDetail;
 
 import java.util.List;
 
 public class RecipeDetailViewModel extends ViewModel {
 
-    private LiveData<Recipe> recipe;
-    private LiveData<List<RecipeIngredient>> recipeIngredients;
-    private LiveData<List<RecipeStep>> recipeSteps;
+    private LiveData<RecipeDetail> recipeDetail;
+    private LiveData<List<CustomRecipeIngredient>> recipeIngredients;
 
     RecipeDetailViewModel(AppDatabase database, long recipeId) {
-        recipe = database.recipeDao().findById(recipeId);
+        recipeDetail = database.recipeDetailDao().findById(recipeId);
         recipeIngredients = database.recipeIngredientDao().findByRecipeId(recipeId);
-        recipeSteps = database.recipeStepDao().findByRecipeId(recipeId);
     }
 
-    public LiveData<Recipe> getRecipe() {
-        return recipe;
+    public LiveData<RecipeDetail> getRecipeDetail() {
+        return recipeDetail;
     }
 
-    public LiveData<List<RecipeIngredient>> getRecipeIngredients() {
+    public LiveData<List<CustomRecipeIngredient>> getRecipeIngredients() {
         return recipeIngredients;
-    }
-
-    public LiveData<List<RecipeStep>> getRecipeSteps() {
-        return recipeSteps;
     }
 }

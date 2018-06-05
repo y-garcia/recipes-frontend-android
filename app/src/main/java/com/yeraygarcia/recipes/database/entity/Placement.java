@@ -7,6 +7,8 @@ import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.Index;
 import android.arch.persistence.room.PrimaryKey;
 
+import static android.arch.persistence.room.ForeignKey.RESTRICT;
+
 @Entity(
         tableName = "placement",
         indices = {
@@ -15,8 +17,8 @@ import android.arch.persistence.room.PrimaryKey;
                 @Index("store_id")
         },
         foreignKeys = {
-                @ForeignKey(entity = Aisle.class, parentColumns = "id", childColumns = "aisle_id"),
-                @ForeignKey(entity = Store.class, parentColumns = "id", childColumns = "store_id")
+                @ForeignKey(entity = Aisle.class, parentColumns = "id", childColumns = "aisle_id", onDelete = RESTRICT),
+                @ForeignKey(entity = Store.class, parentColumns = "id", childColumns = "store_id", onDelete = RESTRICT)
         }
 )
 public class Placement {

@@ -8,13 +8,15 @@ import android.arch.persistence.room.Index;
 import android.arch.persistence.room.PrimaryKey;
 import android.support.annotation.NonNull;
 
+import static android.arch.persistence.room.ForeignKey.RESTRICT;
+
 @Entity(
         tableName = "ingredient",
         indices = {
                 @Index(value = "name", unique = true),
                 @Index("aisle_id")
         },
-        foreignKeys = {@ForeignKey(entity = Aisle.class, parentColumns = "id", childColumns = "aisle_id")}
+        foreignKeys = {@ForeignKey(entity = Aisle.class, parentColumns = "id", childColumns = "aisle_id", onDelete = RESTRICT)}
 )
 public class Ingredient {
 

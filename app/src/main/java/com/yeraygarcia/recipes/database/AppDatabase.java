@@ -9,6 +9,7 @@ import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 
 import com.yeraygarcia.recipes.database.dao.AisleDao;
+import com.yeraygarcia.recipes.database.dao.RecipeDetailDao;
 import com.yeraygarcia.recipes.database.dao.IngredientDao;
 import com.yeraygarcia.recipes.database.dao.RecipeDao;
 import com.yeraygarcia.recipes.database.dao.RecipeIngredientDao;
@@ -75,6 +76,8 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract RecipeIngredientDao recipeIngredientDao();
 
     public abstract RecipeStepDao recipeStepDao();
+
+    public abstract RecipeDetailDao recipeDetailDao();
 
     private static class PopulateDbAsync extends AsyncTask<Void, Void, Void> {
 
