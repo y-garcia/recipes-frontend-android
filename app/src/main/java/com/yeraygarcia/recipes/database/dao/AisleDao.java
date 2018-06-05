@@ -12,24 +12,15 @@ import com.yeraygarcia.recipes.database.entity.Aisle;
 import java.util.List;
 
 @Dao
-public interface AisleDao {
-
-    @Insert
-    long[] insert(Aisle... aisles);
-
-    @Update
-    int update(Aisle... aisles);
-
-    @Delete
-    int delete(Aisle... aisles);
+public abstract class AisleDao implements BaseDao<Aisle> {
 
     @Query("DELETE FROM aisle")
-    void deleteAll();
+    public abstract void deleteAll();
 
     @Query("SELECT * from aisle ORDER BY name ASC")
-    LiveData<List<Aisle>> findAll();
+    abstract LiveData<List<Aisle>> findAll();
 
     @Query("SELECT * from aisle WHERE id = :id")
-    LiveData<Aisle> findById(long id);
+    abstract LiveData<Aisle> findById(long id);
 
 }
