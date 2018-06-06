@@ -6,7 +6,5 @@
     android:name="com.yeraygarcia.recetas.RecipeListFragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginLeft="16dp"
-    android:layout_marginRight="16dp"
     tools:context=".RecipeListActivity"
     tools:listitem="@layout/recipe_list_content" />

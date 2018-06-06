@@ -1,7 +1,5 @@
 package com.yeraygarcia.recipes;
 
-import android.arch.lifecycle.ViewModelProviders;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -9,18 +7,23 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.TextView;
 
 import com.yeraygarcia.recipes.database.entity.Recipe;
-import com.yeraygarcia.recipes.viewmodel.RecipeViewModel;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
-public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipesViewHolder> {
+public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipesViewHolder> implements Filterable {
 
     private static final String TAG = "YGQ: " + RecipeAdapter.class.getSimpleName();
 
     private List<Recipe> mRecipes; // Cached copy of recipes
+
+    private RecipeFilter mFilter;
 
     private final RecipeListActivity mParentActivity;
     private final boolean mTwoPane;
@@ -30,6 +33,14 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipesVie
     RecipeAdapter(RecipeListActivity parent, boolean twoPane) {
         mParentActivity = parent;
         mTwoPane = twoPane;
+    }
+
+    @Override
+    public Filter getFilter() {
+        if (mFilter == null) {
+            mFilter = new RecipeFilter(this, mRecipes);
+        }
+        return mFilter;
     }
 
     // Internal classes
@@ -62,6 +73,47 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipesVie
 
                 mParentActivity.startActivity(intent);
             }
+        }
+    }
+
+    class RecipeFilter extends Filter {
+
+        private final RecipeAdapter adapter;
+        private final List<Recipe> originalList;
+        private final List<Recipe> filteredList;
+
+        private RecipeFilter(RecipeAdapter adapter, List<Recipe> originalList) {
+            super();
+            this.adapter = adapter;
+            this.originalList = new LinkedList<>(originalList);
+            this.filteredList = new ArrayList<>();
+        }
+
+        @Override
+        protected FilterResults performFiltering(CharSequence charSequence) {
+            filteredList.clear();
+            final FilterResults results = new FilterResults();
+
+            if (charSequence.length() == 0) {
+                filteredList.addAll(originalList);
+            } else {
+                final String filterPattern = charSequence.toString().toLowerCase().trim();
+                for (Recipe recipe : originalList) {
+                    if (recipe.getName().toLowerCase().contains(filterPattern)) {
+                        filteredList.add(recipe);
+                    }
+                }
+            }
+
+            results.values = filteredList;
+            results.count = filteredList.size();
+            return results;
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        protected void publishResults(CharSequence charSequence, FilterResults filterResults) {
+            setRecipes(filteredList);
         }
     }
 

@@ -11,10 +11,10 @@
         android:layout_width="match_parent"
         android:layout_height="64dp"
         android:gravity="center_vertical"
-        android:paddingStart="8dp"
-        android:paddingEnd="8dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
         android:textColor="@android:color/black"
         android:textSize="18sp"
-        tools:text="Arroz a la cubana " />
+        tools:text="Arroz a la cubana" />
 
 </LinearLayout>
