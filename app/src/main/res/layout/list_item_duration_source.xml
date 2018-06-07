@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <ImageView
+        android:id="@+id/imageview_duration_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="16dp"
+        android:contentDescription="@string/duration_icon_content"
+        android:src="@drawable/ic_duration_24px"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textview_duration"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:textAppearance="@style/TextAppearance.AppCompat"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="@+id/imageview_duration_icon"
+        app:layout_constraintStart_toEndOf="@+id/imageview_duration_icon"
+        app:layout_constraintTop_toTopOf="@+id/imageview_duration_icon"
+        tools:text="30 min" />
+
+    <ImageView
+        android:id="@+id/imageview_source_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
+        android:contentDescription="@string/source_icon_content"
+        android:src="@drawable/ic_source_24px"
+        app:layout_constraintBottom_toBottomOf="@+id/imageview_duration_icon"
+        app:layout_constraintStart_toEndOf="@+id/textview_duration"
+        app:layout_constraintTop_toTopOf="@+id/imageview_duration_icon" />
+
+    <TextView
+        android:id="@+id/textview_source"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:textAppearance="@style/TextAppearance.AppCompat"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="@+id/imageview_source_icon"
+        app:layout_constraintStart_toEndOf="@+id/imageview_source_icon"
+        app:layout_constraintTop_toTopOf="@+id/imageview_source_icon"
+        tools:text="Runtasty" />
+
+</android.support.constraint.ConstraintLayout>

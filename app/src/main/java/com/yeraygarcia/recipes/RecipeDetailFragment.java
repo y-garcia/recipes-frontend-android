@@ -9,17 +9,16 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
+import com.yeraygarcia.recipes.adapter.RecipeDetailAdapter;
 import com.yeraygarcia.recipes.database.AppDatabase;
 import com.yeraygarcia.recipes.database.entity.custom.CustomRecipeIngredient;
 import com.yeraygarcia.recipes.database.entity.custom.RecipeDetail;
-import com.yeraygarcia.recipes.database.entity.Recipe;
-import com.yeraygarcia.recipes.database.entity.RecipeIngredient;
-import com.yeraygarcia.recipes.database.entity.RecipeStep;
 import com.yeraygarcia.recipes.util.Debug;
 import com.yeraygarcia.recipes.viewmodel.RecipeDetailViewModel;
 import com.yeraygarcia.recipes.viewmodel.RecipeDetailViewModelFactory;
@@ -42,9 +41,8 @@ public class RecipeDetailFragment extends Fragment {
 
     private Activity mParentActivity;
     private CollapsingToolbarLayout mAppBarLayout;
-    private TextView mDetailTextView;
-    private TextView mIngredientsTextView;
-    private TextView mStepsTextView;
+
+    private RecipeDetailAdapter mRecipeDetailAdapter;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -77,22 +75,26 @@ public class RecipeDetailFragment extends Fragment {
                 }
             }
 
+            mRecipeDetailAdapter = new RecipeDetailAdapter(mParentActivity);
+
             // get ViewModel from id, observe recipe and populate ui with it
             RecipeDetailViewModelFactory factory = new RecipeDetailViewModelFactory(database, mRecipeId);
             final RecipeDetailViewModel viewModel = ViewModelProviders.of(this, factory).get(RecipeDetailViewModel.class);
             viewModel.getRecipeDetail().observe(this, new Observer<RecipeDetail>() {
                 @Override
                 public void onChanged(@Nullable RecipeDetail recipeDetail) {
-                    viewModel.getRecipeDetail().removeObserver(this);
-                    populateUI(recipeDetail.getRecipe());
-                    populateStepsUI(recipeDetail.getSteps());
+                    if (recipeDetail == null) {
+                        return;
+                    }
+                    mAppBarLayout.setTitle(recipeDetail.getRecipe().getName());
+                    mRecipeDetailAdapter.setRecipe(recipeDetail);
+                    mRecipeDetailAdapter.setSteps(recipeDetail.getSteps());
                 }
             });
             viewModel.getRecipeIngredients().observe(this, new Observer<List<CustomRecipeIngredient>>() {
                 @Override
-                public void onChanged(@Nullable List<CustomRecipeIngredient> recipeIngredient) {
-                    viewModel.getRecipeIngredients().removeObserver(this);
-                    populateIngredientsUI(recipeIngredient);
+                public void onChanged(@Nullable List<CustomRecipeIngredient> recipeIngredients) {
+                    mRecipeDetailAdapter.setIngredients(recipeIngredients);
                 }
             });
         }
@@ -111,55 +113,13 @@ public class RecipeDetailFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.recipe_detail, container, false);
 
         mAppBarLayout = mParentActivity.findViewById(R.id.toolbar_layout);
-        mDetailTextView = rootView.findViewById(R.id.recipe_general_detail);
-        mIngredientsTextView = rootView.findViewById(R.id.recipe_ingredients_detail);
-        mStepsTextView = rootView.findViewById(R.id.recipe_steps_detail);
+
+        RecyclerView recipeDetailRecyclerView = rootView.findViewById(R.id.recyclerview_recipe_details);
+        recipeDetailRecyclerView.setLayoutManager(new LinearLayoutManager(mParentActivity));
+        recipeDetailRecyclerView.setAdapter(mRecipeDetailAdapter);
+        //mRecipeDetailRecyclerView.addItemDecoration(new ShortDividerItemDecoration(mParentActivity, DividerItemDecoration.VERTICAL, 16, 0));
+        recipeDetailRecyclerView.setNestedScrollingEnabled(false);
 
         return rootView;
-    }
-
-    private void populateUI(Recipe recipe) {
-        Debug.d(this, "populateUI(recipe)");
-
-        if (recipe == null) {
-            return;
-        }
-
-        if (mAppBarLayout != null && mDetailTextView != null) {
-            mAppBarLayout.setTitle(recipe.getName());
-            mDetailTextView.setText(recipe.toString());
-        }
-    }
-
-    private void populateIngredientsUI(List<CustomRecipeIngredient> recipeIngredients) {
-        Debug.d(this, "populateUI(recipeIngredients)");
-
-        if (recipeIngredients == null) {
-            return;
-        }
-
-        if (mIngredientsTextView != null) {
-            StringBuilder text = new StringBuilder();
-            for (CustomRecipeIngredient ingredient : recipeIngredients) {
-                text.append(ingredient).append("\n");
-            }
-            mIngredientsTextView.setText(text);
-        }
-    }
-
-    private void populateStepsUI(List<RecipeStep> recipeSteps) {
-        Debug.d(this, "populateStepsUI(recipeSteps)");
-
-        if (recipeSteps == null) {
-            return;
-        }
-
-        if (mStepsTextView != null) {
-            StringBuilder text = new StringBuilder();
-            for (RecipeStep step : recipeSteps) {
-                text.append(step).append("\n");
-            }
-            mStepsTextView.setText(text);
-        }
     }
 }

@@ -71,7 +71,7 @@ public class Recipe {
         return duration;
     }
 
-    private long getDurationInMinutes() {
+    public long getDurationInMinutes() {
         return TimeUnit.SECONDS.toMinutes(getDuration());
     }
 

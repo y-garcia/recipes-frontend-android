@@ -6,4 +6,12 @@
     <string name="no_recipes">No Recipes</string>
     <string name="search_hint">Search recipes&#8230;</string>
     <string name="search_button">Search</string>
+    <string name="duration_icon_content">Duration</string>
+    <string name="source_icon_content">Source</string>
+    <string name="duration_format">%1$s min</string>
+    <string name="url_format"><a href="%1$s">%2$s</a></string>
+    <string name="no_ingredients">No ingredients</string>
+    <string name="no_steps">No steps</string>
+    <string name="header_ingredients">Ingredients</string>
+    <string name="header_steps">Steps</string>
 </resources>

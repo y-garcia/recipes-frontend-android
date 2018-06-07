@@ -27,11 +27,17 @@ public class ShortDividerItemDecoration extends RecyclerView.ItemDecoration {
     private Drawable mDivider;
     private int mOrientation;
     private Context context;
-    private int margin;
+    private int leftMargin;
+    private int rightMargin;
 
     public ShortDividerItemDecoration(Context context, int orientation, int margin) {
+        this(context, orientation, margin, margin);
+    }
+
+    private ShortDividerItemDecoration(Context context, int orientation, int leftMargin, int rightMargin) {
         this.context = context;
-        this.margin = margin;
+        this.leftMargin = leftMargin;
+        this.rightMargin = rightMargin;
         final TypedArray a = context.obtainStyledAttributes(ATTRS);
         mDivider = a.getDrawable(0);
         a.recycle();
@@ -65,7 +71,7 @@ public class ShortDividerItemDecoration extends RecyclerView.ItemDecoration {
                     .getLayoutParams();
             final int top = child.getBottom() + params.bottomMargin;
             final int bottom = top + mDivider.getIntrinsicHeight();
-            mDivider.setBounds(left + dpToPx(margin), top, right - dpToPx(margin), bottom);
+            mDivider.setBounds(left + dpToPx(leftMargin), top, right - dpToPx(rightMargin), bottom);
             mDivider.draw(c);
         }
     }
@@ -81,7 +87,7 @@ public class ShortDividerItemDecoration extends RecyclerView.ItemDecoration {
                     .getLayoutParams();
             final int left = child.getRight() + params.rightMargin;
             final int right = left + mDivider.getIntrinsicHeight();
-            mDivider.setBounds(left, top + dpToPx(margin), right, bottom - dpToPx(margin));
+            mDivider.setBounds(left, top + dpToPx(leftMargin), right, bottom - dpToPx(rightMargin));
             mDivider.draw(c);
         }
     }

@@ -1,4 +1,4 @@
-package com.yeraygarcia.recipes;
+package com.yeraygarcia.recipes.adapter;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -11,6 +11,10 @@ import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.TextView;
 
+import com.yeraygarcia.recipes.R;
+import com.yeraygarcia.recipes.RecipeDetailActivity;
+import com.yeraygarcia.recipes.RecipeDetailFragment;
+import com.yeraygarcia.recipes.RecipeListActivity;
 import com.yeraygarcia.recipes.database.entity.Recipe;
 
 import java.util.ArrayList;
@@ -18,8 +22,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipesViewHolder> implements Filterable {
-
-    private static final String TAG = "YGQ: " + RecipeAdapter.class.getSimpleName();
 
     private List<Recipe> mRecipes; // Cached copy of recipes
 
@@ -30,7 +32,7 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipesVie
 
     // Constructors
 
-    RecipeAdapter(RecipeListActivity parent, boolean twoPane) {
+    public RecipeAdapter(RecipeListActivity parent, boolean twoPane) {
         mParentActivity = parent;
         mTwoPane = twoPane;
     }
@@ -51,7 +53,7 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipesVie
 
         private RecipesViewHolder(View itemView) {
             super(itemView);
-            recipeItemView = itemView.findViewById(R.id.textView);
+            recipeItemView = itemView.findViewById(R.id.textview_recipe_name);
             itemView.setOnClickListener(this);
         }
 
@@ -122,7 +124,7 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipesVie
     @NonNull
     @Override
     public RecipesViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(mParentActivity).inflate(R.layout.recipe_list_content, parent, false);
+        View view = LayoutInflater.from(mParentActivity).inflate(R.layout.list_item_recipe, parent, false);
         return new RecipesViewHolder(view);
     }
 
@@ -137,7 +139,7 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipesVie
         }
     }
 
-    void setRecipes(List<Recipe> recipes) {
+    public void setRecipes(List<Recipe> recipes) {
         mRecipes = recipes;
         notifyDataSetChanged();
     }

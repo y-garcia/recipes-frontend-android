@@ -9,6 +9,7 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -18,6 +19,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
 
+import com.yeraygarcia.recipes.adapter.RecipeAdapter;
 import com.yeraygarcia.recipes.database.AppDatabase;
 import com.yeraygarcia.recipes.database.entity.Recipe;
 import com.yeraygarcia.recipes.util.ShortDividerItemDecoration;
@@ -76,6 +78,7 @@ public class RecipeListActivity extends AppCompatActivity implements SearchView.
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         mRecyclerView.setAdapter(mAdapter);
         mRecyclerView.addItemDecoration(new ShortDividerItemDecoration(this, DividerItemDecoration.VERTICAL, 16));
+        mRecyclerView.setItemAnimator(new DefaultItemAnimator());
 
         mDatabase = AppDatabase.getDatabase(getApplicationContext());
 
@@ -97,7 +100,9 @@ public class RecipeListActivity extends AppCompatActivity implements SearchView.
         // Associate searchable configuration with the SearchView
         SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
         SearchView searchView = (SearchView) menu.findItem(R.id.search).getActionView();
-        searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+        if (searchManager != null) {
+            searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+        }
         searchView.setOnQueryTextListener(this);
 
         return true;
