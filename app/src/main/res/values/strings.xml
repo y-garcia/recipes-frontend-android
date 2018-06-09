@@ -14,4 +14,8 @@
     <string name="no_steps">No steps</string>
     <string name="header_ingredients">Ingredients</string>
     <string name="header_steps">Steps</string>
+    <string name="no_source">--</string>
+    <string name="decrease_servings">Decrease servings</string>
+    <string name="increase_servings">Increase servings</string>
+    <string name="servings">servings</string>
 </resources>

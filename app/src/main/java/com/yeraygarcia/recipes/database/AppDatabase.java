@@ -9,9 +9,9 @@ import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 
 import com.yeraygarcia.recipes.database.dao.AisleDao;
-import com.yeraygarcia.recipes.database.dao.RecipeDetailDao;
 import com.yeraygarcia.recipes.database.dao.IngredientDao;
 import com.yeraygarcia.recipes.database.dao.RecipeDao;
+import com.yeraygarcia.recipes.database.dao.RecipeDetailDao;
 import com.yeraygarcia.recipes.database.dao.RecipeIngredientDao;
 import com.yeraygarcia.recipes.database.dao.RecipeStepDao;
 import com.yeraygarcia.recipes.database.dao.UnitDao;
@@ -99,6 +99,7 @@ public abstract class AppDatabase extends RoomDatabase {
 
         @Override
         protected Void doInBackground(final Void... params) {
+            Debug.d(this, "Populating database...");
             mRecipeStepDao.deleteAll();
             mRecipeIngredientDao.deleteAll();
             mRecipeDao.deleteAll();
@@ -139,7 +140,7 @@ public abstract class AppDatabase extends RoomDatabase {
             );
         }
 
-        private void populateUnit(){
+        private void populateUnit() {
             mUnitDao.insert(
                     new Unit(1, "g", "g"),
                     new Unit(2, "TL", "TL"),
@@ -1126,7 +1127,7 @@ public abstract class AppDatabase extends RoomDatabase {
             );
         }
 
-        private void populateRecipeStep(){
+        private void populateRecipeStep() {
             mRecipeStepDao.insert(
                     new RecipeStep(1, 3, "Preheat the oven to 190ºC.", false, 1),
                     new RecipeStep(2, 3, "Very carefully cut your squash in quarters, remove the seeds, and lay the pieces in a roasting tray.", false, 2),

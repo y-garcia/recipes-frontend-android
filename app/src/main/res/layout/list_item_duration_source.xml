@@ -10,13 +10,13 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
-        android:layout_marginStart="32dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginStart="64dp"
+        android:layout_marginTop="32dp"
         android:contentDescription="@string/duration_icon_content"
-        android:src="@drawable/ic_duration_24px"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_duration_24px" />
 
     <TextView
         android:id="@+id/textview_duration"
@@ -36,10 +36,10 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="32dp"
         android:contentDescription="@string/source_icon_content"
-        android:src="@drawable/ic_source_24px"
         app:layout_constraintBottom_toBottomOf="@+id/imageview_duration_icon"
         app:layout_constraintStart_toEndOf="@+id/textview_duration"
-        app:layout_constraintTop_toTopOf="@+id/imageview_duration_icon" />
+        app:layout_constraintTop_toTopOf="@+id/imageview_duration_icon"
+        app:srcCompat="@drawable/ic_book_24px" />
 
     <TextView
         android:id="@+id/textview_source"

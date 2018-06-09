@@ -3,15 +3,16 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:background="@drawable/selector_accent">
 
     <TextView
         android:id="@+id/textview_step_number"
-        android:layout_width="wrap_content"
+        android:layout_width="50dp"
         android:layout_height="0dp"
         android:gravity="top"
         android:paddingBottom="8dp"
-        android:paddingEnd="16dp"
+        android:paddingEnd="0dp"
         android:paddingStart="16dp"
         android:paddingTop="8dp"
         android:textAppearance="@style/TextAppearance.AppCompat"
@@ -20,7 +21,7 @@
         app:layout_constraintBottom_toBottomOf="@+id/textview_step_description"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/textview_step_description"
-        tools:text="1" />
+        tools:text="10" />
 
     <TextView
         android:id="@+id/textview_step_description"

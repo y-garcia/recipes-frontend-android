@@ -17,7 +17,7 @@ public abstract class RecipeDetailDao {
 
     @Transaction
     @Query("SELECT * FROM recipe ORDER BY name ASC")
-    abstract LiveData<List<RecipeDetail>> findAll();
+    public abstract LiveData<List<RecipeDetail>> findAll();
 
     @Transaction
     @Query("SELECT * FROM recipe WHERE id = :id")

@@ -16,9 +16,9 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.yeraygarcia.recipes.adapter.RecipeDetailAdapter;
-import com.yeraygarcia.recipes.database.AppDatabase;
 import com.yeraygarcia.recipes.database.entity.custom.CustomRecipeIngredient;
 import com.yeraygarcia.recipes.database.entity.custom.RecipeDetail;
+import com.yeraygarcia.recipes.database.repository.RecipeDetailRepository;
 import com.yeraygarcia.recipes.util.Debug;
 import com.yeraygarcia.recipes.viewmodel.RecipeDetailViewModel;
 import com.yeraygarcia.recipes.viewmodel.RecipeDetailViewModelFactory;
@@ -60,8 +60,6 @@ public class RecipeDetailFragment extends Fragment {
 
         if (mParentActivity != null) {
 
-            AppDatabase database = AppDatabase.getDatabase(getContext());
-
             // get recipe id from savedInstanceState (if not empty)
             if (savedInstanceState != null && savedInstanceState.containsKey(INSTANCE_RECIPE_ID)) {
                 mRecipeId = savedInstanceState.getLong(INSTANCE_RECIPE_ID, DEFAULT_RECIPE_ID);
@@ -75,11 +73,14 @@ public class RecipeDetailFragment extends Fragment {
                 }
             }
 
-            mRecipeDetailAdapter = new RecipeDetailAdapter(mParentActivity);
+            RecipeDetailRepository repository = new RecipeDetailRepository(getActivity().getApplication());
 
             // get ViewModel from id, observe recipe and populate ui with it
-            RecipeDetailViewModelFactory factory = new RecipeDetailViewModelFactory(database, mRecipeId);
+            RecipeDetailViewModelFactory factory = new RecipeDetailViewModelFactory(repository, mRecipeId);
             final RecipeDetailViewModel viewModel = ViewModelProviders.of(this, factory).get(RecipeDetailViewModel.class);
+
+            mRecipeDetailAdapter = new RecipeDetailAdapter(mParentActivity, viewModel);
+
             viewModel.getRecipeDetail().observe(this, new Observer<RecipeDetail>() {
                 @Override
                 public void onChanged(@Nullable RecipeDetail recipeDetail) {
@@ -88,7 +89,6 @@ public class RecipeDetailFragment extends Fragment {
                     }
                     mAppBarLayout.setTitle(recipeDetail.getRecipe().getName());
                     mRecipeDetailAdapter.setRecipe(recipeDetail);
-                    mRecipeDetailAdapter.setSteps(recipeDetail.getSteps());
                 }
             });
             viewModel.getRecipeIngredients().observe(this, new Observer<List<CustomRecipeIngredient>>() {

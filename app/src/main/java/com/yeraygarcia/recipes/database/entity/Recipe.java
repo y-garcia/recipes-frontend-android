@@ -16,23 +16,24 @@ public class Recipe {
     @NonNull
     private String name;
 
-    private int portions;
+    @NonNull
+    private Integer portions;
 
-    private int duration;
+    private Integer duration;
 
     private String url;
 
     // Constructors ////////////////////////////////////////////////////////////////////////////////
 
     @Ignore
-    public Recipe(@NonNull String name, int portions, int duration, String url) {
+    public Recipe(@NonNull String name, @NonNull Integer portions, Integer duration, String url) {
         this.name = name;
         this.portions = portions;
         this.duration = duration;
         this.url = url;
     }
 
-    public Recipe(long id, @NonNull String name, int portions, int duration, String url) {
+    public Recipe(long id, @NonNull String name, @NonNull Integer portions, Integer duration, String url) {
         this.id = id;
         this.name = name;
         this.portions = portions;
@@ -59,23 +60,27 @@ public class Recipe {
         this.name = name;
     }
 
-    public int getPortions() {
+    @NonNull
+    public Integer getPortions() {
         return portions;
     }
 
-    public void setPortions(int portions) {
+    public void setPortions(@NonNull Integer portions) {
         this.portions = portions;
     }
 
-    public int getDuration() {
+    public Integer getDuration() {
         return duration;
     }
 
-    public long getDurationInMinutes() {
+    public Long getDurationInMinutes() {
+        if (getDuration() == null) {
+            return 0L;
+        }
         return TimeUnit.SECONDS.toMinutes(getDuration());
     }
 
-    public void setDuration(int duration) {
+    public void setDuration(Integer duration) {
         this.duration = duration;
     }
 
@@ -89,12 +94,19 @@ public class Recipe {
 
     // Methods /////////////////////////////////////////////////////////////////////////
 
-
     @Override
     public String toString() {
         return "Recipe: " + name +
                 "\nPortions: " + portions +
                 "\nDuration: " + getDurationInMinutes() + " minutes" +
                 "\nSource: " + (url != null ? url : "(none)");
+    }
+
+    public void increasePortions() {
+        this.portions += 1;
+    }
+
+    public void decreasePortions() {
+        this.portions -= 1;
     }
 }
