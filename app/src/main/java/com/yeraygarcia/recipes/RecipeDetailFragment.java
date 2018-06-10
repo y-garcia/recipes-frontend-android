@@ -16,8 +16,8 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.yeraygarcia.recipes.adapter.RecipeDetailAdapter;
-import com.yeraygarcia.recipes.database.entity.custom.CustomRecipeIngredient;
-import com.yeraygarcia.recipes.database.entity.custom.RecipeDetail;
+import com.yeraygarcia.recipes.database.entity.custom.UiRecipeIngredient;
+import com.yeraygarcia.recipes.database.entity.custom.UiRecipe;
 import com.yeraygarcia.recipes.database.repository.RecipeDetailRepository;
 import com.yeraygarcia.recipes.util.Debug;
 import com.yeraygarcia.recipes.viewmodel.RecipeDetailViewModel;
@@ -81,22 +81,14 @@ public class RecipeDetailFragment extends Fragment {
 
             mRecipeDetailAdapter = new RecipeDetailAdapter(mParentActivity, viewModel);
 
-            viewModel.getRecipeDetail().observe(this, new Observer<RecipeDetail>() {
-                @Override
-                public void onChanged(@Nullable RecipeDetail recipeDetail) {
-                    if (recipeDetail == null) {
-                        return;
-                    }
-                    mAppBarLayout.setTitle(recipeDetail.getRecipe().getName());
-                    mRecipeDetailAdapter.setRecipe(recipeDetail);
+            viewModel.getRecipeDetail().observe(this, uiRecipe -> {
+                if (uiRecipe == null) {
+                    return;
                 }
+                mAppBarLayout.setTitle(uiRecipe.getRecipe().getName());
+                mRecipeDetailAdapter.setRecipe(uiRecipe);
             });
-            viewModel.getRecipeIngredients().observe(this, new Observer<List<CustomRecipeIngredient>>() {
-                @Override
-                public void onChanged(@Nullable List<CustomRecipeIngredient> recipeIngredients) {
-                    mRecipeDetailAdapter.setIngredients(recipeIngredients);
-                }
-            });
+            viewModel.getRecipeIngredients().observe(this, mRecipeDetailAdapter::setIngredients);
         }
     }
 
@@ -110,7 +102,7 @@ public class RecipeDetailFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         Debug.d(this, "onCreateView(inflater, container, savedInstanceState)");
-        View rootView = inflater.inflate(R.layout.recipe_detail, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_recipe_detail, container, false);
 
         mAppBarLayout = mParentActivity.findViewById(R.id.toolbar_layout);
 

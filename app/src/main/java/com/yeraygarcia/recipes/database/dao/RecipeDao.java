@@ -17,7 +17,4 @@ public abstract class RecipeDao implements BaseDao<Recipe> {
     @Query("SELECT * FROM recipe ORDER BY name ASC")
     public abstract LiveData<List<Recipe>> findAll();
 
-    @Query("SELECT * FROM recipe WHERE id = :id")
-    public abstract LiveData<Recipe> findById(long id);
-
 }

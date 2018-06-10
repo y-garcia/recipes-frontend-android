@@ -9,7 +9,7 @@ import com.yeraygarcia.recipes.database.entity.RecipeStep;
 
 import java.util.List;
 
-public class RecipeDetail {
+public class UiRecipe {
 
     @Embedded
     private Recipe recipe;

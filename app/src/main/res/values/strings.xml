@@ -18,4 +18,5 @@
     <string name="decrease_servings">Decrease servings</string>
     <string name="increase_servings">Increase servings</string>
     <string name="servings">servings</string>
+    <string name="no_tags">No tags</string>
 </resources>

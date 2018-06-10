@@ -14,10 +14,4 @@ public abstract class IngredientDao implements BaseDao<Ingredient> {
     @Query("DELETE FROM ingredient")
     public abstract void deleteAll();
 
-    @Query("SELECT * FROM ingredient ORDER BY name ASC")
-    abstract LiveData<List<Ingredient>> findAll();
-
-    @Query("SELECT * FROM ingredient WHERE id = :id")
-    abstract LiveData<Ingredient> findById(long id);
-
 }

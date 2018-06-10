@@ -17,10 +17,4 @@ public abstract class AisleDao implements BaseDao<Aisle> {
     @Query("DELETE FROM aisle")
     public abstract void deleteAll();
 
-    @Query("SELECT * FROM aisle ORDER BY name ASC")
-    abstract LiveData<List<Aisle>> findAll();
-
-    @Query("SELECT * FROM aisle WHERE id = :id")
-    abstract LiveData<Aisle> findById(long id);
-
 }

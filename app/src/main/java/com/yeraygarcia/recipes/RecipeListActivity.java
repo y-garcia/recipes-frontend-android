@@ -5,11 +5,11 @@ import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.os.Bundle;
+import android.os.PersistableBundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -20,8 +20,10 @@ import android.view.MenuInflater;
 import android.view.View;
 
 import com.yeraygarcia.recipes.adapter.RecipeAdapter;
-import com.yeraygarcia.recipes.database.AppDatabase;
+import com.yeraygarcia.recipes.adapter.TagAdapter;
 import com.yeraygarcia.recipes.database.entity.Recipe;
+import com.yeraygarcia.recipes.database.entity.Tag;
+import com.yeraygarcia.recipes.util.Debug;
 import com.yeraygarcia.recipes.util.ShortDividerItemDecoration;
 import com.yeraygarcia.recipes.viewmodel.RecipeViewModel;
 
@@ -35,62 +37,89 @@ import java.util.List;
  * item details. On tablets, the activity presents the list of items and
  * item details side-by-side using two vertical panes.
  */
-public class RecipeListActivity extends AppCompatActivity implements SearchView.OnQueryTextListener {
+public class RecipeListActivity extends AppCompatActivity {
 
+    private static final String EXTRA_TAG_FILTER = "mTagFilter";
+    private RecipeAdapter mRecipeAdapter;
     private RecipeViewModel mViewModel;
-    private RecyclerView mRecyclerView;
-    private RecipeAdapter mAdapter;
-    private AppDatabase mDatabase;
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet device.
      */
     private boolean mTwoPane;
+
+    // Lifeclye Methods
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_recipe_list);
 
+        Debug.d(this, "onCreate(savedInstaceState)");
+
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         toolbar.setTitle(getTitle());
 
         FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+        fab.setOnClickListener(view -> Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                .setAction("Action", null).show());
 
         if (findViewById(R.id.recipe_detail_container) != null) {
-            // The detail container view will be present only in the
-            // large-screen layouts (res/values-w900dp).
-            // If this view is present, then the
-            // activity should be in two-pane mode.
+            // we are on a tablet, since tablet-specific view exists
             mTwoPane = true;
         }
 
-        mAdapter = new RecipeAdapter(this, mTwoPane);
+        mRecipeAdapter = new RecipeAdapter(this, mTwoPane);
+        RecyclerView recipesRecyclerView = findViewById(R.id.recyclerview_recipe_list);
+        recipesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recipesRecyclerView.setAdapter(mRecipeAdapter);
+        recipesRecyclerView.addItemDecoration(new ShortDividerItemDecoration(this, DividerItemDecoration.VERTICAL, 16));
 
-        mRecyclerView = findViewById(R.id.recipe_list);
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        mRecyclerView.setAdapter(mAdapter);
-        mRecyclerView.addItemDecoration(new ShortDividerItemDecoration(this, DividerItemDecoration.VERTICAL, 16));
-        mRecyclerView.setItemAnimator(new DefaultItemAnimator());
-
-        mDatabase = AppDatabase.getDatabase(getApplicationContext());
+        TagAdapter tagAdapter = new TagAdapter(this);
+        RecyclerView tagsRecyclerView = findViewById(R.id.recyclerview_tag_chips);
+        tagsRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        tagsRecyclerView.setAdapter(tagAdapter);
 
         mViewModel = ViewModelProviders.of(this).get(RecipeViewModel.class);
-        mViewModel.getAllRecipes().observe(this, new Observer<List<Recipe>>() {
-            @Override
-            public void onChanged(@Nullable final List<Recipe> recipes) {
-                // Update the cached copy of the recipes in the adapter.
-                mAdapter.setRecipes(recipes);
-            }
-        });
+        if (savedInstanceState != null && savedInstanceState.containsKey(EXTRA_TAG_FILTER)) {
+            long[] tagFilter = savedInstanceState.getLongArray(EXTRA_TAG_FILTER);
+            mViewModel.setTagFilter(tagFilter);
+        }
+        mViewModel.getRecipes().observe(this, mRecipeAdapter::setRecipes);
+        mViewModel.getTags().observe(this, tagAdapter::setTags);
+        mViewModel.getTagFilter().observe(this, tagAdapter::setTagFilter);
     }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        Debug.d(this, "onSaveInstanceState(outState)");
+        outState.putLongArray(EXTRA_TAG_FILTER, mViewModel.getTagFilterAsArray());
+    }
+
+    @Override
+    protected void onDestroy() {
+        Debug.d(this, "onDestroy()");
+        super.onDestroy();
+        mViewModel.updateTagUsage();
+    }
+
+    // Internal classes
+
+    private class OnFilterRecipesListener implements SearchView.OnQueryTextListener {
+        @Override
+        public boolean onQueryTextSubmit(String query) {
+            return false;
+        }
+
+        @Override
+        public boolean onQueryTextChange(String newText) {
+            mRecipeAdapter.getFilter().filter(newText);
+            return false;
+        }
+    }
+
+    // Overrides
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -103,19 +132,8 @@ public class RecipeListActivity extends AppCompatActivity implements SearchView.
         if (searchManager != null) {
             searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
         }
-        searchView.setOnQueryTextListener(this);
+        searchView.setOnQueryTextListener(new OnFilterRecipesListener());
 
         return true;
-    }
-
-    @Override
-    public boolean onQueryTextSubmit(String query) {
-        return false;
-    }
-
-    @Override
-    public boolean onQueryTextChange(String newText) {
-        mAdapter.getFilter().filter(newText);
-        return false;
     }
 }

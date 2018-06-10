@@ -17,8 +17,8 @@ import android.widget.TextView;
 
 import com.yeraygarcia.recipes.R;
 import com.yeraygarcia.recipes.database.entity.RecipeStep;
-import com.yeraygarcia.recipes.database.entity.custom.CustomRecipeIngredient;
-import com.yeraygarcia.recipes.database.entity.custom.RecipeDetail;
+import com.yeraygarcia.recipes.database.entity.custom.UiRecipe;
+import com.yeraygarcia.recipes.database.entity.custom.UiRecipeIngredient;
 import com.yeraygarcia.recipes.util.Debug;
 import com.yeraygarcia.recipes.viewmodel.RecipeDetailViewModel;
 
@@ -39,8 +39,8 @@ public class RecipeDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     private RecipeDetailViewModel mViewModel;
     private LayoutInflater mInflater;
 
-    private RecipeDetail mRecipeDetail;
-    private List<CustomRecipeIngredient> mIngredients;
+    private UiRecipe mUiRecipe;
+    private List<UiRecipeIngredient> mIngredients;
     private List<RecipeStep> mSteps;
 
     private int mSelectedIngredient = RecyclerView.NO_POSITION;
@@ -70,20 +70,14 @@ public class RecipeDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             itemIncrease = itemView.findViewById(R.id.imageview_increase_servings);
             itemServings = itemView.findViewById(R.id.textview_servings);
 
-            itemDecrease.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    mRecipeDetail.getRecipe().decreasePortions();
-                    mViewModel.update(mRecipeDetail.getRecipe());
-                }
+            itemDecrease.setOnClickListener(v -> {
+                mUiRecipe.getRecipe().decreasePortions();
+                mViewModel.update(mUiRecipe.getRecipe());
             });
 
-            itemIncrease.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    mRecipeDetail.getRecipe().increasePortions();
-                    mViewModel.update(mRecipeDetail.getRecipe());
-                }
+            itemIncrease.setOnClickListener(v -> {
+                mUiRecipe.getRecipe().increasePortions();
+                mViewModel.update(mUiRecipe.getRecipe());
             });
         }
 
@@ -114,15 +108,12 @@ public class RecipeDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             itemSourceIcon = itemView.findViewById(R.id.imageview_source_icon);
             itemDuration = itemView.findViewById(R.id.textview_duration);
             itemSource = itemView.findViewById(R.id.textview_source);
-            itemSource.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    String urlString = (String) v.getTag();
+            itemSource.setOnClickListener(v -> {
+                String urlString = (String) v.getTag();
 
-                    if (URLUtil.isValidUrl(urlString)) {
-                        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(urlString));
-                        mContext.startActivity(browserIntent);
-                    }
+                if (URLUtil.isValidUrl(urlString)) {
+                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(urlString));
+                    mContext.startActivity(browserIntent);
                 }
             });
         }
@@ -141,21 +132,18 @@ public class RecipeDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             itemUnit = itemView.findViewById(R.id.textview_unit);
             itemIngredientName = itemView.findViewById(R.id.textview_ingredient_name);
 
-            itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    final int currentPosition = getAdapterPosition();
+            itemView.setOnClickListener(v -> {
+                final int currentPosition = getAdapterPosition();
 
-                    if (currentPosition == RecyclerView.NO_POSITION) return;
+                if (currentPosition == RecyclerView.NO_POSITION) return;
 
-                    // updating old position
-                    notifyItemChanged(mSelectedIngredient);
-                    // deselect current item if it's already selected and the user clicks again on it
-                    mSelectedIngredient = (currentPosition == mSelectedIngredient) ? RecyclerView.NO_POSITION : currentPosition;
-                    // update new position
-                    notifyItemChanged(mSelectedIngredient
-                    );
-                }
+                // updating old position
+                notifyItemChanged(mSelectedIngredient);
+                // deselect current item if it's already selected and the user clicks again on it
+                mSelectedIngredient = (currentPosition == mSelectedIngredient) ? RecyclerView.NO_POSITION : currentPosition;
+                // update new position
+                notifyItemChanged(mSelectedIngredient
+                );
             });
         }
 
@@ -171,20 +159,15 @@ public class RecipeDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             itemStepNumber = itemView.findViewById(R.id.textview_step_number);
             itemStepDescription = itemView.findViewById(R.id.textview_step_description);
 
-            itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    final int currentPosition = getAdapterPosition();
+            itemView.setOnClickListener(v -> {
+                final int position = getAdapterPosition();
 
-                    if (currentPosition == RecyclerView.NO_POSITION) return;
-
-                    // updating old position
-                    notifyItemChanged(mSelectedStep);
-                    // deselect current item if it's already selected and the user clicks again on it
-                    mSelectedStep = (currentPosition == mSelectedStep) ? RecyclerView.NO_POSITION : currentPosition;
-                    // update new position
-                    notifyItemChanged(mSelectedStep);
-                }
+                // updating old position
+                notifyItemChanged(mSelectedStep);
+                // deselect current item if it's already selected and the user clicks again on it
+                mSelectedStep = (position == mSelectedStep) ? RecyclerView.NO_POSITION : position;
+                // update new position
+                notifyItemChanged(mSelectedStep);
             });
         }
 
@@ -196,8 +179,8 @@ public class RecipeDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     public int getItemViewType(int position) {
         //Debug.d(this, "getItemViewType(position=" + String.valueOf(position) + ")");
 
-        // at least one ingredient to show the "no ingredients" item
-        final int ingredientsCount = Math.max(mIngredients.size(), 1);
+        // there is always at least one ingredient item to show the "no ingredients" when empty
+        final int ingredientsCount = (mIngredients == null) ? 1 : Math.max(mIngredients.size(), 1);
 
         if (position == 0) {
             return VIEWTYPE_DURATION_SOURCE;
@@ -220,23 +203,23 @@ public class RecipeDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         View view;
         switch (viewType) {
             case VIEWTYPE_INGREDIENTS_HEADER:
-                view = mInflater.inflate(R.layout.list_item_ingredients_header, parent, false);
+                view = mInflater.inflate(R.layout.item_header_ingredients, parent, false);
                 return new IngredientsHeaderViewHolder(view);
 
             case VIEWTYPE_STEPS_HEADER:
-                view = mInflater.inflate(R.layout.list_item_header, parent, false);
+                view = mInflater.inflate(R.layout.item_header_generic, parent, false);
                 return new HeaderViewHolder(view);
 
             case VIEWTYPE_DURATION_SOURCE:
-                view = mInflater.inflate(R.layout.list_item_duration_source, parent, false);
+                view = mInflater.inflate(R.layout.item_duration_source, parent, false);
                 return new DurationSourceViewHolder(view);
 
             case VIEWTYPE_INGREDIENT:
-                view = mInflater.inflate(R.layout.list_item_ingredient, parent, false);
+                view = mInflater.inflate(R.layout.item_ingredient, parent, false);
                 return new IngredientsViewHolder(view);
 
             default:
-                view = mInflater.inflate(R.layout.list_item_step, parent, false);
+                view = mInflater.inflate(R.layout.item_step, parent, false);
                 return new StepsViewHolder(view);
         }
     }
@@ -248,22 +231,21 @@ public class RecipeDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         switch (holder.getItemViewType()) {
 
             case VIEWTYPE_INGREDIENTS_HEADER:
-                if (mRecipeDetail != null) {
+                if (mUiRecipe != null) {
                     ((IngredientsHeaderViewHolder) holder).itemServings.setText(
-                            String.format(Locale.getDefault(), "%d", mRecipeDetail.getRecipe().getPortions()));
+                            String.format(Locale.getDefault(), "%d", mUiRecipe.getRecipe().getPortions()));
                 }
                 break;
 
             case VIEWTYPE_STEPS_HEADER:
-                Debug.d(this, mSteps.size() + "");
                 ((HeaderViewHolder) holder).itemTitle.setText(R.string.header_steps);
                 break;
 
             case VIEWTYPE_DURATION_SOURCE:
-                if (mRecipeDetail != null) {
+                if (mUiRecipe != null) {
                     formatDurationSourceView((DurationSourceViewHolder) holder,
-                            mRecipeDetail.getRecipe().getDurationInMinutes(),
-                            mRecipeDetail.getRecipe().getUrl());
+                            mUiRecipe.getRecipe().getDurationInMinutes(),
+                            mUiRecipe.getRecipe().getUrl());
                 }
                 break;
 
@@ -271,7 +253,7 @@ public class RecipeDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 IngredientsViewHolder viewHolder = (IngredientsViewHolder) holder;
                 holder.itemView.setSelected(mSelectedIngredient == position);
                 if (mIngredients != null && mIngredients.size() > 0) {
-                    final CustomRecipeIngredient currentIngredient = mIngredients.get(position - 2);
+                    final UiRecipeIngredient currentIngredient = mIngredients.get(position - 2);
                     viewHolder.itemQuantity.setText(formatQuantity(currentIngredient.getQuantity()));
                     viewHolder.itemUnit.setText(formatUnit(currentIngredient.getQuantity(), currentIngredient.getUnitName(), currentIngredient.getUnitNamePlural()));
                     viewHolder.itemIngredientName.setText(currentIngredient.getIngredientName());
@@ -299,7 +281,7 @@ public class RecipeDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     @Override
     public int getItemCount() {
         int size = 0;
-        if (mRecipeDetail != null) {
+        if (mUiRecipe != null) {
             size += 3;
         }
         if (mIngredients != null) {
@@ -318,14 +300,14 @@ public class RecipeDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
     // Getters and Setters
 
-    public void setRecipe(RecipeDetail recipe) {
+    public void setRecipe(UiRecipe recipe) {
         Debug.d(this, "setRecipe(recipe)");
-        mRecipeDetail = recipe;
+        mUiRecipe = recipe;
         mSteps = recipe.getSteps();
         notifyDataSetChanged();
     }
 
-    public void setIngredients(List<CustomRecipeIngredient> ingredients) {
+    public void setIngredients(List<UiRecipeIngredient> ingredients) {
         Debug.d(this, "setIngredients(ingredients(" + ingredients.size() + "))");
         mIngredients = ingredients;
         notifyDataSetChanged();

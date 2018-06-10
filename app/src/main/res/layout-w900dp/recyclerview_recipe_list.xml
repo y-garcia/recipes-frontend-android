@@ -18,14 +18,14 @@
 
     <android.support.v7.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
-        android:id="@+id/recipe_list"
+        android:id="@+id/recyclerview_recipe_list"
         android:name="com.yeraygarcia.recetas.RecipeListFragment"
         android:layout_width="@dimen/item_width"
         android:layout_height="match_parent"
         android:layout_marginLeft="16dp"
         android:layout_marginRight="16dp"
         tools:context="com.yeraygarcia.recipes.RecipeListActivity"
-        tools:listitem="@layout/list_item_recipe" />
+        tools:listitem="@layout/item_recipe_name" />
 
     <FrameLayout
         android:id="@+id/recipe_detail_container"

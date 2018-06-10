@@ -14,6 +14,9 @@ import com.yeraygarcia.recipes.database.dao.RecipeDao;
 import com.yeraygarcia.recipes.database.dao.RecipeDetailDao;
 import com.yeraygarcia.recipes.database.dao.RecipeIngredientDao;
 import com.yeraygarcia.recipes.database.dao.RecipeStepDao;
+import com.yeraygarcia.recipes.database.dao.RecipeTagDao;
+import com.yeraygarcia.recipes.database.dao.TagDao;
+import com.yeraygarcia.recipes.database.dao.TagUsageDao;
 import com.yeraygarcia.recipes.database.dao.UnitDao;
 import com.yeraygarcia.recipes.database.entity.Aisle;
 import com.yeraygarcia.recipes.database.entity.Ingredient;
@@ -24,13 +27,15 @@ import com.yeraygarcia.recipes.database.entity.RecipeStep;
 import com.yeraygarcia.recipes.database.entity.RecipeTag;
 import com.yeraygarcia.recipes.database.entity.Store;
 import com.yeraygarcia.recipes.database.entity.Tag;
+import com.yeraygarcia.recipes.database.entity.TagUsage;
 import com.yeraygarcia.recipes.database.entity.Unit;
 import com.yeraygarcia.recipes.util.Debug;
 
 @Database(
         entities = {
                 Aisle.class, Store.class, Tag.class, Unit.class, Ingredient.class, Placement.class,
-                Recipe.class, RecipeIngredient.class, RecipeStep.class, RecipeTag.class
+                Recipe.class, RecipeIngredient.class, RecipeStep.class, RecipeTag.class,
+                TagUsage.class
         },
         version = 1,
         exportSchema = false
@@ -65,54 +70,71 @@ public abstract class AppDatabase extends RoomDatabase {
         return sInstance;
     }
 
-    public abstract AisleDao aisleDao();
+    public abstract AisleDao getAisleDao();
 
-    public abstract UnitDao unitDao();
+    public abstract TagDao getTagDao();
 
-    public abstract IngredientDao ingredientDao();
+    public abstract UnitDao getUnitDao();
 
-    public abstract RecipeDao recipeDao();
+    public abstract IngredientDao getIngredientDao();
 
-    public abstract RecipeIngredientDao recipeIngredientDao();
+    public abstract RecipeDao getRecipeDao();
 
-    public abstract RecipeStepDao recipeStepDao();
+    public abstract RecipeIngredientDao getRecipeIngredientDao();
 
-    public abstract RecipeDetailDao recipeDetailDao();
+    public abstract RecipeStepDao getRecipeStepDao();
+
+    public abstract RecipeDetailDao getRecipeDetailDao();
+
+    public abstract RecipeTagDao getRecipeTagDao();
+
+    public abstract TagUsageDao getTagUsageDao();
 
     private static class PopulateDbAsync extends AsyncTask<Void, Void, Void> {
 
         private final AisleDao mAisleDao;
+        private final TagDao mTagDao;
         private final UnitDao mUnitDao;
         private final IngredientDao mIngredientDao;
         private final RecipeDao mRecipeDao;
         private final RecipeIngredientDao mRecipeIngredientDao;
         private final RecipeStepDao mRecipeStepDao;
+        private final RecipeTagDao mRecipeTagDao;
+        private final TagUsageDao mTagUsageDao;
 
         PopulateDbAsync(AppDatabase db) {
-            mAisleDao = db.aisleDao();
-            mUnitDao = db.unitDao();
-            mIngredientDao = db.ingredientDao();
-            mRecipeDao = db.recipeDao();
-            mRecipeIngredientDao = db.recipeIngredientDao();
-            mRecipeStepDao = db.recipeStepDao();
+            mAisleDao = db.getAisleDao();
+            mTagDao = db.getTagDao();
+            mUnitDao = db.getUnitDao();
+            mIngredientDao = db.getIngredientDao();
+            mRecipeDao = db.getRecipeDao();
+            mRecipeIngredientDao = db.getRecipeIngredientDao();
+            mRecipeStepDao = db.getRecipeStepDao();
+            mRecipeTagDao = db.getRecipeTagDao();
+            mTagUsageDao = db.getTagUsageDao();
         }
 
         @Override
         protected Void doInBackground(final Void... params) {
-            Debug.d(this, "Populating database...");
+            Debug.d(this, "Populating database");
+            mTagUsageDao.deleteAll();
+            mRecipeTagDao.deleteAll();
             mRecipeStepDao.deleteAll();
             mRecipeIngredientDao.deleteAll();
             mRecipeDao.deleteAll();
             mIngredientDao.deleteAll();
             mUnitDao.deleteAll();
+            mTagDao.deleteAll();
             mAisleDao.deleteAll();
 
             populateAisle();
+            populateTag();
             populateUnit();
             populateIngredient();
             populateRecipe();
             populateRecipeIngredient();
             populateRecipeStep();
+            populateRecipeTag();
 
             return null;
         }
@@ -137,6 +159,40 @@ public abstract class AppDatabase extends RoomDatabase {
                     new Aisle(16, "Haushalt"),
                     new Aisle(17, "Getränke"),
                     new Aisle(18, "Tiefkühl")
+            );
+        }
+
+        private void populateTag() {
+            mTagDao.insert(
+                    new Tag(1, "amerikanisch", 0L),
+                    new Tag(2, "arabisch", 0L),
+                    new Tag(3, "asiatisch", 0L),
+                    new Tag(4, "Auflauf", 0L),
+                    new Tag(5, "aufwärmen", 0L),
+                    new Tag(6, "Dessert", 0L),
+                    new Tag(7, "Eintopf", 0L),
+                    new Tag(8, "Favorit", 0L),
+                    new Tag(9, "Fisch", 0L),
+                    new Tag(10, "Fleisch", 0L),
+                    new Tag(11, "foodwishes", 0L),
+                    new Tag(12, "französisch", 0L),
+                    new Tag(13, "Frühstück", 0L),
+                    new Tag(14, "griechisch", 0L),
+                    new Tag(15, "italienisch", 0L),
+                    new Tag(16, "Jamie", 0L),
+                    new Tag(17, "Nudeln", 0L),
+                    new Tag(18, "Oliver", 0L),
+                    new Tag(19, "portugiesisch", 0L),
+                    new Tag(20, "post-workout", 0L),
+                    new Tag(21, "Protein", 0L),
+                    new Tag(22, "Salat", 0L),
+                    new Tag(23, "schnell", 0L),
+                    new Tag(24, "spanisch", 0L),
+                    new Tag(25, "Suppe", 0L),
+                    new Tag(26, "veggie", 0L),
+                    new Tag(27, "Weihnachten", 0L),
+                    new Tag(28, "Winter", 0L),
+                    new Tag(29, "zuckerfrei", 0L)
             );
         }
 
@@ -198,7 +254,7 @@ public abstract class AppDatabase extends RoomDatabase {
                     new Ingredient(25, "Champignons", 2),
                     new Ingredient(26, "Kokosmilch", 10),
                     new Ingredient(27, "Lauch", 2),
-                    new Ingredient(28, "Paprika rot", 2),
+                    new Ingredient(28, "Paprika (rot)", 2),
                     new Ingredient(29, "Parmesan", 8),
                     new Ingredient(30, "Spaghetti", 12),
                     new Ingredient(31, "Bananen", 3),
@@ -262,7 +318,7 @@ public abstract class AppDatabase extends RoomDatabase {
                     new Ingredient(89, "Actimel", 8),
                     new Ingredient(90, "Ahornsirup", 6),
                     new Ingredient(91, "Apfel (gerieben)", 3),
-                    new Ingredient(92, "Apfel Braeburn", 3),
+                    new Ingredient(92, "Apfel (Braeburn)", 3),
                     new Ingredient(93, "Asiatische Nudeln", 10),
                     new Ingredient(94, "Aubergine", 2),
                     new Ingredient(95, "Babyspinat", 2),
@@ -272,7 +328,7 @@ public abstract class AppDatabase extends RoomDatabase {
                     new Ingredient(99, "Berchtesgadener Joghurt", 8),
                     new Ingredient(100, "Blattspinat", 2),
                     new Ingredient(101, "Bohnen", 4),
-                    new Ingredient(102, "brauner Zucker", 13),
+                    new Ingredient(102, "Zucker (braun)", 13),
                     new Ingredient(103, "Brot", 9),
                     new Ingredient(104, "Butterflöckchen", 8),
                     new Ingredient(105, "Butterschmalz", 8),
@@ -295,14 +351,14 @@ public abstract class AppDatabase extends RoomDatabase {
                     new Ingredient(122, "Feldsalat", 2),
                     new Ingredient(124, "Fett", 8),
                     new Ingredient(125, "Feuchtes Toilettenpapier", 16),
-                    new Ingredient(126, "frisch geriebene Muskatnuss", 11),
+                    new Ingredient(126, "Muskatnuss (frisch gerieben)", 11),
                     new Ingredient(127, "Fusilli", 12),
                     new Ingredient(128, "Garam Masala", 11),
                     new Ingredient(129, "gekochter Schinken", 8),
                     new Ingredient(130, "Gemüse", 2),
                     new Ingredient(131, "Geriebener Käse", 8),
-                    new Ingredient(132, "Geschwärzte Oliven", 4),
-                    new Ingredient(133, "Gewürzmischung „Kräuterbutter“", 11),
+                    new Ingredient(132, "Oliven (geschwärzte)", 4),
+                    new Ingredient(133, "Gewürzmischung \"Kräuterbutter\"", 11),
                     new Ingredient(134, "Gezuckerte Kondensmilch", 7),
                     new Ingredient(135, "Goji-Beeren", 1),
                     new Ingredient(136, "Gorgonzola", 8),
@@ -311,7 +367,7 @@ public abstract class AppDatabase extends RoomDatabase {
                     new Ingredient(139, "Grieß", 12),
                     new Ingredient(140, "Gruyere (12+ Monate)", 8),
                     new Ingredient(141, "Grünkohl (frisch)", 2),
-                    new Ingredient(142, "Halbbitter-Kuvertüre", 13),
+                    new Ingredient(142, "Kuvertüre (halbbitter)", 13),
                     new Ingredient(143, "Haselnüsse (gemahlen)", 1),
                     new Ingredient(144, "Himbeere", 18),
                     new Ingredient(145, "Hohes C Orange Fruchtfleisch", 17),
@@ -319,7 +375,7 @@ public abstract class AppDatabase extends RoomDatabase {
                     new Ingredient(147, "Italienische Kräuter", 11),
                     new Ingredient(148, "Kabeljau", 14),
                     new Ingredient(149, "Kaffee", 7),
-                    new Ingredient(150, "kaltes Wasser", 17),
+                    new Ingredient(150, "Wasser (kalt)", 17),
                     new Ingredient(151, "Kartoffeln (mehlig)", 2),
                     new Ingredient(152, "Kirschtomaten", 2),
                     new Ingredient(153, "Kiwi", 3),
@@ -329,7 +385,7 @@ public abstract class AppDatabase extends RoomDatabase {
                     new Ingredient(157, "Kokosflakes", 7),
                     new Ingredient(158, "Koriander (frisch)", 11),
                     new Ingredient(159, "Kumin (gemahlen)", 11),
-                    new Ingredient(160, "Kuvertüre zartbitter", 13),
+                    new Ingredient(160, "Kuvertüre (zartbitter)", 13),
                     new Ingredient(161, "Käse", 8),
                     new Ingredient(162, "Käse (gerieben)", 8),
                     new Ingredient(163, "Küchenrollen", 16),
@@ -337,7 +393,7 @@ public abstract class AppDatabase extends RoomDatabase {
                     new Ingredient(165, "Laksapaste", 11),
                     new Ingredient(166, "Lasagneplatten", 12),
                     new Ingredient(167, "Laugengebäck", 9),
-                    new Ingredient(168, "lauwarmes Wasser", 17),
+                    new Ingredient(168, "Wasser (lauwarm)", 17),
                     new Ingredient(169, "Limettensaft", 3),
                     new Ingredient(170, "Linguiça-Wurst", 14),
                     new Ingredient(171, "Loorbeerblatt", 11),
@@ -355,16 +411,16 @@ public abstract class AppDatabase extends RoomDatabase {
                     new Ingredient(183, "Mediterrane Kräuter", 11),
                     new Ingredient(184, "Meersalz", 11),
                     new Ingredient(185, "Minze", 11),
-                    new Ingredient(186, "mittelalter Gouda", 8),
+                    new Ingredient(186, "Gouda (mittelalt)", 8),
                     new Ingredient(187, "Mohrrüben", 2),
                     new Ingredient(188, "Naturjoghurt", 8),
                     new Ingredient(189, "Nesquik", 7),
                     new Ingredient(190, "Oliven", 4),
-                    new Ingredient(191, "Optional: Obst der Saison", 3),
+                    new Ingredient(191, "Obst der Saison (optional)", 3),
                     new Ingredient(192, "Orange", 3),
                     new Ingredient(193, "Pappardelle", 12),
-                    new Ingredient(194, "Paprika grün", 2),
-                    new Ingredient(195, "Paprikapulver edelsüß", 11),
+                    new Ingredient(194, "Paprika (grün)", 2),
+                    new Ingredient(195, "Paprikapulver (edelsüß)", 11),
                     new Ingredient(196, "Pastinake", 2),
                     new Ingredient(197, "Pinienkerne", 1),
                     new Ingredient(198, "Pizzateig", 8),
@@ -380,8 +436,8 @@ public abstract class AppDatabase extends RoomDatabase {
                     new Ingredient(208, "Salatgurke", 2),
                     new Ingredient(209, "Salbeiblätter", 11),
                     new Ingredient(210, "Sambal Oelek", 10),
-                    new Ingredient(211, "saure Sahne", 8),
-                    new Ingredient(212, "Scamozza", 8),
+                    new Ingredient(211, "Saure Sahne", 8),
+                    new Ingredient(212, "Scamorza", 8),
                     new Ingredient(213, "Schnittlauch", 2),
                     new Ingredient(214, "Sellerie", 2),
                     new Ingredient(215, "Semmelbrösel", 13),
@@ -392,16 +448,16 @@ public abstract class AppDatabase extends RoomDatabase {
                     new Ingredient(220, "Spülmaschinensalz", 16),
                     new Ingredient(221, "Spülmaschinentabs", 16),
                     new Ingredient(222, "Suppengemüse", 2),
-                    new Ingredient(223, "süße Sahne", 8),
-                    new Ingredient(224, "süßer Senf", 6),
+                    new Ingredient(223, "Süße Sahne", 8),
+                    new Ingredient(224, "Süßer Senf", 6),
                     new Ingredient(225, "Süßkartoffeln", 2),
                     new Ingredient(226, "Tahini", 10),
                     new Ingredient(227, "Tempos", 16),
                     new Ingredient(228, "Tomate", 2),
                     new Ingredient(229, "Tomaten (getrocknet, in Öl)", 4),
-                    new Ingredient(230, "Tomaten gewürfel", 2),
+                    new Ingredient(230, "Tomaten (gewürfelt)", 2),
                     new Ingredient(231, "Vanillinzucker", 13),
-                    new Ingredient(232, "Warmes wasser", 17),
+                    new Ingredient(232, "Wasser (warm)", 17),
                     new Ingredient(233, "Waschmittel", 16),
                     new Ingredient(234, "Weichspüler", 16),
                     new Ingredient(235, "Weinessig", 6),
@@ -1620,6 +1676,126 @@ public abstract class AppDatabase extends RoomDatabase {
                     new RecipeStep(489, 77, "Blockschokolade im Wasserbad schmelzen und die Ecken damit bestreichen.", false, 9)
             );
         }
+
+        private void populateRecipeTag() {
+            mRecipeTagDao.insert(
+                    new RecipeTag(1, 1, 26),
+                    new RecipeTag(2, 3, 26),
+                    new RecipeTag(3, 3, 16),
+                    new RecipeTag(4, 3, 18),
+                    new RecipeTag(5, 5, 26),
+                    new RecipeTag(6, 5, 23),
+                    new RecipeTag(7, 6, 26),
+                    new RecipeTag(8, 6, 3),
+                    new RecipeTag(9, 7, 17),
+                    new RecipeTag(10, 7, 9),
+                    new RecipeTag(11, 7, 23),
+                    new RecipeTag(12, 8, 17),
+                    new RecipeTag(13, 8, 10),
+                    new RecipeTag(14, 9, 7),
+                    new RecipeTag(15, 9, 26),
+                    new RecipeTag(16, 9, 24),
+                    new RecipeTag(17, 10, 9),
+                    new RecipeTag(18, 10, 3),
+                    new RecipeTag(19, 11, 22),
+                    new RecipeTag(20, 11, 26),
+                    new RecipeTag(21, 12, 6),
+                    new RecipeTag(22, 13, 17),
+                    new RecipeTag(23, 13, 26),
+                    new RecipeTag(24, 16, 14),
+                    new RecipeTag(25, 17, 25),
+                    new RecipeTag(26, 18, 13),
+                    new RecipeTag(27, 19, 26),
+                    new RecipeTag(28, 20, 26),
+                    new RecipeTag(29, 21, 26),
+                    new RecipeTag(30, 22, 17),
+                    new RecipeTag(31, 23, 25),
+                    new RecipeTag(32, 23, 26),
+                    new RecipeTag(33, 24, 26),
+                    new RecipeTag(34, 25, 9),
+                    new RecipeTag(35, 26, 26),
+                    new RecipeTag(36, 26, 7),
+                    new RecipeTag(37, 27, 26),
+                    new RecipeTag(38, 27, 15),
+                    new RecipeTag(39, 27, 5),
+                    new RecipeTag(40, 28, 26),
+                    new RecipeTag(41, 28, 17),
+                    new RecipeTag(42, 29, 26),
+                    new RecipeTag(43, 30, 13),
+                    new RecipeTag(44, 31, 13),
+                    new RecipeTag(45, 32, 26),
+                    new RecipeTag(46, 33, 7),
+                    new RecipeTag(47, 33, 24),
+                    new RecipeTag(48, 33, 26),
+                    new RecipeTag(49, 34, 26),
+                    new RecipeTag(50, 35, 24),
+                    new RecipeTag(51, 35, 26),
+                    new RecipeTag(52, 36, 17),
+                    new RecipeTag(53, 36, 9),
+                    new RecipeTag(54, 36, 11),
+                    new RecipeTag(55, 37, 26),
+                    new RecipeTag(56, 37, 3),
+                    new RecipeTag(57, 38, 6),
+                    new RecipeTag(58, 38, 13),
+                    new RecipeTag(59, 40, 10),
+                    new RecipeTag(60, 40, 14),
+                    new RecipeTag(61, 40, 11),
+                    new RecipeTag(62, 41, 26),
+                    new RecipeTag(63, 41, 16),
+                    new RecipeTag(64, 41, 18),
+                    new RecipeTag(65, 42, 10),
+                    new RecipeTag(66, 42, 24),
+                    new RecipeTag(67, 43, 13),
+                    new RecipeTag(68, 43, 16),
+                    new RecipeTag(69, 43, 18),
+                    new RecipeTag(70, 44, 17),
+                    new RecipeTag(71, 45, 24),
+                    new RecipeTag(72, 45, 9),
+                    new RecipeTag(73, 46, 24),
+                    new RecipeTag(74, 46, 7),
+                    new RecipeTag(75, 46, 26),
+                    new RecipeTag(76, 47, 17),
+                    new RecipeTag(77, 47, 9),
+                    new RecipeTag(78, 49, 17),
+                    new RecipeTag(79, 49, 5),
+                    new RecipeTag(80, 49, 1),
+                    new RecipeTag(81, 49, 8),
+                    new RecipeTag(82, 50, 26),
+                    new RecipeTag(83, 50, 23),
+                    new RecipeTag(84, 50, 3),
+                    new RecipeTag(85, 50, 25),
+                    new RecipeTag(86, 51, 9),
+                    new RecipeTag(87, 51, 23),
+                    new RecipeTag(88, 52, 26),
+                    new RecipeTag(89, 52, 23),
+                    new RecipeTag(90, 52, 2),
+                    new RecipeTag(91, 53, 26),
+                    new RecipeTag(92, 53, 25),
+                    new RecipeTag(93, 54, 7),
+                    new RecipeTag(94, 54, 28),
+                    new RecipeTag(95, 54, 11),
+                    new RecipeTag(96, 54, 19),
+                    new RecipeTag(97, 55, 26),
+                    new RecipeTag(98, 55, 15),
+                    new RecipeTag(99, 55, 5),
+                    new RecipeTag(100, 56, 26),
+                    new RecipeTag(101, 56, 28),
+                    new RecipeTag(102, 56, 12),
+                    new RecipeTag(103, 56, 23),
+                    new RecipeTag(104, 57, 10),
+                    new RecipeTag(105, 57, 5),
+                    new RecipeTag(106, 58, 27),
+                    new RecipeTag(107, 58, 26),
+                    new RecipeTag(108, 58, 6),
+                    new RecipeTag(109, 59, 26),
+                    new RecipeTag(110, 60, 27),
+                    new RecipeTag(111, 60, 26),
+                    new RecipeTag(112, 60, 6),
+                    new RecipeTag(113, 61, 26),
+                    new RecipeTag(114, 61, 25)
+            );
+        }
+
     }
 
 }

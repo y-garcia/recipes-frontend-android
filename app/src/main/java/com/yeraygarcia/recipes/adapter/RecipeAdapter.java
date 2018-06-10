@@ -23,7 +23,7 @@ import java.util.List;
 
 public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipesViewHolder> implements Filterable {
 
-    private List<Recipe> mRecipes; // Cached copy of recipes
+    private List<Recipe> mRecipes;
 
     private RecipeFilter mFilter;
 
@@ -35,14 +35,6 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipesVie
     public RecipeAdapter(RecipeListActivity parent, boolean twoPane) {
         mParentActivity = parent;
         mTwoPane = twoPane;
-    }
-
-    @Override
-    public Filter getFilter() {
-        if (mFilter == null) {
-            mFilter = new RecipeFilter(this, mRecipes);
-        }
-        return mFilter;
     }
 
     // Internal classes
@@ -78,15 +70,13 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipesVie
         }
     }
 
-    class RecipeFilter extends Filter {
+    private class RecipeFilter extends Filter {
 
-        private final RecipeAdapter adapter;
         private final List<Recipe> originalList;
         private final List<Recipe> filteredList;
 
-        private RecipeFilter(RecipeAdapter adapter, List<Recipe> originalList) {
+        private RecipeFilter(List<Recipe> originalList) {
             super();
-            this.adapter = adapter;
             this.originalList = new LinkedList<>(originalList);
             this.filteredList = new ArrayList<>();
         }
@@ -121,10 +111,18 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipesVie
 
     // Overrides
 
+    @Override
+    public Filter getFilter() {
+        if (mFilter == null) {
+            mFilter = new RecipeFilter(mRecipes);
+        }
+        return mFilter;
+    }
+
     @NonNull
     @Override
     public RecipesViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(mParentActivity).inflate(R.layout.list_item_recipe, parent, false);
+        View view = LayoutInflater.from(mParentActivity).inflate(R.layout.item_recipe_name, parent, false);
         return new RecipesViewHolder(view);
     }
 
@@ -139,11 +137,6 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipesVie
         }
     }
 
-    public void setRecipes(List<Recipe> recipes) {
-        mRecipes = recipes;
-        notifyDataSetChanged();
-    }
-
     // getItemCount() is called many times, and when it is first called,
     // mRecipes has not been updated (means initially, it's null, and we can't return null).
     @Override
@@ -152,5 +145,12 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipesVie
             return mRecipes.size();
         }
         return 0;
+    }
+
+    // Methods
+
+    public void setRecipes(List<Recipe> recipes) {
+        mRecipes = recipes;
+        notifyDataSetChanged();
     }
 }

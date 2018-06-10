@@ -9,8 +9,8 @@ import com.yeraygarcia.recipes.database.dao.RecipeDao;
 import com.yeraygarcia.recipes.database.dao.RecipeDetailDao;
 import com.yeraygarcia.recipes.database.dao.RecipeIngredientDao;
 import com.yeraygarcia.recipes.database.entity.Recipe;
-import com.yeraygarcia.recipes.database.entity.custom.CustomRecipeIngredient;
-import com.yeraygarcia.recipes.database.entity.custom.RecipeDetail;
+import com.yeraygarcia.recipes.database.entity.custom.UiRecipeIngredient;
+import com.yeraygarcia.recipes.database.entity.custom.UiRecipe;
 
 import java.util.List;
 
@@ -22,20 +22,20 @@ public class RecipeDetailRepository {
 
     public RecipeDetailRepository(Application application) {
         AppDatabase db = AppDatabase.getDatabase(application);
-        mRecipeDao = db.recipeDao();
-        mRecipeDetailDao = db.recipeDetailDao();
-        mRecipeIngredientDao = db.recipeIngredientDao();
+        mRecipeDao = db.getRecipeDao();
+        mRecipeDetailDao = db.getRecipeDetailDao();
+        mRecipeIngredientDao = db.getRecipeIngredientDao();
     }
 
-    public LiveData<List<RecipeDetail>> getRecipes() {
+    public LiveData<List<UiRecipe>> getRecipes() {
         return mRecipeDetailDao.findAll();
     }
 
-    public LiveData<RecipeDetail> getRecipeById(long id) {
+    public LiveData<UiRecipe> getRecipeById(long id) {
         return mRecipeDetailDao.findById(id);
     }
 
-    public LiveData<List<CustomRecipeIngredient>> getIngredientsByRecipeId(long recipeId) {
+    public LiveData<List<UiRecipeIngredient>> getIngredientsByRecipeId(long recipeId) {
         return mRecipeIngredientDao.findByRecipeId(recipeId);
     }
 

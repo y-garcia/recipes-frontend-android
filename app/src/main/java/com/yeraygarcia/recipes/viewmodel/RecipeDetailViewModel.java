@@ -4,8 +4,8 @@ import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.ViewModel;
 
 import com.yeraygarcia.recipes.database.entity.Recipe;
-import com.yeraygarcia.recipes.database.entity.custom.CustomRecipeIngredient;
-import com.yeraygarcia.recipes.database.entity.custom.RecipeDetail;
+import com.yeraygarcia.recipes.database.entity.custom.UiRecipe;
+import com.yeraygarcia.recipes.database.entity.custom.UiRecipeIngredient;
 import com.yeraygarcia.recipes.database.repository.RecipeDetailRepository;
 import com.yeraygarcia.recipes.util.Debug;
 
@@ -14,8 +14,8 @@ import java.util.List;
 public class RecipeDetailViewModel extends ViewModel {
 
     private final RecipeDetailRepository mRecipeDetailRepository;
-    private LiveData<RecipeDetail> mRecipeDetail;
-    private LiveData<List<CustomRecipeIngredient>> mRecipeIngredients;
+    private LiveData<UiRecipe> mRecipeDetail;
+    private LiveData<List<UiRecipeIngredient>> mRecipeIngredients;
 
     RecipeDetailViewModel(RecipeDetailRepository repository, long recipeId) {
         mRecipeDetailRepository = repository;
@@ -23,11 +23,11 @@ public class RecipeDetailViewModel extends ViewModel {
         mRecipeIngredients = mRecipeDetailRepository.getIngredientsByRecipeId(recipeId);
     }
 
-    public LiveData<RecipeDetail> getRecipeDetail() {
+    public LiveData<UiRecipe> getRecipeDetail() {
         return mRecipeDetail;
     }
 
-    public LiveData<List<CustomRecipeIngredient>> getRecipeIngredients() {
+    public LiveData<List<UiRecipeIngredient>> getRecipeIngredients() {
         return mRecipeIngredients;
     }
 

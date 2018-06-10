@@ -2,7 +2,7 @@ package com.yeraygarcia.recipes.database.entity.custom;
 
 import android.arch.persistence.room.ColumnInfo;
 
-public class CustomRecipeIngredient {
+public class UiRecipeIngredient {
 
     private Double quantity;
 
