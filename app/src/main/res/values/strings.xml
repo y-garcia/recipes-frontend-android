@@ -3,8 +3,13 @@
     <string name="title_recipe_list">Recipes</string>
     <string name="title_recipe_detail">Recipe Details</string>
     <string name="title_shopping_list">Shopping List</string>
-    <string name="title_home">Home</string>
     <string name="title_today">Today</string>
+
+    <string name="navigation_recipe_list">1. Choose</string>
+    <string name="navigation_shopping_list">2. Buy</string>
+    <string name="navigation_today">3. Cook</string>
+
+    <string name="feature_not_implemented">Sorry! This feature isn\'t available yet.</string>
 
     <string name="search_hint">Search recipes&#8230;</string>
     <string name="search_button">Search</string>
@@ -32,7 +37,6 @@
     <string name="no_tags">No tags</string>
     <string name="no_shopping_list_items">No items in the shopping list</string>
 
-    <string name="feature_not_implemented">Sorry! This feature isn\'t available yet.</string>
     <string name="action_open">OPEN</string>
 
 </resources>

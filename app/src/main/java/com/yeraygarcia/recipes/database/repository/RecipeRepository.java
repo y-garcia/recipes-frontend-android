@@ -33,6 +33,7 @@ public class RecipeRepository {
     private LiveData<List<Tag>> mTags;
     private LiveData<List<UiShoppingListItem>> mShoppingListItems;
     private LiveData<List<Long>> mRecipeIdsInShoppingList;
+    private LiveData<List<Recipe>> mRecipesInShoppingList;
 
     public RecipeRepository(Application application) {
         AppDatabase db = AppDatabase.getDatabase(application);
@@ -47,6 +48,7 @@ public class RecipeRepository {
         mTags = mTagDao.findAll();
         mShoppingListItems = mShoppingListDao.findAll();
         mRecipeIdsInShoppingList = mShoppingListDao.findDistinctRecipeIds();
+        mRecipesInShoppingList = mRecipeDao.findRecipesInShoppingList();
     }
 
     // Methods
@@ -113,6 +115,10 @@ public class RecipeRepository {
 
     public void update(UiShoppingListItem shoppingListItem) {
         new UpdateShoppingListItemAsyncTask(mShoppingListDao).execute(shoppingListItem);
+    }
+
+    public LiveData<List<Recipe>> getRecipesInShoppingList() {
+        return mRecipesInShoppingList;
     }
 
     // Internal classes

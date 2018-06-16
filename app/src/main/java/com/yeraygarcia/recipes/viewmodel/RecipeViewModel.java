@@ -7,7 +7,6 @@ import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.Transformations;
 
 import com.yeraygarcia.recipes.database.entity.Recipe;
-import com.yeraygarcia.recipes.database.entity.ShoppingListItem;
 import com.yeraygarcia.recipes.database.entity.Tag;
 import com.yeraygarcia.recipes.database.entity.custom.UiShoppingListItem;
 import com.yeraygarcia.recipes.database.repository.RecipeRepository;
@@ -20,10 +19,11 @@ public class RecipeViewModel extends AndroidViewModel {
 
     private RecipeRepository mRepository;
 
-    private final MutableLiveData<List<Long>> mTagFilter = new MutableLiveData<>();
-    private final LiveData<List<Recipe>> mRecipes = Transformations.switchMap(mTagFilter, tagIds -> mRepository.getRecipesByTagId(tagIds));
-    private final LiveData<List<Tag>> mTags;
+    private MutableLiveData<List<Long>> mTagFilter = new MutableLiveData<>();
+    private LiveData<List<Recipe>> mRecipes = Transformations.switchMap(mTagFilter, tagIds -> mRepository.getRecipesByTagId(tagIds));
+    private LiveData<List<Tag>> mTags;
     private LiveData<List<Long>> mRecipeIdsInShoppingList;
+    private LiveData<List<Recipe>> mRecipesInShoppingList;
 
 
     public RecipeViewModel(Application application) {
@@ -34,6 +34,7 @@ public class RecipeViewModel extends AndroidViewModel {
         mTags = mRepository.getTags();
         mTagFilter.setValue(new ArrayList<>());
         mRecipeIdsInShoppingList = mRepository.getRecipeIdsInShoppingList();
+        mRecipesInShoppingList = mRepository.getRecipesInShoppingList();
     }
 
     public LiveData<List<Recipe>> getRecipes() {
@@ -54,7 +55,7 @@ public class RecipeViewModel extends AndroidViewModel {
     public long[] getTagFilterAsArray() {
         Debug.d(this, "getTagFilterAsArray()");
         List<Long> tagFilter = mTagFilter.getValue();
-        if(tagFilter == null) {
+        if (tagFilter == null) {
             return new long[]{};
         }
         long[] result = new long[tagFilter.size()];
@@ -66,7 +67,7 @@ public class RecipeViewModel extends AndroidViewModel {
     }
 
     public void addTagToFilter(Tag tag) {
-        Debug.d(this, "addTagToFilter("+tag.getId()+")");
+        Debug.d(this, "addTagToFilter(" + tag.getId() + ")");
         List<Long> newTags = mTagFilter.getValue();
         if (newTags == null) {
             newTags = new ArrayList<>();
@@ -77,7 +78,7 @@ public class RecipeViewModel extends AndroidViewModel {
     }
 
     public void removeTagFromFilter(Tag tag) {
-        Debug.d(this, "removeTagFromFilter("+tag.getId()+")");
+        Debug.d(this, "removeTagFromFilter(" + tag.getId() + ")");
         List<Long> newTags = mTagFilter.getValue();
         if (newTags == null) {
             return;
@@ -89,7 +90,7 @@ public class RecipeViewModel extends AndroidViewModel {
     public void setTagFilter(long[] tagFilter) {
         Debug.d(this, "setTagFilter(tagFilter)");
         List<Long> tagFilterList = new ArrayList<>();
-        for (long tagId : tagFilter){
+        for (long tagId : tagFilter) {
             tagFilterList.add(tagId);
         }
         mTagFilter.setValue(tagFilterList);
@@ -111,6 +112,10 @@ public class RecipeViewModel extends AndroidViewModel {
 
     public void updatePortionsInShoppingList(UiShoppingListItem shoppingListItem) {
         mRepository.updatePortionsInShoppingList(shoppingListItem);
+    }
+
+    public LiveData<List<Recipe>> getRecipesInShoppingList() {
+        return mRecipesInShoppingList;
     }
 
     public LiveData<List<Long>> getRecipeIdsInShoppingList() {

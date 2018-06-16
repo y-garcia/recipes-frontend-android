@@ -19,4 +19,7 @@ public abstract class RecipeDao implements BaseDao<Recipe> {
 
     @Query("SELECT count(1) FROM recipe")
     public abstract int getRecipeCount();
+
+    @Query("SELECT * FROM recipe WHERE id IN (SELECT DISTINCT recipe_id FROM shopping_list_item)")
+    public abstract LiveData<List<Recipe>> findRecipesInShoppingList();
 }
