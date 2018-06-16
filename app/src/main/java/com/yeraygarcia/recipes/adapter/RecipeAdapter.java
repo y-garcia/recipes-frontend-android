@@ -1,74 +1,48 @@
 package com.yeraygarcia.recipes.adapter;
 
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
-import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.constraint.ConstraintLayout;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Filter;
 import android.widget.Filterable;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.yeraygarcia.recipes.R;
 import com.yeraygarcia.recipes.RecipeDetailActivity;
 import com.yeraygarcia.recipes.RecipeDetailFragment;
-import com.yeraygarcia.recipes.RecipeListActivity;
 import com.yeraygarcia.recipes.database.entity.Recipe;
+import com.yeraygarcia.recipes.viewmodel.RecipeViewModel;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 
 public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipesViewHolder> implements Filterable {
 
     private List<Recipe> mRecipes;
+    private List<Long> mRecipeIdsInShoppingList = new ArrayList<>();
 
     private RecipeFilter mFilter;
 
-    private final RecipeListActivity mParentActivity;
-    private final boolean mTwoPane;
+    private final FragmentActivity mParentActivity;
+    private final RecipeViewModel mViewModel;
 
     // Constructors
 
-    public RecipeAdapter(RecipeListActivity parent, boolean twoPane) {
+    public RecipeAdapter(FragmentActivity parent) {
         mParentActivity = parent;
-        mTwoPane = twoPane;
+        mViewModel = ViewModelProviders.of(parent).get(RecipeViewModel.class);
     }
 
     // Internal classes
-
-    class RecipesViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-
-        TextView recipeItemView;
-
-        private RecipesViewHolder(View itemView) {
-            super(itemView);
-            recipeItemView = itemView.findViewById(R.id.textview_recipe_name);
-            itemView.setOnClickListener(this);
-        }
-
-        @Override
-        public void onClick(View v) {
-            final long recipeId = mRecipes.get(getAdapterPosition()).getId();
-
-            if (mTwoPane) {
-                Bundle arguments = new Bundle();
-                arguments.putLong(RecipeDetailFragment.EXTRA_RECIPE_ID, recipeId);
-                RecipeDetailFragment fragment = new RecipeDetailFragment();
-                fragment.setArguments(arguments);
-                mParentActivity.getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.recipe_detail_container, fragment)
-                        .commit();
-            } else {
-                Intent intent = new Intent(mParentActivity, RecipeDetailActivity.class);
-                intent.putExtra(RecipeDetailFragment.EXTRA_RECIPE_ID, recipeId);
-
-                mParentActivity.startActivity(intent);
-            }
-        }
-    }
 
     private class RecipeFilter extends Filter {
 
@@ -109,14 +83,74 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipesVie
         }
     }
 
-    // Overrides
-
     @Override
     public Filter getFilter() {
         if (mFilter == null) {
             mFilter = new RecipeFilter(mRecipes);
         }
         return mFilter;
+    }
+
+    class RecipesViewHolder extends RecyclerView.ViewHolder {
+
+        TextView itemName;
+        ConstraintLayout itemServingsContainer;
+        ImageView itemDecrease;
+        TextView itemServings;
+        TextView itemServingsLabel;
+        ImageView itemIncrease;
+        ImageView itemAddToCart;
+
+        private RecipesViewHolder(View itemView) {
+            super(itemView);
+            itemName = itemView.findViewById(R.id.textview_recipe_name);
+            itemServingsContainer = itemView.findViewById(R.id.include_servings);
+            itemDecrease = itemView.findViewById(R.id.imageview_decrease_servings);
+            itemIncrease = itemView.findViewById(R.id.imageview_increase_servings);
+            itemServings = itemView.findViewById(R.id.textview_servings);
+            itemServingsLabel = itemView.findViewById(R.id.textview_servings_label);
+            itemAddToCart = itemView.findViewById(R.id.imageview_add_to_cart);
+
+            itemName.setOnClickListener(view -> {
+                final long recipeId = mRecipes.get(getAdapterPosition()).getId();
+                // open Recipe Detail activity
+                Intent intent = new Intent(mParentActivity, RecipeDetailActivity.class);
+                intent.putExtra(RecipeDetailFragment.ARG_RECIPE_ID, recipeId);
+                mParentActivity.startActivity(intent);
+            });
+
+            View.OnClickListener addToCartListener = view -> {
+                Recipe recipe = mRecipes.get(getAdapterPosition());
+                boolean isInShoppingList = mRecipeIdsInShoppingList.contains(recipe.getId());
+
+                if (isInShoppingList) {
+                    recipe.increasePortions();
+                    mViewModel.updatePortionsInShoppingList(recipe);
+                } else {
+                    mViewModel.addRecipeToShoppingList(recipe);
+                }
+            };
+
+            itemAddToCart.setOnClickListener(addToCartListener);
+            itemIncrease.setOnClickListener(addToCartListener);
+            itemServings.setOnClickListener(addToCartListener);
+            itemServingsLabel.setOnClickListener(addToCartListener);
+
+            itemDecrease.setOnClickListener(view -> {
+                Recipe recipe = mRecipes.get(getAdapterPosition());
+                boolean isInShoppingList = mRecipeIdsInShoppingList.contains(recipe.getId());
+
+                if (isInShoppingList) {
+                    if (recipe.getPortions() == 1) {
+                        mViewModel.deleteRecipeFromShoppingList(recipe);
+                    } else {
+                        recipe.decreasePortions();
+                        mViewModel.updatePortionsInShoppingList(recipe);
+                    }
+                }
+            });
+
+        }
     }
 
     @NonNull
@@ -130,10 +164,22 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipesVie
     public void onBindViewHolder(@NonNull RecipesViewHolder holder, int position) {
         if (mRecipes != null) {
             final Recipe currentRecipe = mRecipes.get(position);
-            holder.recipeItemView.setText(currentRecipe.getName());
+
+            holder.itemName.setText(currentRecipe.getName());
+            holder.itemServings.setText(String.format(Locale.getDefault(), "%d", currentRecipe.getPortions()));
+
+            if (currentRecipe.getPortions() == 1) {
+                holder.itemDecrease.setImageResource(R.drawable.ic_remove_shopping_cart_24px);
+            } else {
+                holder.itemDecrease.setImageResource(R.drawable.ic_remove_24px);
+            }
+
+            boolean isInShoppingList = mRecipeIdsInShoppingList.contains(currentRecipe.getId());
+            holder.itemServingsContainer.setVisibility(isInShoppingList ? View.VISIBLE : View.GONE);
+            holder.itemAddToCart.setVisibility(isInShoppingList ? View.GONE : View.VISIBLE);
         } else {
             // Covers the case of data not being ready yet.
-            holder.recipeItemView.setText(R.string.no_recipes);
+            holder.itemName.setText(R.string.no_recipes);
         }
     }
 
@@ -149,8 +195,17 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipesVie
 
     // Methods
 
+    public List<Recipe> getRecipes() {
+        return mRecipes;
+    }
+
     public void setRecipes(List<Recipe> recipes) {
         mRecipes = recipes;
+        notifyDataSetChanged();
+    }
+
+    public void setRecipeIdsInShoppingList(List<Long> recipeIds) {
+        mRecipeIdsInShoppingList = recipeIds;
         notifyDataSetChanged();
     }
 }

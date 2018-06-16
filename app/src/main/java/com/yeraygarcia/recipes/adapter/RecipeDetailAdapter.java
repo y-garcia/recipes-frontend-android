@@ -128,8 +128,8 @@ public class RecipeDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
         private IngredientsViewHolder(View itemView) {
             super(itemView);
-            itemQuantity = itemView.findViewById(R.id.textview_quantity);
-            itemUnit = itemView.findViewById(R.id.textview_unit);
+            itemQuantity = itemView.findViewById(R.id.textview_ingredient_quantity);
+            itemUnit = itemView.findViewById(R.id.textview_ingredient_unit);
             itemIngredientName = itemView.findViewById(R.id.textview_ingredient_name);
 
             itemView.setOnClickListener(v -> {
@@ -254,9 +254,9 @@ public class RecipeDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 holder.itemView.setSelected(mSelectedIngredient == position);
                 if (mIngredients != null && mIngredients.size() > 0) {
                     final UiRecipeIngredient currentIngredient = mIngredients.get(position - 2);
-                    viewHolder.itemQuantity.setText(formatQuantity(currentIngredient.getQuantity()));
-                    viewHolder.itemUnit.setText(formatUnit(currentIngredient.getQuantity(), currentIngredient.getUnitName(), currentIngredient.getUnitNamePlural()));
-                    viewHolder.itemIngredientName.setText(currentIngredient.getIngredientName());
+                    viewHolder.itemQuantity.setText(currentIngredient.getFormattedQuantity());
+                    viewHolder.itemUnit.setText(currentIngredient.getFormattedUnit());
+                    viewHolder.itemIngredientName.setText(currentIngredient.getName());
                 } else {
                     Debug.d(this, "no ingredients");
                     // Covers the case of data not being ready yet.
@@ -361,26 +361,6 @@ public class RecipeDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         } catch (MalformedURLException e) {
             // urlString is not a proper url, just return it as is
             return urlString;
-        }
-    }
-
-    private String formatQuantity(Double quantity) {
-        if (quantity == null) {
-            return "";
-        } else if (quantity == Math.rint(quantity)) {
-            // quantity is an integer, use 0 format
-            return String.format(Locale.getDefault(), "%d", quantity.intValue());
-        } else {
-            // quantity is a double, use 0.00 format
-            return String.format(Locale.getDefault(), "%1$,.2f", quantity);
-        }
-    }
-
-    private String formatUnit(Double quantity, String unitName, String unitNamePlural) {
-        if (quantity != null && quantity == 1) {
-            return unitName;
-        } else {
-            return unitNamePlural;
         }
     }
 }

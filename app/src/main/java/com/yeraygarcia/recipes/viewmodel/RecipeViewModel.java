@@ -7,7 +7,9 @@ import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.Transformations;
 
 import com.yeraygarcia.recipes.database.entity.Recipe;
+import com.yeraygarcia.recipes.database.entity.ShoppingListItem;
 import com.yeraygarcia.recipes.database.entity.Tag;
+import com.yeraygarcia.recipes.database.entity.custom.UiShoppingListItem;
 import com.yeraygarcia.recipes.database.repository.RecipeRepository;
 import com.yeraygarcia.recipes.util.Debug;
 
@@ -21,6 +23,7 @@ public class RecipeViewModel extends AndroidViewModel {
     private final MutableLiveData<List<Long>> mTagFilter = new MutableLiveData<>();
     private final LiveData<List<Recipe>> mRecipes = Transformations.switchMap(mTagFilter, tagIds -> mRepository.getRecipesByTagId(tagIds));
     private final LiveData<List<Tag>> mTags;
+    private LiveData<List<Long>> mRecipeIdsInShoppingList;
 
 
     public RecipeViewModel(Application application) {
@@ -30,6 +33,7 @@ public class RecipeViewModel extends AndroidViewModel {
         //mRecipes = mRepository.getRecipes();
         mTags = mRepository.getTags();
         mTagFilter.setValue(new ArrayList<>());
+        mRecipeIdsInShoppingList = mRepository.getRecipeIdsInShoppingList();
     }
 
     public LiveData<List<Recipe>> getRecipes() {
@@ -94,5 +98,31 @@ public class RecipeViewModel extends AndroidViewModel {
     public void updateTagUsage() {
         Debug.d(this, "updateTagUsage()");
         mRepository.updateTagUsage();
+    }
+
+    public void addRecipeToShoppingList(Recipe recipe) {
+        mRepository.addToShoppingList(recipe);
+    }
+
+    public void updatePortionsInShoppingList(Recipe recipe) {
+        mRepository.update(recipe);
+        mRepository.updatePortionsInShoppingList(recipe);
+    }
+
+    public void updatePortionsInShoppingList(UiShoppingListItem shoppingListItem) {
+        mRepository.updatePortionsInShoppingList(shoppingListItem);
+    }
+
+    public LiveData<List<Long>> getRecipeIdsInShoppingList() {
+        return mRecipeIdsInShoppingList;
+    }
+
+    public void deleteRecipeFromShoppingList(Recipe recipe) {
+        mRepository.removeFromShoppingList(recipe);
+    }
+
+    public void markComplete(UiShoppingListItem shoppingListItem, boolean complete) {
+        shoppingListItem.setCompleted(complete);
+        mRepository.update(shoppingListItem);
     }
 }

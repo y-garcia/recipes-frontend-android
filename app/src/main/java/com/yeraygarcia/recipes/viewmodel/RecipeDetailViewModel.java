@@ -16,11 +16,13 @@ public class RecipeDetailViewModel extends ViewModel {
     private final RecipeDetailRepository mRecipeDetailRepository;
     private LiveData<UiRecipe> mRecipeDetail;
     private LiveData<List<UiRecipeIngredient>> mRecipeIngredients;
+    private LiveData<Boolean> mInShoppingList;
 
     RecipeDetailViewModel(RecipeDetailRepository repository, long recipeId) {
         mRecipeDetailRepository = repository;
         mRecipeDetail = mRecipeDetailRepository.getRecipeById(recipeId);
         mRecipeIngredients = mRecipeDetailRepository.getIngredientsByRecipeId(recipeId);
+        mInShoppingList = mRecipeDetailRepository.isInShoppingList(recipeId);
     }
 
     public LiveData<UiRecipe> getRecipeDetail() {
@@ -34,5 +36,17 @@ public class RecipeDetailViewModel extends ViewModel {
     public void update(Recipe recipe) {
         Debug.d(this, "update(recipe)");
         mRecipeDetailRepository.update(recipe);
+    }
+
+    public LiveData<Boolean> isInShoppingList() {
+        return mInShoppingList;
+    }
+
+    public void removeFromShoppingList(long recipeId) {
+        mRecipeDetailRepository.removeFromShoppingList(recipeId);
+    }
+
+    public void addToShoppingList(long recipeId) {
+        mRecipeDetailRepository.addToShoppingList(recipeId);
     }
 }

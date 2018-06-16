@@ -2,6 +2,8 @@ package com.yeraygarcia.recipes.database.entity.custom;
 
 import android.arch.persistence.room.ColumnInfo;
 
+import java.util.Locale;
+
 public class UiRecipeIngredient {
 
     private Double quantity;
@@ -12,8 +14,7 @@ public class UiRecipeIngredient {
     @ColumnInfo(name = "unit_name_plural")
     private String unitNamePlural;
 
-    @ColumnInfo(name = "ingredient_name")
-    private String ingredientName;
+    private String name;
 
     public Double getQuantity() {
         return quantity;
@@ -39,12 +40,32 @@ public class UiRecipeIngredient {
         this.unitNamePlural = unitNamePlural;
     }
 
-    public String getIngredientName() {
-        return ingredientName;
+    public String getName() {
+        return name;
     }
 
-    public void setIngredientName(String ingredientName) {
-        this.ingredientName = ingredientName;
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getFormattedQuantity() {
+        if (quantity == null) {
+            return "";
+        } else if (quantity == Math.rint(quantity)) {
+            // quantity is an integer, use 0 format
+            return String.format(Locale.getDefault(), "%d", quantity.intValue());
+        } else {
+            // quantity is a double, use 0.00 format
+            return String.format(Locale.getDefault(), "%1$,.2f", quantity);
+        }
+    }
+
+    public String getFormattedUnit() {
+        if (quantity != null && quantity == 1) {
+            return unitName;
+        } else {
+            return unitNamePlural;
+        }
     }
 
     @Override
@@ -52,7 +73,7 @@ public class UiRecipeIngredient {
         StringBuilder ingredient = new StringBuilder();
 
         if (quantity == null) {
-            return ingredient.append(ingredientName).toString();
+            return ingredient.append(name).toString();
         }
 
         if(quantity == Math.rint(quantity)){
@@ -70,6 +91,6 @@ public class UiRecipeIngredient {
             }
         }
 
-        return ingredient.append(ingredientName).toString();
+        return ingredient.append(name).toString();
     }
 }

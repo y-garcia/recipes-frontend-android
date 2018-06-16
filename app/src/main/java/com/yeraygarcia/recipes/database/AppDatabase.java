@@ -15,6 +15,7 @@ import com.yeraygarcia.recipes.database.dao.RecipeDetailDao;
 import com.yeraygarcia.recipes.database.dao.RecipeIngredientDao;
 import com.yeraygarcia.recipes.database.dao.RecipeStepDao;
 import com.yeraygarcia.recipes.database.dao.RecipeTagDao;
+import com.yeraygarcia.recipes.database.dao.ShoppingListDao;
 import com.yeraygarcia.recipes.database.dao.TagDao;
 import com.yeraygarcia.recipes.database.dao.TagUsageDao;
 import com.yeraygarcia.recipes.database.dao.UnitDao;
@@ -25,6 +26,7 @@ import com.yeraygarcia.recipes.database.entity.Recipe;
 import com.yeraygarcia.recipes.database.entity.RecipeIngredient;
 import com.yeraygarcia.recipes.database.entity.RecipeStep;
 import com.yeraygarcia.recipes.database.entity.RecipeTag;
+import com.yeraygarcia.recipes.database.entity.ShoppingListItem;
 import com.yeraygarcia.recipes.database.entity.Store;
 import com.yeraygarcia.recipes.database.entity.Tag;
 import com.yeraygarcia.recipes.database.entity.TagUsage;
@@ -35,7 +37,7 @@ import com.yeraygarcia.recipes.util.Debug;
         entities = {
                 Aisle.class, Store.class, Tag.class, Unit.class, Ingredient.class, Placement.class,
                 Recipe.class, RecipeIngredient.class, RecipeStep.class, RecipeTag.class,
-                TagUsage.class
+                TagUsage.class, ShoppingListItem.class
         },
         version = 1,
         exportSchema = false
@@ -90,6 +92,8 @@ public abstract class AppDatabase extends RoomDatabase {
 
     public abstract TagUsageDao getTagUsageDao();
 
+    public abstract ShoppingListDao getShoppingListDao();
+
     private static class PopulateDbAsync extends AsyncTask<Void, Void, Void> {
 
         private final AisleDao mAisleDao;
@@ -100,7 +104,7 @@ public abstract class AppDatabase extends RoomDatabase {
         private final RecipeIngredientDao mRecipeIngredientDao;
         private final RecipeStepDao mRecipeStepDao;
         private final RecipeTagDao mRecipeTagDao;
-        private final TagUsageDao mTagUsageDao;
+        private final ShoppingListDao mShoppingListDao;
 
         PopulateDbAsync(AppDatabase db) {
             mAisleDao = db.getAisleDao();
@@ -111,30 +115,33 @@ public abstract class AppDatabase extends RoomDatabase {
             mRecipeIngredientDao = db.getRecipeIngredientDao();
             mRecipeStepDao = db.getRecipeStepDao();
             mRecipeTagDao = db.getRecipeTagDao();
-            mTagUsageDao = db.getTagUsageDao();
+            mShoppingListDao = db.getShoppingListDao();
         }
 
         @Override
         protected Void doInBackground(final Void... params) {
-            Debug.d(this, "Populating database");
-            mTagUsageDao.deleteAll();
-            mRecipeTagDao.deleteAll();
-            mRecipeStepDao.deleteAll();
-            mRecipeIngredientDao.deleteAll();
-            mRecipeDao.deleteAll();
-            mIngredientDao.deleteAll();
-            mUnitDao.deleteAll();
-            mTagDao.deleteAll();
-            mAisleDao.deleteAll();
 
-            populateAisle();
-            populateTag();
-            populateUnit();
-            populateIngredient();
-            populateRecipe();
-            populateRecipeIngredient();
-            populateRecipeStep();
-            populateRecipeTag();
+            if(mRecipeDao.getRecipeCount() == 0) {
+                Debug.d(this, "Populating database");
+
+                mRecipeTagDao.deleteAll();
+                mRecipeStepDao.deleteAll();
+                mRecipeIngredientDao.deleteAll();
+                mRecipeDao.deleteAll();
+                mIngredientDao.deleteAll();
+                mUnitDao.deleteAll();
+                mTagDao.deleteAll();
+                mAisleDao.deleteAll();
+
+                populateAisle();
+                populateTag();
+                populateUnit();
+                populateIngredient();
+                populateRecipe();
+                populateRecipeIngredient();
+                populateRecipeStep();
+                populateRecipeTag();
+            }
 
             return null;
         }

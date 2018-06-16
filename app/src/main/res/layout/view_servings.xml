@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    xmlns:tool="http://schemas.android.com/tools">
+
+    <ImageView
+        android:id="@+id/imageview_decrease_servings"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:contentDescription="@string/decrease_servings"
+        app:layout_constraintBottom_toBottomOf="@+id/textview_servings"
+        app:layout_constraintEnd_toStartOf="@+id/textview_servings"
+        app:layout_constraintTop_toTopOf="@+id/textview_servings"
+        app:layout_constraintVertical_bias="1.0"
+        app:srcCompat="@drawable/ic_remove_24px" />
+
+    <TextView
+        android:id="@+id/textview_servings"
+        tool:text="4"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:gravity="center_vertical"
+        android:textAlignment="center"
+        android:textAppearance="@style/TextAppearance.AppCompat"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/textview_servings_label"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textview_servings_label"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_marginEnd="16dp"
+        android:gravity="center_vertical"
+        android:text="@string/servings"
+        android:textAlignment="center"
+        android:textAppearance="@style/TextAppearance.AppCompat"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="@+id/textview_servings"
+        app:layout_constraintEnd_toStartOf="@+id/imageview_increase_servings"
+        app:layout_constraintTop_toTopOf="@+id/textview_servings" />
+
+    <ImageView
+        android:id="@+id/imageview_increase_servings"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:contentDescription="@string/increase_servings"
+        app:layout_constraintBottom_toBottomOf="@+id/textview_servings"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/textview_servings"
+        app:layout_constraintVertical_bias="0.0"
+        app:srcCompat="@drawable/ic_add_24px" />
+
+</android.support.constraint.ConstraintLayout>

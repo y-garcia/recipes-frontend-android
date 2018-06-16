@@ -8,15 +8,6 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
-    <!-- The default font for RecyclerView items is too small. The margin is a simple delimiter between the words. -->
-    <style name="recipe_title">
-        <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">26dp</item>
-        <item name="android:textSize">24sp</item>
-        <item name="android:layout_marginBottom">6dp</item>
-        <item name="android:paddingLeft">8dp</item>
-    </style>
-
     <style name="AppTheme.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
@@ -33,5 +24,20 @@
     <style name="source_text">
         <item name="android:textColor">@android:color/black</item>
     </style>
+
+    <style name="shopping_list_item_completed">
+        <item name="android:textColor">@android:color/darker_gray</item>
+    </style>
+
+    <style name="shopping_list_item" parent="@style/TextAppearance.AppCompat">
+        <item name="android:textColor">@android:color/black</item>
+        <item name="android:textSize">18sp</item>
+    </style>
+
+    <style name="shopping_list_item_quantity_unit" parent="@style/shopping_list_item">
+        <item name="android:textColor">@android:color/black</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
 
 </resources>

@@ -2,6 +2,7 @@ package com.yeraygarcia.recipes.adapter;
 
 import android.arch.lifecycle.ViewModelProviders;
 import android.support.annotation.NonNull;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,7 +10,6 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.yeraygarcia.recipes.R;
-import com.yeraygarcia.recipes.RecipeListActivity;
 import com.yeraygarcia.recipes.database.entity.Tag;
 import com.yeraygarcia.recipes.util.Debug;
 import com.yeraygarcia.recipes.viewmodel.RecipeViewModel;
@@ -28,7 +28,7 @@ public class TagAdapter extends RecyclerView.Adapter<TagAdapter.TagViewHolder> {
 
     // Constructors
 
-    public TagAdapter(RecipeListActivity parent) {
+    public TagAdapter(FragmentActivity parent) {
         mInflater = LayoutInflater.from(parent);
         mViewModel = ViewModelProviders.of(parent).get(RecipeViewModel.class);
     }

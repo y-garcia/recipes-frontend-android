@@ -1,22 +1,38 @@
 <resources>
     <string name="app_name">Recipes</string>
-    <string name="title_activity_main">Recipes</string>
     <string name="title_recipe_list">Recipes</string>
     <string name="title_recipe_detail">Recipe Details</string>
-    <string name="no_recipes">No Recipes</string>
+    <string name="title_shopping_list">Shopping List</string>
+    <string name="title_home">Home</string>
+    <string name="title_today">Today</string>
+
     <string name="search_hint">Search recipes&#8230;</string>
     <string name="search_button">Search</string>
+
     <string name="duration_icon_content">Duration</string>
     <string name="source_icon_content">Source</string>
     <string name="duration_format">%1$s min</string>
+
     <string name="url_format"><a href="%1$s">%2$s</a></string>
-    <string name="no_ingredients">No ingredients</string>
-    <string name="no_steps">No steps</string>
+
     <string name="header_ingredients">Ingredients</string>
     <string name="header_steps">Steps</string>
-    <string name="no_source">--</string>
+
     <string name="decrease_servings">Decrease servings</string>
     <string name="increase_servings">Increase servings</string>
     <string name="servings">servings</string>
+    <string name="add_to_shopping_list">Add to shopping list</string>
+    <string name="added_to_shopping_list">Recipe added to shopping list</string>
+    <string name="removed_from_shopping_list">Recipe removed from shopping list</string>
+
+    <string name="no_recipes">No Recipes</string>
+    <string name="no_source">--</string>
+    <string name="no_ingredients">No ingredients</string>
+    <string name="no_steps">No steps</string>
     <string name="no_tags">No tags</string>
+    <string name="no_shopping_list_items">No items in the shopping list</string>
+
+    <string name="feature_not_implemented">Sorry! This feature isn\'t available yet.</string>
+    <string name="action_open">OPEN</string>
+
 </resources>

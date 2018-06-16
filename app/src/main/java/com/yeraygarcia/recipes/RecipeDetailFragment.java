@@ -1,12 +1,10 @@
 package com.yeraygarcia.recipes;
 
 import android.app.Activity;
-import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -16,26 +14,16 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.yeraygarcia.recipes.adapter.RecipeDetailAdapter;
-import com.yeraygarcia.recipes.database.entity.custom.UiRecipeIngredient;
-import com.yeraygarcia.recipes.database.entity.custom.UiRecipe;
 import com.yeraygarcia.recipes.database.repository.RecipeDetailRepository;
 import com.yeraygarcia.recipes.util.Debug;
 import com.yeraygarcia.recipes.viewmodel.RecipeDetailViewModel;
 import com.yeraygarcia.recipes.viewmodel.RecipeDetailViewModelFactory;
 
-import java.util.List;
-
-/**
- * A fragment representing a single Recipe detail screen.
- * This fragment is either contained in a {@link RecipeListActivity}
- * in two-pane mode (on tablets) or a {@link RecipeDetailActivity}
- * on handsets.
- */
 public class RecipeDetailFragment extends Fragment {
 
-    public static final String EXTRA_RECIPE_ID = "recipeId";
+    public static final String ARG_RECIPE_ID = "argRecipeId";
+    public static final String KEY_RECIPE_ID = "keyRecipeId";
     public static final long DEFAULT_RECIPE_ID = -1;
-    public static final String INSTANCE_RECIPE_ID = "instanceTaskId";
 
     private long mRecipeId = DEFAULT_RECIPE_ID;
 
@@ -51,6 +39,14 @@ public class RecipeDetailFragment extends Fragment {
     public RecipeDetailFragment() {
     }
 
+    public static RecipeDetailFragment newInstance(long recipeId) {
+        RecipeDetailFragment fragment = new RecipeDetailFragment();
+        Bundle args = new Bundle();
+        args.putLong(ARG_RECIPE_ID, recipeId);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         Debug.d(this, "onCreate(savedInstanceState)");
@@ -61,15 +57,15 @@ public class RecipeDetailFragment extends Fragment {
         if (mParentActivity != null) {
 
             // get recipe id from savedInstanceState (if not empty)
-            if (savedInstanceState != null && savedInstanceState.containsKey(INSTANCE_RECIPE_ID)) {
-                mRecipeId = savedInstanceState.getLong(INSTANCE_RECIPE_ID, DEFAULT_RECIPE_ID);
+            if (savedInstanceState != null && savedInstanceState.containsKey(KEY_RECIPE_ID)) {
+                mRecipeId = savedInstanceState.getLong(KEY_RECIPE_ID, DEFAULT_RECIPE_ID);
             }
 
-            // get recipe id from intent
+            // get recipe id from intent (if savedInstanceState was empty)
             Intent intent = mParentActivity.getIntent();
-            if (intent != null && intent.hasExtra(EXTRA_RECIPE_ID)) {
+            if (intent != null && intent.hasExtra(ARG_RECIPE_ID)) {
                 if (mRecipeId == DEFAULT_RECIPE_ID) {
-                    mRecipeId = intent.getLongExtra(EXTRA_RECIPE_ID, DEFAULT_RECIPE_ID);
+                    mRecipeId = intent.getLongExtra(ARG_RECIPE_ID, DEFAULT_RECIPE_ID);
                 }
             }
 
@@ -95,7 +91,7 @@ public class RecipeDetailFragment extends Fragment {
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         Debug.d(this, "onSaveInstanceState(outState)");
-        outState.putLong(RecipeDetailFragment.INSTANCE_RECIPE_ID, mRecipeId);
+        outState.putLong(RecipeDetailFragment.KEY_RECIPE_ID, mRecipeId);
         super.onSaveInstanceState(outState);
     }
 
