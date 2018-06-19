@@ -3,8 +3,12 @@ package com.yeraygarcia.recipes.database.entity;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.PrimaryKey;
+import android.content.Context;
 import android.support.annotation.NonNull;
 
+import com.yeraygarcia.recipes.R;
+
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 @Entity(tableName = "recipe")
@@ -108,5 +112,9 @@ public class Recipe {
 
     public void decreasePortions() {
         this.portions -= 1;
+    }
+
+    public String getFormattedDuration(Context context) {
+        return context.getString(R.string.duration_format, String.format(Locale.getDefault(), "%d", getDurationInMinutes()));
     }
 }

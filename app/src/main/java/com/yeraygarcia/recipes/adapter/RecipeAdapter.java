@@ -1,6 +1,7 @@
 package com.yeraygarcia.recipes.adapter;
 
 import android.arch.lifecycle.ViewModelProviders;
+import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.constraint.ConstraintLayout;
@@ -32,13 +33,15 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipesVie
 
     private RecipeFilter mFilter;
 
-    private final FragmentActivity mParentActivity;
+    private final Context mContext;
+    private final LayoutInflater mInflater;
     private final RecipeViewModel mViewModel;
 
     // Constructors
 
     public RecipeAdapter(FragmentActivity parent) {
-        mParentActivity = parent;
+        mContext = parent;
+        mInflater = parent.getLayoutInflater();
         mViewModel = ViewModelProviders.of(parent).get(RecipeViewModel.class);
     }
 
@@ -94,6 +97,7 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipesVie
     class RecipesViewHolder extends RecyclerView.ViewHolder {
 
         TextView itemName;
+        TextView itemDuration;
         ConstraintLayout itemServingsContainer;
         ImageView itemDecrease;
         TextView itemServings;
@@ -104,6 +108,7 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipesVie
         private RecipesViewHolder(View itemView) {
             super(itemView);
             itemName = itemView.findViewById(R.id.textview_recipe_name);
+            itemDuration = itemView.findViewById(R.id.textview_recipe_info);
             itemServingsContainer = itemView.findViewById(R.id.include_servings);
             itemDecrease = itemView.findViewById(R.id.imageview_decrease_servings);
             itemIncrease = itemView.findViewById(R.id.imageview_increase_servings);
@@ -114,9 +119,9 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipesVie
             itemName.setOnClickListener(view -> {
                 final long recipeId = mRecipes.get(getAdapterPosition()).getId();
                 // open Recipe Detail activity
-                Intent intent = new Intent(mParentActivity, RecipeDetailActivity.class);
+                Intent intent = new Intent(mContext, RecipeDetailActivity.class);
                 intent.putExtra(RecipeDetailFragment.ARG_RECIPE_ID, recipeId);
-                mParentActivity.startActivity(intent);
+                mContext.startActivity(intent);
             });
 
             View.OnClickListener addToCartListener = view -> {
@@ -156,7 +161,7 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipesVie
     @NonNull
     @Override
     public RecipesViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(mParentActivity).inflate(R.layout.item_recipe, parent, false);
+        View view = mInflater.inflate(R.layout.item_recipe, parent, false);
         return new RecipesViewHolder(view);
     }
 
@@ -166,6 +171,7 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipesVie
             final Recipe currentRecipe = mRecipes.get(position);
 
             holder.itemName.setText(currentRecipe.getName());
+            holder.itemDuration.setText(currentRecipe.getFormattedDuration(mContext));
             holder.itemServings.setText(String.format(Locale.getDefault(), "%d", currentRecipe.getPortions()));
 
             if (currentRecipe.getPortions() == 1) {

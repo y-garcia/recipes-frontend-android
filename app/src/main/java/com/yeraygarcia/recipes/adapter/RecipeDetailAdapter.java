@@ -249,7 +249,7 @@ public class RecipeDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             case VIEWTYPE_DURATION_SOURCE:
                 if (mUiRecipe != null) {
                     formatDurationSourceView((DurationSourceViewHolder) holder,
-                            mUiRecipe.getRecipe().getDurationInMinutes(),
+                            mUiRecipe.getRecipe().getFormattedDuration(mContext),
                             mUiRecipe.getRecipe().getUrl());
                 }
                 break;
@@ -341,13 +341,9 @@ public class RecipeDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         return String.format(Locale.getDefault(), "%d", sortOrder);
     }
 
-    private String formatDuration(long duration) {
-        return mContext.getString(R.string.duration_format, String.format(Locale.getDefault(), "%d", duration));
-    }
+    private void formatDurationSourceView(DurationSourceViewHolder viewHolder, String duration, String url) {
 
-    private void formatDurationSourceView(DurationSourceViewHolder viewHolder, long duration, String url) {
-
-        viewHolder.itemDuration.setText(formatDuration(duration));
+        viewHolder.itemDuration.setText(duration);
 
         if (url == null) {
             viewHolder.itemSourceIcon.setVisibility(View.INVISIBLE);
