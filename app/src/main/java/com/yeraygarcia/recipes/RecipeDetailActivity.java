@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -19,6 +20,20 @@ import com.yeraygarcia.recipes.viewmodel.RecipeDetailViewModelFactory;
 
 public class RecipeDetailActivity extends AppCompatActivity {
 
+    private static final String TAG_FRAGMENT_RECIPE_DETAIL = "tagRecipeDetailFragment";
+    private static final String TAG_FRAGMENT_RECIPE_EDIT = "tagEditRecipeFragment";
+
+    private static final String DEFAULT_FRAGMENT_TAG = TAG_FRAGMENT_RECIPE_DETAIL;
+    private static final String KEY_FRAGMENT_TAG = "keyFragmentTag";
+
+    private String mCurrentFragment;
+    private long mRecipeId;
+
+    private RecipeDetailViewModel mViewModel;
+    private FloatingActionButton mFabAddToCart;
+    private FloatingActionButton mFabEdit;
+    private FloatingActionButton mFabSave;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -29,64 +44,127 @@ public class RecipeDetailActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.detail_toolbar);
         setSupportActionBar(toolbar);
 
+        mFabAddToCart = findViewById(R.id.fab_add_to_cart);
+        mFabEdit = findViewById(R.id.fab_edit_recipe);
+        mFabSave = findViewById(R.id.fab_save_recipe);
+
+        mFabEdit.setOnClickListener(editFab -> selectFragment(TAG_FRAGMENT_RECIPE_EDIT));
+        mFabSave.setOnClickListener(saveFab -> selectFragment(TAG_FRAGMENT_RECIPE_DETAIL));
+
         // Show the Up button in the action bar.
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
 
-        long recipeId = getIntent().getLongExtra(RecipeDetailFragment.ARG_RECIPE_ID, RecipeDetailFragment.DEFAULT_RECIPE_ID);
+        mRecipeId = getIntent().getLongExtra(RecipeDetailFragment.ARG_RECIPE_ID, RecipeDetailFragment.DEFAULT_RECIPE_ID);
 
+        selectFragment(getFragmentTagFromArguments(savedInstanceState));
+
+        // get ViewModel for recipe id
         RecipeDetailRepository repository = new RecipeDetailRepository(getApplication());
-        RecipeDetailViewModelFactory factory = new RecipeDetailViewModelFactory(repository, recipeId);
-        RecipeDetailViewModel viewModel = ViewModelProviders.of(this, factory).get(RecipeDetailViewModel.class);
+        RecipeDetailViewModelFactory factory = new RecipeDetailViewModelFactory(repository, mRecipeId);
+        mViewModel = ViewModelProviders.of(this, factory).get(RecipeDetailViewModel.class);
 
-        FloatingActionButton fab = findViewById(R.id.fab_add_to_cart);
-
+        // OnClickListener for the Snackbar button
         View.OnClickListener onClickOpenShoppingList = v -> {
-            // open Recipe Detail activity
-            Intent intent = new Intent(RecipeDetailActivity.this, MainActivity.class);
-            intent.putExtra(MainActivity.EXTRA_FRAGMENT_ID, R.id.navigation_shopping_list);
+            Intent newIntent = new Intent(this, MainActivity.class);
+            newIntent.putExtra(MainActivity.EXTRA_FRAGMENT_ID, R.id.navigation_shopping_list);
             Debug.d(RecipeDetailActivity.this, "set Intent." + MainActivity.EXTRA_FRAGMENT_ID + " = " + R.id.navigation_shopping_list);
-            navigateUpTo(intent);
+            startActivity(newIntent);
         };
 
-        viewModel.isInShoppingList().observe(this, isInShoppingList -> {
+        mViewModel.isInShoppingList().observe(this, isInShoppingList -> {
             if (isInShoppingList != null && isInShoppingList) {
-                fab.setOnClickListener(view -> {
-                    viewModel.removeFromShoppingList(recipeId);
+                mFabAddToCart.setOnClickListener(view -> {
+                    mViewModel.removeFromShoppingList(mRecipeId);
                     Snackbar.make(view, R.string.removed_from_shopping_list, Snackbar.LENGTH_LONG)
                             .setAction(R.string.action_open, onClickOpenShoppingList)
                             .show();
                 });
-                fab.setImageResource(R.drawable.ic_remove_shopping_cart_24px);
+                mFabAddToCart.setImageResource(R.drawable.ic_remove_shopping_cart_24px);
             } else {
-                fab.setOnClickListener(view -> {
-                    viewModel.addToShoppingList(recipeId);
+                mFabAddToCart.setOnClickListener(view -> {
+                    mViewModel.addToShoppingList(mRecipeId);
                     Snackbar.make(view, R.string.added_to_shopping_list, Snackbar.LENGTH_LONG)
                             .setAction(R.string.action_open, onClickOpenShoppingList)
                             .show();
                 });
-                fab.setImageResource(R.drawable.ic_add_shopping_cart_24px);
+                mFabAddToCart.setImageResource(R.drawable.ic_add_shopping_cart_24px);
             }
         });
+    }
 
-        // only create fragment when creating this activity for the first time (not when rotating)
-        if (savedInstanceState == null) {
-            RecipeDetailFragment fragment = RecipeDetailFragment.newInstance(recipeId);
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.id.recipe_detail_container, fragment)
-                    .commit();
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(KEY_FRAGMENT_TAG, mCurrentFragment);
+    }
+
+    private String getFragmentTagFromArguments(Bundle savedInstanceState) {
+
+        // get recipe id from savedInstanceState (if not empty)
+        if (savedInstanceState != null && savedInstanceState.containsKey(KEY_FRAGMENT_TAG)) {
+            return savedInstanceState.getString(KEY_FRAGMENT_TAG, DEFAULT_FRAGMENT_TAG);
         }
+
+        return DEFAULT_FRAGMENT_TAG;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if (id == android.R.id.home) {
-            navigateUpTo(new Intent(this, MainActivity.class));
-            return true;
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                navigateUpTo(new Intent(this, MainActivity.class));
+                return true;
         }
-        return super.onOptionsItemSelected(item);
+        return false;
+    }
+
+    private void selectFragment(String tag) {
+        Fragment fragment = getFragmentByTag(tag);
+        if (fragment.getTag() == null || !fragment.getTag().equals(mCurrentFragment)) {
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.recipe_detail_container, fragment, tag)
+                    .commit();
+            mCurrentFragment = tag;
+        }
+        showButtonsByTag(tag);
+    }
+
+    private Fragment getFragmentByTag(String tag) {
+        Fragment fragment = getSupportFragmentManager().findFragmentByTag(tag);
+        if (fragment == null) {
+            switch (tag) {
+                case TAG_FRAGMENT_RECIPE_EDIT:
+                    return EditRecipeFragment.newInstance(mRecipeId);
+                case TAG_FRAGMENT_RECIPE_DETAIL:
+                    return RecipeDetailFragment.newInstance(mRecipeId);
+            }
+        }
+        return fragment;
+    }
+
+    private void showButtonsByTag(String tag) {
+        switch (tag) {
+            case TAG_FRAGMENT_RECIPE_EDIT:
+                showSaveButton();
+                break;
+            case TAG_FRAGMENT_RECIPE_DETAIL:
+            default:
+                showCartAndEditButtons();
+        }
+    }
+
+    private void showCartAndEditButtons() {
+        mFabEdit.setVisibility(View.VISIBLE);
+        mFabAddToCart.setVisibility(View.VISIBLE);
+        mFabSave.setVisibility(View.GONE);
+    }
+
+    private void showSaveButton() {
+        mFabEdit.setVisibility(View.GONE);
+        mFabAddToCart.setVisibility(View.GONE);
+        mFabSave.setVisibility(View.VISIBLE);
     }
 }

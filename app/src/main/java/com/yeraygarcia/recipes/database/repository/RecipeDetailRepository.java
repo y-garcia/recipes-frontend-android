@@ -9,7 +9,9 @@ import com.yeraygarcia.recipes.database.dao.RecipeDao;
 import com.yeraygarcia.recipes.database.dao.RecipeDetailDao;
 import com.yeraygarcia.recipes.database.dao.RecipeIngredientDao;
 import com.yeraygarcia.recipes.database.dao.ShoppingListDao;
+import com.yeraygarcia.recipes.database.dao.UnitDao;
 import com.yeraygarcia.recipes.database.entity.Recipe;
+import com.yeraygarcia.recipes.database.entity.RecipeIngredient;
 import com.yeraygarcia.recipes.database.entity.ShoppingListItem;
 import com.yeraygarcia.recipes.database.entity.custom.UiRecipe;
 import com.yeraygarcia.recipes.database.entity.custom.UiRecipeIngredient;
@@ -23,6 +25,7 @@ public class RecipeDetailRepository {
     private RecipeDetailDao mRecipeDetailDao;
     private RecipeIngredientDao mRecipeIngredientDao;
     private ShoppingListDao mShoppingListDao;
+    private UnitDao mUnitDao;
 
     public RecipeDetailRepository(Application application) {
         AppDatabase db = AppDatabase.getDatabase(application);
@@ -30,6 +33,7 @@ public class RecipeDetailRepository {
         mRecipeDetailDao = db.getRecipeDetailDao();
         mRecipeIngredientDao = db.getRecipeIngredientDao();
         mShoppingListDao = db.getShoppingListDao();
+        mUnitDao = db.getUnitDao();
     }
 
     public LiveData<List<UiRecipe>> getRecipes() {
@@ -45,7 +49,7 @@ public class RecipeDetailRepository {
     }
 
     public void update(Recipe recipe) {
-        new UpdateAsyncTask(mRecipeDao).execute(recipe);
+        new UpdateRecipeAsyncTask(mRecipeDao).execute(recipe);
     }
 
     public LiveData<Boolean> isInShoppingList(long recipeId) {
@@ -60,11 +64,19 @@ public class RecipeDetailRepository {
         new AddToShoppingListAsyncTask(mShoppingListDao, mRecipeIngredientDao).execute(recipeId);
     }
 
-    private static class UpdateAsyncTask extends AsyncTask<Recipe, Void, Void> {
+    public LiveData<List<String>> getUnitNames() {
+        return mUnitDao.findAllNames();
+    }
+
+    public void update(UiRecipeIngredient... ingredients) {
+        new UpdateIngredientAsyncTask(mRecipeIngredientDao).execute(ingredients);
+    }
+
+    private static class UpdateRecipeAsyncTask extends AsyncTask<Recipe, Void, Void> {
 
         private RecipeDao mAsyncRecipeDao;
 
-        UpdateAsyncTask(RecipeDao dao) {
+        UpdateRecipeAsyncTask(RecipeDao dao) {
             mAsyncRecipeDao = dao;
         }
 
@@ -107,6 +119,26 @@ public class RecipeDetailRepository {
             List<ShoppingListItem> shoppingListItems = recipeIngredientDao.findShoppingListItemByRecipeId(recipeId);
             shoppingListDao.deleteByRecipeId(recipeId);
             shoppingListDao.insert(shoppingListItems.toArray(new ShoppingListItem[]{}));
+            return null;
+        }
+    }
+
+    private static class UpdateIngredientAsyncTask extends AsyncTask<UiRecipeIngredient, Void, Void> {
+
+        private RecipeIngredientDao recipeIngredientDao;
+
+        UpdateIngredientAsyncTask(RecipeIngredientDao dao) {
+            recipeIngredientDao = dao;
+        }
+
+        @Override
+        protected Void doInBackground(final UiRecipeIngredient... ingredients) {
+            for (UiRecipeIngredient uiRecipeIngredient : ingredients) {
+                Debug.d(this, "Saving ingredient " + uiRecipeIngredient.toString());
+                RecipeIngredient recipeIngredient = recipeIngredientDao.findById(uiRecipeIngredient.getId());
+                recipeIngredient.setQuantity(uiRecipeIngredient.getQuantity());
+                recipeIngredientDao.update(recipeIngredient);
+            }
             return null;
         }
     }

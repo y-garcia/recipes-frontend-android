@@ -16,11 +16,12 @@ import android.view.ViewGroup;
 import com.yeraygarcia.recipes.adapter.ShoppingListAdapter;
 import com.yeraygarcia.recipes.database.entity.custom.UiShoppingListItem;
 import com.yeraygarcia.recipes.util.Debug;
-import com.yeraygarcia.recipes.viewmodel.ShoppingListViewModel;
+import com.yeraygarcia.recipes.viewmodel.RecipeViewModel;
 
 public class ShoppingListFragment extends Fragment {
 
     private FragmentActivity mParentActivity;
+    private RecipeViewModel mViewModel;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -34,13 +35,14 @@ public class ShoppingListFragment extends Fragment {
         Debug.d(this, "onCreateView(inflater, container, savedInstanceState)");
         View rootView = inflater.inflate(R.layout.fragment_shopping_list, container, false);
 
-        ShoppingListAdapter shoppingListAdapter = new ShoppingListAdapter(mParentActivity);
+        mViewModel = ViewModelProviders.of(this).get(RecipeViewModel.class);
+
+        ShoppingListAdapter shoppingListAdapter = new ShoppingListAdapter(mParentActivity, mViewModel);
         RecyclerView shoppingListRecyclerView = rootView.findViewById(R.id.recyclerview_shopping_list);
         shoppingListRecyclerView.setLayoutManager(new LinearLayoutManager(mParentActivity));
         shoppingListRecyclerView.setAdapter(shoppingListAdapter);
 
-        ShoppingListViewModel viewModel = ViewModelProviders.of(this).get(ShoppingListViewModel.class);
-        viewModel.getShoppingListItems().observe(this, shoppingListAdapter::setShoppingListItems);
+        mViewModel.getShoppingListItems().observe(this, shoppingListAdapter::setShoppingListItems);
 
         // recognize when a user swipes an item
         new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
@@ -53,10 +55,17 @@ public class ShoppingListFragment extends Fragment {
             public void onSwiped(final RecyclerView.ViewHolder viewHolder, int swipeDir) {
                 int position = viewHolder.getAdapterPosition();
                 UiShoppingListItem shoppingListItem = shoppingListAdapter.getShoppingListItems().get(position);
-                viewModel.removeFromShoppingList(shoppingListItem);
+                mViewModel.removeFromShoppingList(shoppingListItem);
             }
         }).attachToRecyclerView(shoppingListRecyclerView);
 
         return rootView;
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        Debug.d(this, "onPause()");
+        mViewModel.persistDraft();
     }
 }

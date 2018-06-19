@@ -5,9 +5,7 @@ import android.arch.persistence.room.Dao;
 import android.arch.persistence.room.Query;
 
 import com.yeraygarcia.recipes.database.entity.ShoppingListItem;
-import com.yeraygarcia.recipes.database.entity.custom.UiRecipeIngredient;
 import com.yeraygarcia.recipes.database.entity.custom.UiShoppingListItem;
-import com.yeraygarcia.recipes.database.entity.custom.UiShoppingListItemAggregated;
 
 import java.util.List;
 
@@ -37,21 +35,6 @@ public abstract class ShoppingListDao implements BaseDao<ShoppingListItem> {
             "LEFT OUTER JOIN unit u ON sli.unit_id = u.id " +
             "ORDER BY a.name, sli.name ASC")
     public abstract LiveData<List<UiShoppingListItem>> findAll();
-
-    @Query("SELECT " +
-            "SUM(sli.quantity) as quantity, " +
-            "u.name_singular AS unit_name, " +
-            "u.name_plural AS unit_name_plural, " +
-            "sli.name, " +
-            "sli.completed," +
-            "a.name as aisle " +
-            "FROM shopping_list_item sli " +
-            "LEFT OUTER JOIN ingredient i ON sli.ingredient_id = i.id " +
-            "LEFT OUTER JOIN aisle a ON i.aisle_id = a.id " +
-            "LEFT OUTER JOIN unit u ON sli.unit_id = u.id " +
-            "GROUP BY u.name_singular, u.name_plural, sli.name, sli.completed, a.name " +
-            "ORDER BY a.name, sli.name ASC")
-    public abstract LiveData<List<UiShoppingListItemAggregated>> findAllAggregated();
 
     @Query("SELECT DISTINCT recipe_id FROM shopping_list_item")
     public abstract LiveData<List<Long>> findDistinctRecipeIds();

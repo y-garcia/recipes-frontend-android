@@ -1,15 +1,14 @@
 package com.yeraygarcia.recipes.adapter;
 
-import android.arch.lifecycle.ViewModelProviders;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
 import android.support.v7.widget.RecyclerView;
-import android.view.KeyEvent;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.EditorInfo;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -31,9 +30,9 @@ public class ShoppingListAdapter extends RecyclerView.Adapter<ShoppingListAdapte
 
     // Constructors
 
-    public ShoppingListAdapter(FragmentActivity parent) {
+    public ShoppingListAdapter(FragmentActivity parent, RecipeViewModel viewModel) {
         mInflater = LayoutInflater.from(parent);
-        mViewModel = ViewModelProviders.of(parent).get(RecipeViewModel.class);
+        mViewModel = viewModel;
     }
 
     public List<UiShoppingListItem> getShoppingListItems() {
@@ -58,24 +57,19 @@ public class ShoppingListAdapter extends RecyclerView.Adapter<ShoppingListAdapte
             itemName = itemView.findViewById(R.id.textview_item_name);
             itemCompleted = itemView.findViewById(R.id.checkbox_item_completed);
 
-            itemQuantity.setOnEditorActionListener((v, actionId, event) -> {
-                        if (actionId == EditorInfo.IME_ACTION_SEARCH ||
-                                actionId == EditorInfo.IME_ACTION_DONE ||
-                                event != null &&
-                                        event.getAction() == KeyEvent.ACTION_DOWN &&
-                                        event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
-                            if (event == null || !event.isShiftPressed()) {
-                                updateQuantity(v.getText().toString(), getAdapterPosition());
-                                return true; // consume.
-                            }
-                        }
-                        return false; // pass on to other listeners.
-                    }
-            );
-            itemQuantity.setOnFocusChangeListener((v, hasFocus) -> {
-                if (!hasFocus) {
-                    String quantityAfter = ((EditText) v).getText().toString();
-                    updateQuantity(quantityAfter, getAdapterPosition());
+            itemQuantity.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                }
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                }
+
+                @Override
+                public void afterTextChanged(Editable s) {
+                    Debug.d(this, "afterTextChanged(" + s.toString() + ")");
+                    saveQuantityToDraft(s.toString(), getAdapterPosition());
                 }
             });
 
@@ -87,25 +81,29 @@ public class ShoppingListAdapter extends RecyclerView.Adapter<ShoppingListAdapte
         }
     }
 
-    private void updateQuantity(String editTextQuantity, int position) {
+    private void saveQuantityToDraft(String newQuantityText, int position) {
+        Debug.d(this, "saveQuantityToDraft(newQuantityText = " + newQuantityText + ", position = " + position + ")");
         if (position == RecyclerView.NO_POSITION) {
             return;
         }
 
         UiShoppingListItem shoppingListItem = mShoppingListItems.get(position);
-        Double itemQuantity = shoppingListItem.getQuantity();
+        Double oldQuantity = shoppingListItem.getQuantity();
 
         try {
-            if (editTextQuantity.isEmpty() && itemQuantity != null
-                    || !editTextQuantity.isEmpty() && itemQuantity == null
-                    || !Double.valueOf(editTextQuantity).equals(itemQuantity)) {
-
-                shoppingListItem.setQuantity(Double.valueOf(editTextQuantity));
-                mViewModel.updatePortionsInShoppingList(shoppingListItem);
+            if (newQuantityText.isEmpty() && oldQuantity != null
+                    || !newQuantityText.isEmpty() && oldQuantity == null
+                    || !Double.valueOf(newQuantityText).equals(oldQuantity)) {
+                // value has changed
+                Double newQuantity = newQuantityText.isEmpty() ? null : Double.valueOf(newQuantityText);
+                shoppingListItem.setQuantity(newQuantity);
+                mViewModel.saveDraft(shoppingListItem);
             }
         } catch (NumberFormatException ignored) {
+            Debug.d(this, "The entered value isn't a valid number");
         }
     }
+
     // Overrides
 
     @NonNull
@@ -123,7 +121,7 @@ public class ShoppingListAdapter extends RecyclerView.Adapter<ShoppingListAdapte
             holder.itemUnit.setText(currentItem.getFormattedUnit());
             holder.itemName.setText(currentItem.getName());
             holder.itemCompleted.setChecked(currentItem.getCompleted());
-            setCompletedFormatting(holder, currentItem.getCompleted());
+            formatCompletedView(holder, currentItem.getCompleted());
         } else {
             Debug.d(this, "no items");
             // Covers the case of data not being ready yet.
@@ -131,7 +129,7 @@ public class ShoppingListAdapter extends RecyclerView.Adapter<ShoppingListAdapte
             holder.itemUnit.setText("");
             holder.itemName.setText(R.string.no_shopping_list_items);
             holder.itemCompleted.setChecked(false);
-            setCompletedFormatting(holder, false);
+            formatCompletedView(holder, false);
         }
     }
 
@@ -143,7 +141,7 @@ public class ShoppingListAdapter extends RecyclerView.Adapter<ShoppingListAdapte
         return 0;
     }
 
-    private void setCompletedFormatting(ShoppingListViewHolder holder, boolean completed) {
+    private void formatCompletedView(ShoppingListViewHolder holder, boolean completed) {
         int textAppearance = completed ? R.style.shopping_list_item_completed : R.style.shopping_list_item;
         int strikeThrough = completed ? R.drawable.selector_strikethrough : 0;
 

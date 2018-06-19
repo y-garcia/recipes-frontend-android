@@ -14,4 +14,6 @@ public abstract class UnitDao implements BaseDao<Unit> {
     @Query("DELETE FROM unit")
     public abstract void deleteAll();
 
+    @Query("SELECT name_plural FROM unit")
+    public abstract LiveData<List<String>> findAllNames();
 }

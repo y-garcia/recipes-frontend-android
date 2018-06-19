@@ -16,7 +16,7 @@ public abstract class RecipeIngredientDao implements BaseDao<RecipeIngredient> {
     @Query("DELETE FROM recipe_ingredient")
     public abstract void deleteAll();
 
-    @Query("SELECT r.portions * ri.quantity AS quantity, u.name_singular AS unit_name, u.name_plural AS unit_name_plural, i.name " +
+    @Query("SELECT ri.id, r.portions, ri.quantity, u.name_singular AS unit_name, u.name_plural AS unit_name_plural, i.name " +
             "FROM recipe_ingredient ri " +
             "INNER JOIN recipe r ON ri.recipe_id = r.id " +
             "INNER JOIN ingredient i ON ri.ingredient_id = i.id " +
@@ -33,4 +33,6 @@ public abstract class RecipeIngredientDao implements BaseDao<RecipeIngredient> {
             "ORDER BY sort_order ASC")
     public abstract List<ShoppingListItem> findShoppingListItemByRecipeId(long recipeId);
 
+    @Query("SELECT * FROM recipe_ingredient WHERE id = :id")
+    public abstract RecipeIngredient findById(Long id);
 }

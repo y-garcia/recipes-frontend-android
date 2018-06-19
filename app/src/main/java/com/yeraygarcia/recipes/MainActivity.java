@@ -69,8 +69,6 @@ public class MainActivity extends AppCompatActivity {
 
         // get recipe id from savedInstanceState (if not empty)
         if (savedInstanceState != null && savedInstanceState.containsKey(KEY_FRAGMENT_ID)) {
-            long id = savedInstanceState.getInt(KEY_FRAGMENT_ID, DEFAULT_FRAGMENT_ID);
-            Debug.d(this, "savedInstanceState." + KEY_FRAGMENT_ID + " = " + id);
             return savedInstanceState.getInt(KEY_FRAGMENT_ID, DEFAULT_FRAGMENT_ID);
         }
 
@@ -82,8 +80,6 @@ public class MainActivity extends AppCompatActivity {
 
         // get recipe id from intent (if savedInstanceState was empty)
         if (intent != null && intent.hasExtra(EXTRA_FRAGMENT_ID)) {
-            long id = intent.getIntExtra(EXTRA_FRAGMENT_ID, DEFAULT_FRAGMENT_ID);
-            Debug.d(this, "Intent." + EXTRA_FRAGMENT_ID + " = " + id);
             return intent.getIntExtra(EXTRA_FRAGMENT_ID, DEFAULT_FRAGMENT_ID);
         }
 

@@ -18,6 +18,7 @@ import com.yeraygarcia.recipes.database.entity.TagUsage;
 import com.yeraygarcia.recipes.database.entity.custom.UiShoppingListItem;
 import com.yeraygarcia.recipes.util.Debug;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class RecipeRepository {
@@ -106,15 +107,15 @@ public class RecipeRepository {
     }
 
     public void updatePortionsInShoppingList(UiShoppingListItem shoppingListItem) {
-        new ShoppingListUpdatePortionsAsyncTask(mShoppingListDao, mRecipeIngredientDao).execute(shoppingListItem);
+        new ShoppingListUpdatePortionsAsyncTask(mShoppingListDao).execute(shoppingListItem);
     }
 
     public LiveData<List<Long>> getRecipeIdsInShoppingList() {
         return mRecipeIdsInShoppingList;
     }
 
-    public void update(UiShoppingListItem shoppingListItem) {
-        new UpdateShoppingListItemAsyncTask(mShoppingListDao).execute(shoppingListItem);
+    public void update(UiShoppingListItem... shoppingListItems) {
+        new UpdateShoppingListItemAsyncTask(mShoppingListDao).execute(shoppingListItems);
     }
 
     public LiveData<List<Recipe>> getRecipesInShoppingList() {
@@ -225,11 +226,9 @@ public class RecipeRepository {
 
     private static class ShoppingListUpdatePortionsAsyncTask extends AsyncTask<UiShoppingListItem, Void, Void> {
         private ShoppingListDao shoppingListDao;
-        private RecipeIngredientDao recipeIngredientDao;
 
-        ShoppingListUpdatePortionsAsyncTask(ShoppingListDao shoppingListDao, RecipeIngredientDao recipeIngredientDao) {
+        ShoppingListUpdatePortionsAsyncTask(ShoppingListDao shoppingListDao) {
             this.shoppingListDao = shoppingListDao;
-            this.recipeIngredientDao = recipeIngredientDao;
         }
 
         @Override
@@ -252,12 +251,18 @@ public class RecipeRepository {
         }
 
         @Override
-        protected Void doInBackground(final UiShoppingListItem... shoppingListItems) {
-            Debug.d(this, "Marking item in shopping list (in)complete");
-            UiShoppingListItem uiShoppingListItem = shoppingListItems[0];
-            ShoppingListItem shoppingListItem = shoppingListDao.findById(uiShoppingListItem.getId());
-            shoppingListItem.setCompleted(uiShoppingListItem.getCompleted());
-            shoppingListDao.update(shoppingListItem);
+        protected Void doInBackground(final UiShoppingListItem... uiShoppingListItems) {
+            Debug.d(this, "Updating shopping list item");
+            ShoppingListItem[] shoppingListItems = new ShoppingListItem[uiShoppingListItems.length];
+            for (int i = 0; i < uiShoppingListItems.length; i++) {
+                UiShoppingListItem uiShoppingListItem = uiShoppingListItems[i];
+                ShoppingListItem shoppingListItem = shoppingListDao.findById(uiShoppingListItem.getId());
+                shoppingListItem.setCompleted(uiShoppingListItem.getCompleted());
+                shoppingListItem.setQuantity(uiShoppingListItem.getQuantity());
+                shoppingListItems[i] = shoppingListItem;
+            }
+            Debug.d(this, Arrays.toString(shoppingListItems));
+            shoppingListDao.update(shoppingListItems);
             return null;
         }
     }

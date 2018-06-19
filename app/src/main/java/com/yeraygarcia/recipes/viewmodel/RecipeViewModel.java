@@ -5,6 +5,7 @@ import android.arch.lifecycle.AndroidViewModel;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.Transformations;
+import android.util.LongSparseArray;
 
 import com.yeraygarcia.recipes.database.entity.Recipe;
 import com.yeraygarcia.recipes.database.entity.Tag;
@@ -24,7 +25,9 @@ public class RecipeViewModel extends AndroidViewModel {
     private LiveData<List<Tag>> mTags;
     private LiveData<List<Long>> mRecipeIdsInShoppingList;
     private LiveData<List<Recipe>> mRecipesInShoppingList;
+    private final LiveData<List<UiShoppingListItem>> mShoppingListItems;
 
+    private MutableLiveData<LongSparseArray<UiShoppingListItem>> mShoppingListItemsDraft = new MutableLiveData<>();
 
     public RecipeViewModel(Application application) {
         super(application);
@@ -35,6 +38,8 @@ public class RecipeViewModel extends AndroidViewModel {
         mTagFilter.setValue(new ArrayList<>());
         mRecipeIdsInShoppingList = mRepository.getRecipeIdsInShoppingList();
         mRecipesInShoppingList = mRepository.getRecipesInShoppingList();
+        mShoppingListItems = mRepository.getShoppingListItems();
+        mShoppingListItemsDraft.setValue(new LongSparseArray<>());
     }
 
     public LiveData<List<Recipe>> getRecipes() {
@@ -129,5 +134,39 @@ public class RecipeViewModel extends AndroidViewModel {
     public void markComplete(UiShoppingListItem shoppingListItem, boolean complete) {
         shoppingListItem.setCompleted(complete);
         mRepository.update(shoppingListItem);
+    }
+
+    public LiveData<List<UiShoppingListItem>> getShoppingListItems() {
+        return mShoppingListItems;
+    }
+
+    public void removeFromShoppingList(UiShoppingListItem shoppingListItem) {
+        mRepository.removeFromShoppingList(shoppingListItem);
+    }
+
+    public void saveDraft(UiShoppingListItem ingredient) {
+        Debug.d(this, "saveDraft(ingredient = " + ingredient.toString() + ")");
+        LongSparseArray<UiShoppingListItem> ingredientsDraft = mShoppingListItemsDraft.getValue();
+        if (ingredientsDraft == null) {
+            ingredientsDraft = new LongSparseArray<>();
+        }
+        ingredientsDraft.put(ingredient.getId(), ingredient);
+        mShoppingListItemsDraft.setValue(ingredientsDraft);
+        Debug.d(this, "mShoppingListItemsDraft = " + mShoppingListItemsDraft.getValue() + ")");
+    }
+
+    public void persistDraft() {
+        Debug.d(this, "persistDraft()");
+        Debug.d(this, "mShoppingListItemsDraft = " + mShoppingListItemsDraft + ")");
+
+        LongSparseArray<UiShoppingListItem> shoppingListItemsDraft = mShoppingListItemsDraft.getValue();
+        if (shoppingListItemsDraft == null) {
+            shoppingListItemsDraft = new LongSparseArray<>();
+        }
+        UiShoppingListItem[] shoppingListItems = new UiShoppingListItem[shoppingListItemsDraft.size()];
+        for (int i = 0; i < shoppingListItemsDraft.size(); i++) {
+            shoppingListItems[i] = shoppingListItemsDraft.valueAt(i);
+        }
+        mRepository.update(shoppingListItems);
     }
 }

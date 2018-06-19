@@ -1,25 +1,25 @@
 package com.yeraygarcia.recipes;
 
+import android.app.Activity;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.yeraygarcia.recipes.adapter.RecipeDetailAdapter;
+import com.yeraygarcia.recipes.adapter.EditRecipeAdapter;
 import com.yeraygarcia.recipes.database.repository.RecipeDetailRepository;
 import com.yeraygarcia.recipes.util.Debug;
 import com.yeraygarcia.recipes.viewmodel.RecipeDetailViewModel;
 import com.yeraygarcia.recipes.viewmodel.RecipeDetailViewModelFactory;
 
-public class RecipeDetailFragment extends Fragment {
+public class EditRecipeFragment extends Fragment {
 
     public static final String ARG_RECIPE_ID = "argRecipeId";
     public static final String KEY_RECIPE_ID = "keyRecipeId";
@@ -27,20 +27,21 @@ public class RecipeDetailFragment extends Fragment {
 
     private long mRecipeId = DEFAULT_RECIPE_ID;
 
-    private FragmentActivity mParentActivity;
+    private Activity mParentActivity;
     private CollapsingToolbarLayout mAppBarLayout;
+    private RecipeDetailViewModel mViewModel;
 
-    private RecipeDetailAdapter mRecipeDetailAdapter;
+    private EditRecipeAdapter mEditRecipeAdapter;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
      */
-    public RecipeDetailFragment() {
+    public EditRecipeFragment() {
     }
 
-    public static RecipeDetailFragment newInstance(long recipeId) {
-        RecipeDetailFragment fragment = new RecipeDetailFragment();
+    public static EditRecipeFragment newInstance(long recipeId) {
+        EditRecipeFragment fragment = new EditRecipeFragment();
         Bundle args = new Bundle();
         args.putLong(ARG_RECIPE_ID, recipeId);
         fragment.setArguments(args);
@@ -51,8 +52,6 @@ public class RecipeDetailFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         Debug.d(this, "onCreate(savedInstanceState)");
         super.onCreate(savedInstanceState);
-
-        setHasOptionsMenu(true);
 
         mParentActivity = getActivity();
 
@@ -71,23 +70,23 @@ public class RecipeDetailFragment extends Fragment {
                 }
             }
 
-            RecipeDetailRepository repository = new RecipeDetailRepository(getActivity().getApplication());
+            RecipeDetailRepository repository = new RecipeDetailRepository(mParentActivity.getApplication());
 
-            // get ViewModel from id
+            // get ViewModel from id, observe recipe and populate ui with it
             RecipeDetailViewModelFactory factory = new RecipeDetailViewModelFactory(repository, mRecipeId);
-            RecipeDetailViewModel viewModel = ViewModelProviders.of(this, factory).get(RecipeDetailViewModel.class);
+            mViewModel = ViewModelProviders.of(this, factory).get(RecipeDetailViewModel.class);
 
-            mRecipeDetailAdapter = new RecipeDetailAdapter(mParentActivity, viewModel);
+            mEditRecipeAdapter = new EditRecipeAdapter(mParentActivity, mViewModel);
 
-            // observe recipe and populate ui with it
-            viewModel.getRecipeDetail().observe(this, uiRecipe -> {
+            mViewModel.getRecipeDetail().observe(this, uiRecipe -> {
                 if (uiRecipe == null) {
                     return;
                 }
                 mAppBarLayout.setTitle(uiRecipe.getRecipe().getName());
-                mRecipeDetailAdapter.setRecipe(uiRecipe);
+                mEditRecipeAdapter.setRecipe(uiRecipe);
             });
-            viewModel.getRecipeIngredients().observe(this, mRecipeDetailAdapter::setIngredients);
+            mViewModel.getUnitNames().observe(this, mEditRecipeAdapter::setUnits);
+            mViewModel.getRecipeIngredients().observe(this, mEditRecipeAdapter::setIngredients);
         }
     }
 
@@ -99,15 +98,22 @@ public class RecipeDetailFragment extends Fragment {
     }
 
     @Override
+    public void onPause() {
+        super.onPause();
+        Debug.d(this, "onPause()");
+        mViewModel.persistDraft();
+    }
+
+    @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         Debug.d(this, "onCreateView(inflater, container, savedInstanceState)");
-        View rootView = inflater.inflate(R.layout.fragment_recipe_detail, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_recipe_edit, container, false);
 
         mAppBarLayout = mParentActivity.findViewById(R.id.toolbar_layout);
 
-        RecyclerView recipeDetailRecyclerView = rootView.findViewById(R.id.recyclerview_recipe_details);
+        RecyclerView recipeDetailRecyclerView = rootView.findViewById(R.id.recyclerview_recipe_edit);
         recipeDetailRecyclerView.setLayoutManager(new LinearLayoutManager(mParentActivity));
-        recipeDetailRecyclerView.setAdapter(mRecipeDetailAdapter);
+        recipeDetailRecyclerView.setAdapter(mEditRecipeAdapter);
         //mRecipeDetailRecyclerView.addItemDecoration(new ShortDividerItemDecoration(mParentActivity, DividerItemDecoration.VERTICAL, 16, 0));
         recipeDetailRecyclerView.setNestedScrollingEnabled(false);
 

@@ -88,7 +88,7 @@ public class RecipeListFragment extends Fragment {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         Debug.d(this, "onCreateOptionsMenu(menu, inflated)");
-        inflater.inflate(R.menu.options_menu, menu);
+        inflater.inflate(R.menu.recipe_list_options_menu, menu);
         super.onCreateOptionsMenu(menu, inflater);
 
         // Associate searchable configuration with the SearchView

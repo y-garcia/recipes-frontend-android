@@ -121,7 +121,7 @@ public abstract class AppDatabase extends RoomDatabase {
         @Override
         protected Void doInBackground(final Void... params) {
 
-            if(mRecipeDao.getRecipeCount() == 0) {
+            if (Debug.POPULATE_DATABASE || mRecipeDao.getRecipeCount() == 0) {
                 Debug.d(this, "Populating database");
 
                 mRecipeTagDao.deleteAll();

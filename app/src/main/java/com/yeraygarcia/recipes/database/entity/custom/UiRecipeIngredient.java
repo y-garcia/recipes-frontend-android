@@ -6,6 +6,10 @@ import java.util.Locale;
 
 public class UiRecipeIngredient {
 
+    private Long id;
+
+    private Integer portions;
+
     private Double quantity;
 
     @ColumnInfo(name = "unit_name")
@@ -15,6 +19,22 @@ public class UiRecipeIngredient {
     private String unitNamePlural;
 
     private String name;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Integer getPortions() {
+        return portions;
+    }
+
+    public void setPortions(Integer portions) {
+        this.portions = portions;
+    }
 
     public Double getQuantity() {
         return quantity;
@@ -51,12 +71,12 @@ public class UiRecipeIngredient {
     public String getFormattedQuantity() {
         if (quantity == null) {
             return "";
-        } else if (quantity == Math.rint(quantity)) {
+        } else if (quantity * portions == Math.rint(quantity * portions)) {
             // quantity is an integer, use 0 format
-            return String.format(Locale.getDefault(), "%d", quantity.intValue());
+            return String.format(Locale.getDefault(), "%d", Double.valueOf(quantity * portions).intValue());
         } else {
             // quantity is a double, use 0.00 format
-            return String.format(Locale.getDefault(), "%1$,.2f", quantity);
+            return String.format(Locale.getDefault(), "%1$,.2f", quantity * portions);
         }
     }
 
@@ -76,10 +96,9 @@ public class UiRecipeIngredient {
             return ingredient.append(name).toString();
         }
 
-        if(quantity == Math.rint(quantity)){
+        if (quantity == Math.rint(quantity)) {
             ingredient.append(quantity.intValue()).append(" ");
-        }
-        else {
+        } else {
             ingredient.append(quantity).append(" ");
         }
 
