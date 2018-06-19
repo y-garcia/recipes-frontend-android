@@ -25,6 +25,9 @@ public class RecipeDetailFragment extends Fragment {
     public static final String KEY_RECIPE_ID = "keyRecipeId";
     public static final long DEFAULT_RECIPE_ID = -1;
 
+    private static final String KEY_SELECTED_INGREDIENT = "keySelectedIngredient";
+    private static final String KEY_SELECTED_STEP = "keySelectedStep";
+
     private long mRecipeId = DEFAULT_RECIPE_ID;
 
     private FragmentActivity mParentActivity;
@@ -71,13 +74,22 @@ public class RecipeDetailFragment extends Fragment {
                 }
             }
 
+            // get ViewModel from recipe id
             RecipeDetailRepository repository = new RecipeDetailRepository(getActivity().getApplication());
-
-            // get ViewModel from id
             RecipeDetailViewModelFactory factory = new RecipeDetailViewModelFactory(repository, mRecipeId);
             RecipeDetailViewModel viewModel = ViewModelProviders.of(this, factory).get(RecipeDetailViewModel.class);
 
             mRecipeDetailAdapter = new RecipeDetailAdapter(mParentActivity, viewModel);
+
+            // get selected ingredient and step from savedInstanceState (if not empty)
+            if (savedInstanceState != null) {
+                if(savedInstanceState.containsKey(KEY_SELECTED_INGREDIENT)){
+                    mRecipeDetailAdapter.setSelectedIngredient(savedInstanceState.getInt(KEY_SELECTED_INGREDIENT, RecyclerView.NO_POSITION));
+                }
+                if(savedInstanceState.containsKey(KEY_SELECTED_STEP)){
+                    mRecipeDetailAdapter.setSelectedStep(savedInstanceState.getInt(KEY_SELECTED_STEP, RecyclerView.NO_POSITION));
+                }
+            }
 
             // observe recipe and populate ui with it
             viewModel.getRecipeDetail().observe(this, uiRecipe -> {
@@ -94,7 +106,9 @@ public class RecipeDetailFragment extends Fragment {
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         Debug.d(this, "onSaveInstanceState(outState)");
-        outState.putLong(RecipeDetailFragment.KEY_RECIPE_ID, mRecipeId);
+        outState.putLong(KEY_RECIPE_ID, mRecipeId);
+        outState.putInt(KEY_SELECTED_INGREDIENT, mRecipeDetailAdapter.getSelectedIngredient());
+        outState.putInt(KEY_SELECTED_STEP, mRecipeDetailAdapter.getSelectedStep());
         super.onSaveInstanceState(outState);
     }
 

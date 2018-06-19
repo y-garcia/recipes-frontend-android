@@ -6,7 +6,7 @@ public final class Debug {
 
     private static final String PREFIX = "YGQ: ";
     private static final boolean DEBUG = true;
-    public static final boolean POPULATE_DATABASE = true;
+    public static final boolean POPULATE_DATABASE = false;
 
     private Debug() {
         // avoid instantiation

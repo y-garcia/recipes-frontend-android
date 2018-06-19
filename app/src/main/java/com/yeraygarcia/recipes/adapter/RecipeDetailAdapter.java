@@ -306,6 +306,22 @@ public class RecipeDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
     // Getters and Setters
 
+    public int getSelectedIngredient() {
+        return mSelectedIngredient;
+    }
+
+    public int getSelectedStep() {
+        return mSelectedStep;
+    }
+
+    public void setSelectedIngredient(int position) {
+        this.mSelectedIngredient = position;
+    }
+
+    public void setSelectedStep(int position) {
+        this.mSelectedStep = position;
+    }
+
     public void setRecipe(UiRecipe recipe) {
         Debug.d(this, "setRecipe(recipe)");
         mUiRecipe = recipe;
