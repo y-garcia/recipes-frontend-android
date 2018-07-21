@@ -12,9 +12,11 @@ import com.yeraygarcia.recipes.database.entity.Aisle;
 import java.util.List;
 
 @Dao
-public abstract class AisleDao implements BaseDao<Aisle> {
+public abstract class AisleDao extends BaseDao<Aisle> {
 
     @Query("DELETE FROM aisle")
     public abstract void deleteAll();
 
+    @Query("SELECT * FROM aisle")
+    public abstract LiveData<List<Aisle>> findAll();
 }

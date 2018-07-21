@@ -11,7 +11,7 @@ import com.yeraygarcia.recipes.database.entity.custom.UiRecipeIngredient;
 import java.util.List;
 
 @Dao
-public abstract class RecipeIngredientDao implements BaseDao<RecipeIngredient> {
+public abstract class RecipeIngredientDao extends BaseDao<RecipeIngredient> {
 
     @Query("DELETE FROM recipe_ingredient")
     public abstract void deleteAll();
@@ -35,4 +35,7 @@ public abstract class RecipeIngredientDao implements BaseDao<RecipeIngredient> {
 
     @Query("SELECT * FROM recipe_ingredient WHERE id = :id")
     public abstract RecipeIngredient findById(Long id);
+
+    @Query("SELECT * FROM recipe_ingredient")
+    public abstract LiveData<List<RecipeIngredient>> findAll();
 }

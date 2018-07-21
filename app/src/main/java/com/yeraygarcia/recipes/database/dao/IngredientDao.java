@@ -9,9 +9,11 @@ import com.yeraygarcia.recipes.database.entity.Ingredient;
 import java.util.List;
 
 @Dao
-public abstract class IngredientDao implements BaseDao<Ingredient> {
+public abstract class IngredientDao extends BaseDao<Ingredient> {
 
     @Query("DELETE FROM ingredient")
     public abstract void deleteAll();
 
+    @Query("SELECT * FROM ingredient")
+    public abstract LiveData<List<Ingredient>> findAll();
 }

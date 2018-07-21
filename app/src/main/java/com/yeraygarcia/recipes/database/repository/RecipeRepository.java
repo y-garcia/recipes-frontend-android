@@ -3,7 +3,10 @@ package com.yeraygarcia.recipes.database.repository;
 import android.app.Application;
 import android.arch.lifecycle.LiveData;
 import android.os.AsyncTask;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
+import com.yeraygarcia.recipes.AppExecutors;
 import com.yeraygarcia.recipes.database.AppDatabase;
 import com.yeraygarcia.recipes.database.dao.RecipeDao;
 import com.yeraygarcia.recipes.database.dao.RecipeIngredientDao;
@@ -11,17 +14,39 @@ import com.yeraygarcia.recipes.database.dao.RecipeTagDao;
 import com.yeraygarcia.recipes.database.dao.ShoppingListDao;
 import com.yeraygarcia.recipes.database.dao.TagDao;
 import com.yeraygarcia.recipes.database.dao.TagUsageDao;
+import com.yeraygarcia.recipes.database.entity.Aisle;
+import com.yeraygarcia.recipes.database.entity.Ingredient;
 import com.yeraygarcia.recipes.database.entity.Recipe;
+import com.yeraygarcia.recipes.database.entity.RecipeIngredient;
+import com.yeraygarcia.recipes.database.entity.RecipeStep;
+import com.yeraygarcia.recipes.database.entity.RecipeTag;
 import com.yeraygarcia.recipes.database.entity.ShoppingListItem;
 import com.yeraygarcia.recipes.database.entity.Tag;
 import com.yeraygarcia.recipes.database.entity.TagUsage;
+import com.yeraygarcia.recipes.database.entity.Unit;
+import com.yeraygarcia.recipes.database.entity.custom.All;
 import com.yeraygarcia.recipes.database.entity.custom.UiShoppingListItem;
+import com.yeraygarcia.recipes.database.remote.ApiResponse;
+import com.yeraygarcia.recipes.database.remote.NetworkBoundResource;
+import com.yeraygarcia.recipes.database.remote.Resource;
+import com.yeraygarcia.recipes.database.remote.ResourceData;
+import com.yeraygarcia.recipes.database.remote.RetrofitInstance;
+import com.yeraygarcia.recipes.database.remote.Webservice;
 import com.yeraygarcia.recipes.util.Debug;
 
 import java.util.Arrays;
 import java.util.List;
 
+import javax.inject.Singleton;
+
+@Singleton
 public class RecipeRepository {
+
+    private Webservice mWebservice;
+
+    private final AppExecutors appExecutors;
+
+    private AppDatabase mDb;
 
     private RecipeDao mRecipeDao;
     private RecipeTagDao mRecipeTagDao;
@@ -30,23 +55,23 @@ public class RecipeRepository {
     private RecipeIngredientDao mRecipeIngredientDao;
     private ShoppingListDao mShoppingListDao;
 
-    private LiveData<List<Recipe>> mRecipes;
-    private LiveData<List<Tag>> mTags;
     private LiveData<List<UiShoppingListItem>> mShoppingListItems;
     private LiveData<List<Long>> mRecipeIdsInShoppingList;
     private LiveData<List<Recipe>> mRecipesInShoppingList;
 
     public RecipeRepository(Application application) {
-        AppDatabase db = AppDatabase.getDatabase(application);
-        mRecipeDao = db.getRecipeDao();
-        mRecipeTagDao = db.getRecipeTagDao();
-        mTagUsageDao = db.getTagUsageDao();
-        mTagDao = db.getTagDao();
-        mRecipeIngredientDao = db.getRecipeIngredientDao();
-        mShoppingListDao = db.getShoppingListDao();
+        mDb = AppDatabase.getDatabase(application);
 
-        mRecipes = mRecipeDao.findAll();
-        mTags = mTagDao.findAll();
+        mWebservice = RetrofitInstance.getRetrofitInstance().create(Webservice.class);
+        appExecutors = new AppExecutors();
+
+        mRecipeDao = mDb.getRecipeDao();
+        mRecipeTagDao = mDb.getRecipeTagDao();
+        mTagUsageDao = mDb.getTagUsageDao();
+        mTagDao = mDb.getTagDao();
+        mRecipeIngredientDao = mDb.getRecipeIngredientDao();
+        mShoppingListDao = mDb.getShoppingListDao();
+
         mShoppingListItems = mShoppingListDao.findAll();
         mRecipeIdsInShoppingList = mShoppingListDao.findDistinctRecipeIds();
         mRecipesInShoppingList = mRecipeDao.findRecipesInShoppingList();
@@ -54,19 +79,147 @@ public class RecipeRepository {
 
     // Methods
 
-    public LiveData<List<Recipe>> getRecipes() {
-        return mRecipes;
+    public void refreshRecipes() {
+        Debug.d(this, "refreshRecipes()");
+        LiveData<ApiResponse<ResourceData<All>>> apiResponse = mWebservice.getAll();
+        ApiResponse<ResourceData<All>> response = apiResponse.getValue();
+
+        if (response != null && response.isSuccessful()) {
+            appExecutors.diskIO().execute(() -> {
+                if (response.body != null) {
+                    All data = response.body.getResult();
+                    mDb.getAisleDao().upsert(data.getAisles());
+                    mDb.getUnitDao().upsert(data.getUnits());
+                    mDb.getTagDao().upsert(data.getTags());
+                    mDb.getIngredientDao().upsert(data.getIngredients());
+                    mDb.getRecipeDao().upsert(data.getRecipes());
+                    mDb.getRecipeIngredientDao().upsert(data.getRecipeIngredients());
+                    mDb.getRecipeStepDao().upsert(data.getRecipeSteps());
+                    mDb.getRecipeTagDao().upsert(data.getRecipeTags());
+                }
+            });
+        }
     }
+
+    public LiveData<Resource<List<Recipe>>> getRecipes() {
+        return getRecipes(false);
+    }
+
+    public LiveData<Resource<List<Recipe>>> getRecipes(boolean forceFetch) {
+        return new NetworkBoundResource<List<Recipe>, ResourceData<All>>(appExecutors) {
+            @Override
+            protected void saveCallResult(@NonNull ResourceData<All> callResult) {
+                Debug.d(this, "getRecipes(" + forceFetch + ").saveCallResult(callResult)");
+                All data = callResult.getResult();
+                mDb.getAisleDao().upsert(data.getAisles());
+                mDb.getUnitDao().upsert(data.getUnits());
+                mDb.getTagDao().upsert(data.getTags());
+                mDb.getIngredientDao().upsert(data.getIngredients());
+                mDb.getRecipeDao().upsert(data.getRecipes());
+                mDb.getRecipeIngredientDao().upsert(data.getRecipeIngredients());
+                mDb.getRecipeStepDao().upsert(data.getRecipeSteps());
+                mDb.getRecipeTagDao().upsert(data.getRecipeTags());
+            }
+
+            @Override
+            protected boolean shouldFetch(@Nullable List<Recipe> data) {
+                Debug.d(this, "getRecipes(" + forceFetch + ").shouldFetch(" + (data == null ? "null" : "[" + data.size() + "]") + ")");
+                return forceFetch || (data == null || data.isEmpty());
+            }
+
+            @NonNull
+            @Override
+            protected LiveData<List<Recipe>> loadFromDb() {
+                Debug.d(this, "getRecipes(" + forceFetch + ").loadFromDb()");
+                return mDb.getRecipeDao().findAll();
+            }
+
+            @NonNull
+            @Override
+            protected LiveData<ApiResponse<ResourceData<All>>> createCall() {
+                Debug.d(this, "getRecipes(" + forceFetch + ").createCall()");
+                return mWebservice.getAll();
+            }
+        }.asLiveData();
+    }
+
+//    public LiveData<Resource<List<Tag>>> getTags() {
+//        return new NetworkBoundResource<List<Tag>, ResourceData<List<Tag>>>(appExecutors) {
+//            @Override
+//            protected void saveCallResult(@NonNull ResourceData<List<Tag>> callResult) {
+//                mTagDao.save(callResult.getResult().toArray(new Tag[callResult.getResult().size()]));
+//            }
+//
+//            @Override
+//            protected boolean shouldFetch(@Nullable List<Tag> data) {
+//                return data == null || data.isEmpty();
+//            }
+//
+//            @NonNull
+//            @Override
+//            protected LiveData<List<Tag>> loadFromDb() {
+//                return mTagDao.findAll();
+//            }
+//
+//            @NonNull
+//            @Override
+//            protected LiveData<ApiResponse<ResourceData<List<Tag>>>> createCall() {
+//                return mWebservice.getTags();
+//            }
+//        }.asLiveData();
+//    }
 
     public LiveData<List<Tag>> getTags() {
-        return mTags;
+        Debug.d(this, "getTags()");
+        return mTagDao.findAll();
     }
 
-    public LiveData<List<Recipe>> getRecipesByTagId(List<Long> tagIds) {
+    public LiveData<Resource<List<Recipe>>> getRecipesByTagId(List<Long> tagIds) {
+        return getRecipesByTagId(tagIds, true);
+    }
+
+    public LiveData<Resource<List<Recipe>>> getRecipesByTagId(List<Long> tagIds, boolean forceFetch) {
+        Debug.d(this, "getRecipesByTagId(" + tagIds + ")");
+
         if (tagIds.size() == 0) {
-            return mRecipeDao.findAll();
+            return getRecipes(forceFetch);
         }
-        return mRecipeTagDao.findRecipesByAllTagId(tagIds, tagIds.size());
+
+        return new NetworkBoundResource<List<Recipe>, ResourceData<All>>(appExecutors) {
+            @Override
+            protected void saveCallResult(@NonNull ResourceData<All> callResult) {
+                Debug.d(this, "getRecipesByTagId(" + tagIds + ", " + forceFetch + ").saveCallResult(callResult)");
+                All data = callResult.getResult();
+                mDb.getAisleDao().save(data.getAisles().toArray(new Aisle[]{}));
+                mDb.getUnitDao().save(data.getUnits().toArray(new Unit[]{}));
+                mDb.getTagDao().save(data.getTags().toArray(new Tag[]{}));
+                mDb.getIngredientDao().save(data.getIngredients().toArray(new Ingredient[]{}));
+                mDb.getRecipeDao().save(data.getRecipes().toArray(new Recipe[]{}));
+                mDb.getRecipeIngredientDao().save(data.getRecipeIngredients().toArray(new RecipeIngredient[]{}));
+                mDb.getRecipeStepDao().save(data.getRecipeSteps().toArray(new RecipeStep[]{}));
+                mDb.getRecipeTagDao().save(data.getRecipeTags().toArray(new RecipeTag[]{}));
+            }
+
+            @Override
+            protected boolean shouldFetch(@Nullable List<Recipe> data) {
+                Debug.d(this, "getRecipesByTagId(" + tagIds + ", " + forceFetch + ").shouldFetch(" + (data == null ? "null" : "[" + data.size() + "]") + ")");
+                return forceFetch || (data == null || data.isEmpty());
+            }
+
+            @NonNull
+            @Override
+            protected LiveData<List<Recipe>> loadFromDb() {
+                Debug.d(this, "getRecipesByTagId(" + tagIds + ", " + forceFetch + ").loadFromDb()");
+                return mRecipeTagDao.findRecipesByAllTagIds(tagIds, tagIds.size());
+            }
+
+            @NonNull
+            @Override
+            protected LiveData<ApiResponse<ResourceData<All>>> createCall() {
+                Debug.d(this, "getRecipesByTagId(" + tagIds + ", " + forceFetch + ").createCall()");
+                return mWebservice.getAll();
+            }
+        }.asLiveData();
     }
 
     public void insert(Recipe recipe) {
@@ -120,6 +273,20 @@ public class RecipeRepository {
 
     public LiveData<List<Recipe>> getRecipesInShoppingList() {
         return mRecipesInShoppingList;
+    }
+
+    public void deleteAll() {
+        appExecutors.diskIO().execute(() -> {
+            mDb.getTagUsageDao().deleteAll();
+            mDb.getRecipeTagDao().deleteAll();
+            mDb.getRecipeStepDao().deleteAll();
+            mDb.getRecipeIngredientDao().deleteAll();
+            mDb.getRecipeDao().deleteAll();
+            mDb.getIngredientDao().deleteAll();
+            mDb.getUnitDao().deleteAll();
+            mDb.getTagDao().deleteAll();
+            mDb.getAisleDao().deleteAll();
+        });
     }
 
     // Internal classes

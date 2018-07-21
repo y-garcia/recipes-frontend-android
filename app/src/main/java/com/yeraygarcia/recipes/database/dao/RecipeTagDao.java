@@ -10,7 +10,7 @@ import com.yeraygarcia.recipes.database.entity.RecipeTag;
 import java.util.List;
 
 @Dao
-public abstract class RecipeTagDao implements BaseDao<RecipeTag> {
+public abstract class RecipeTagDao extends BaseDao<RecipeTag> {
 
     @Query("DELETE FROM recipe_tag")
     public abstract void deleteAll();
@@ -27,6 +27,8 @@ public abstract class RecipeTagDao implements BaseDao<RecipeTag> {
             "WHERE rt.tag_id IN (:tagIds) " +
             "GROUP BY r.id, r.name, r.portions, r.duration, r.url " +
             "HAVING count(rt.tag_id) = :tagCount")
-    public abstract LiveData<List<Recipe>> findRecipesByAllTagId(List<Long> tagIds, int tagCount);
+    public abstract LiveData<List<Recipe>> findRecipesByAllTagIds(List<Long> tagIds, int tagCount);
 
+    @Query("SELECT * FROM recipe_tag")
+    public abstract LiveData<List<RecipeTag>> findAll();
 }

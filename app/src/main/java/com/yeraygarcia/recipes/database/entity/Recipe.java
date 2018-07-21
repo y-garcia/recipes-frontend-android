@@ -100,10 +100,10 @@ public class Recipe {
 
     @Override
     public String toString() {
-        return "Recipe: " + name +
-                "\nPortions: " + portions +
-                "\nDuration: " + getDurationInMinutes() + " minutes" +
-                "\nSource: " + (url != null ? url : "(none)");
+        return "\n[Recipe: " + name +
+                ", Portions: " + portions +
+                ", Duration: " + getDurationInMinutes() + " minutes" +
+                ", Source: " + (url != null ? url : "(none)]");
     }
 
     public void increasePortions() {

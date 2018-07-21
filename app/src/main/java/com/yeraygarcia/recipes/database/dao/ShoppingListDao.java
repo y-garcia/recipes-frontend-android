@@ -10,7 +10,7 @@ import com.yeraygarcia.recipes.database.entity.custom.UiShoppingListItem;
 import java.util.List;
 
 @Dao
-public abstract class ShoppingListDao implements BaseDao<ShoppingListItem> {
+public abstract class ShoppingListDao extends BaseDao<ShoppingListItem> {
 
     @Query("DELETE FROM shopping_list_item")
     public abstract void deleteAll();

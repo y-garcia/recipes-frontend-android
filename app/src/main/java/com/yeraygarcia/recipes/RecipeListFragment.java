@@ -16,8 +16,10 @@ import android.support.v7.widget.SearchView;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.yeraygarcia.recipes.adapter.RecipeAdapter;
 import com.yeraygarcia.recipes.adapter.TagAdapter;
@@ -70,8 +72,32 @@ public class RecipeListFragment extends Fragment {
             long[] tagFilter = savedInstanceState.getLongArray(EXTRA_TAG_FILTER);
             mViewModel.setTagFilter(tagFilter);
         }
-        mViewModel.getRecipes().observe(this, mRecipeAdapter::setRecipes);
-        mViewModel.getTags().observe(this, tagAdapter::setTags);
+        mViewModel.getRecipes().observe(this, resource -> {
+            Debug.d(this, "getRecipes().observe(" + resource + ")");
+            if (resource != null) {
+                switch (resource.status) {
+                    case SUCCESS:
+                        mRecipeAdapter.setRecipes(resource.data);
+                        break;
+                    case ERROR:
+                        Toast.makeText(getContext(), resource.message, Toast.LENGTH_LONG).show();
+                        break;
+                    case LOADING:
+                        Toast.makeText(getContext(), "Loading recipes...", Toast.LENGTH_SHORT).show();
+                        break;
+                }
+            } else {
+                Toast.makeText(getContext(), "Recipe resource is null", Toast.LENGTH_LONG).show();
+            }
+        });
+        mViewModel.getTags().observe(this, tags -> {
+            Debug.d(this, "getTags().observe(" + tags + ")");
+            if (tags != null) {
+                tagAdapter.setTags(tags);
+            } else {
+                Toast.makeText(getContext(), "Tags entity is null", Toast.LENGTH_LONG).show();
+            }
+        });
         mViewModel.getTagFilter().observe(this, tagAdapter::setTagFilter);
         mViewModel.getRecipeIdsInShoppingList().observe(this, mRecipeAdapter::setRecipeIdsInShoppingList);
 
@@ -88,7 +114,7 @@ public class RecipeListFragment extends Fragment {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         Debug.d(this, "onCreateOptionsMenu(menu, inflated)");
-        inflater.inflate(R.menu.recipe_list_options_menu, menu);
+        inflater.inflate(R.menu.options_menu_recipe_list, menu);
         super.onCreateOptionsMenu(menu, inflater);
 
         // Associate searchable configuration with the SearchView
@@ -97,9 +123,16 @@ public class RecipeListFragment extends Fragment {
         if (searchManager != null) {
             searchView.setSearchableInfo(searchManager.getSearchableInfo(mParentActivity.getComponentName()));
         }
+        // Detect typing in SearchView
         searchView.setOnQueryTextListener(new OnFilterRecipesListener());
     }
 
+    private void setItemsVisibility(Menu menu, MenuItem exception, boolean visible) {
+        for (int i = 0; i < menu.size(); ++i) {
+            MenuItem item = menu.getItem(i);
+            if (item != exception) item.setVisible(visible);
+        }
+    }
     // Internal classes
 
     private class OnFilterRecipesListener implements SearchView.OnQueryTextListener {

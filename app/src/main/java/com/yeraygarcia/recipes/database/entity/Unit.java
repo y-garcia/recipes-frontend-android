@@ -7,6 +7,8 @@ import android.arch.persistence.room.Index;
 import android.arch.persistence.room.PrimaryKey;
 import android.support.annotation.NonNull;
 
+import com.google.gson.annotations.SerializedName;
+
 @Entity(
         tableName = "unit",
         indices = {
@@ -21,10 +23,12 @@ public class Unit {
 
     @NonNull
     @ColumnInfo(name = "name_singular")
+    @SerializedName("name_singular")
     private String nameSingular;
 
     @NonNull
     @ColumnInfo(name = "name_plural")
+    @SerializedName("name_plural")
     private String namePlural;
 
     // Constructors ////////////////////////////////////////////////////////////////////////////////

@@ -8,6 +8,8 @@ import android.arch.persistence.room.Index;
 import android.arch.persistence.room.PrimaryKey;
 import android.support.annotation.Nullable;
 
+import com.google.gson.annotations.SerializedName;
+
 import static android.arch.persistence.room.ForeignKey.CASCADE;
 import static android.arch.persistence.room.ForeignKey.RESTRICT;
 
@@ -30,9 +32,11 @@ public class RecipeIngredient {
     private long id;
 
     @ColumnInfo(name = "recipe_id")
+    @SerializedName("recipe_id")
     private long recipeId;
 
     @ColumnInfo(name = "ingredient_id")
+    @SerializedName("ingredient_id")
     private long ingredientId;
 
     @Nullable

@@ -7,6 +7,8 @@ import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.Index;
 import android.arch.persistence.room.PrimaryKey;
 
+import com.google.gson.annotations.SerializedName;
+
 import static android.arch.persistence.room.ForeignKey.CASCADE;
 
 @Entity(
@@ -24,14 +26,17 @@ public class RecipeStep {
     private long id;
 
     @ColumnInfo(name = "recipe_id")
+    @SerializedName("recipe_id")
     private long recipeId;
 
     private String description;
 
     @ColumnInfo(name = "is_section")
+    @SerializedName("is_section")
     private boolean section;
 
     @ColumnInfo(name = "sort_order")
+    @SerializedName("sort_order")
     private int sortOrder;
 
     // Constructors ////////////////////////////////////////////////////////////////////////////////

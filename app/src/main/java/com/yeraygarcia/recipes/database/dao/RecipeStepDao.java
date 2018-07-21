@@ -12,9 +12,11 @@ import com.yeraygarcia.recipes.database.entity.RecipeStep;
 import java.util.List;
 
 @Dao
-public abstract class RecipeStepDao implements BaseDao<RecipeStep> {
+public abstract class RecipeStepDao extends BaseDao<RecipeStep> {
 
     @Query("DELETE FROM recipe_step")
     public abstract void deleteAll();
 
+    @Query("SELECT * FROM recipe_step")
+    public abstract LiveData<List<RecipeStep>> findAll();
 }

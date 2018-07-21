@@ -9,7 +9,7 @@ import com.yeraygarcia.recipes.database.entity.Tag;
 import java.util.List;
 
 @Dao
-public abstract class TagDao implements BaseDao<Tag> {
+public abstract class TagDao extends BaseDao<Tag> {
 
     @Query("DELETE FROM tag")
     public abstract void deleteAll();
@@ -17,4 +17,6 @@ public abstract class TagDao implements BaseDao<Tag> {
     @Query("SELECT * FROM tag ORDER BY usage_count DESC, name ASC")
     public abstract LiveData<List<Tag>> findAll();
 
+    @Query("SELECT count(1) = 0 AS is_empty FROM tag")
+    public abstract boolean isEmpty();
 }

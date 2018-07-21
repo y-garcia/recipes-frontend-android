@@ -28,6 +28,8 @@ public class MainActivity extends AppCompatActivity {
     private Fragment mCurrentFragment;
     private int mCurrentFragmentId;
 
+    RecipeViewModel mViewModel;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
         mNavigation = findViewById(R.id.navigation);
         mNavigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
 
-        RecipeViewModel mViewModel = ViewModelProviders.of(this).get(RecipeViewModel.class);
+        mViewModel = ViewModelProviders.of(this).get(RecipeViewModel.class);
         mViewModel.updateTagUsage();
 
         mCurrentFragmentId = getFragmentIdFromArguments(savedInstanceState, getIntent());

@@ -8,6 +8,8 @@ import android.arch.persistence.room.Index;
 import android.arch.persistence.room.PrimaryKey;
 import android.support.annotation.NonNull;
 
+import com.google.gson.annotations.SerializedName;
+
 import static android.arch.persistence.room.ForeignKey.RESTRICT;
 
 @Entity(
@@ -27,6 +29,7 @@ public class Ingredient {
     private String name;
 
     @ColumnInfo(name = "aisle_id")
+    @SerializedName("aisle_id")
     private long aisleId;
 
     // Constructors ////////////////////////////////////////////////////////////////////////////////

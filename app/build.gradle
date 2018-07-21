@@ -27,10 +27,24 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.android.support:appcompat-v7:27.1.1'
     implementation 'com.android.support:design:27.1.1'
-    implementation 'com.android.support.constraint:constraint-layout:1.1.1'
+    implementation 'com.android.support.constraint:constraint-layout:1.1.2'
     implementation 'com.android.support:recyclerview-v7:27.1.1'
     implementation 'com.android.support:support-v4:27.1.1'
     implementation 'com.android.support:support-vector-drawable:27.1.1'
+
+    implementation 'com.google.android.gms:play-services-auth:15.0.1'
+
+    // Retrofit
+    implementation 'com.squareup.retrofit2:retrofit:2.4.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.3.0'
+    implementation 'com.jakewharton.timber:timber:4.7.1'
+
+    // Dagger
+    implementation 'com.google.dagger:dagger:2.16'
+    annotationProcessor 'com.google.dagger:dagger-compiler:2.16'
+    implementation 'com.google.dagger:dagger-android:2.16' // If you're using classes in dagger.android
+    implementation 'com.google.dagger:dagger-android-support:2.16' // if you use the support libraries
+    annotationProcessor 'com.google.dagger:dagger-android-processor:2.16'
 
     // Room components
     implementation "android.arch.persistence.room:runtime:$rootProject.roomVersion"

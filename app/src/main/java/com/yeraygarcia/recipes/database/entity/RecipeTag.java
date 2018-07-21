@@ -8,6 +8,8 @@ import android.arch.persistence.room.Index;
 import android.arch.persistence.room.PrimaryKey;
 import android.support.annotation.NonNull;
 
+import com.google.gson.annotations.SerializedName;
+
 import static android.arch.persistence.room.ForeignKey.CASCADE;
 
 @Entity(
@@ -28,9 +30,11 @@ public class RecipeTag {
     private long id;
 
     @ColumnInfo(name = "recipe_id")
+    @SerializedName("recipe_id")
     private long recipeId;
 
     @ColumnInfo(name = "tag_id")
+    @SerializedName("tag_id")
     private long tagId;
 
     // Constructors ////////////////////////////////////////////////////////////////////////////////

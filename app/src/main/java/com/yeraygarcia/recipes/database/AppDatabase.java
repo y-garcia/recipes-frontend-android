@@ -105,6 +105,7 @@ public abstract class AppDatabase extends RoomDatabase {
         private final RecipeStepDao mRecipeStepDao;
         private final RecipeTagDao mRecipeTagDao;
         private final ShoppingListDao mShoppingListDao;
+        private final TagUsageDao mTagUsageDao;
 
         PopulateDbAsync(AppDatabase db) {
             mAisleDao = db.getAisleDao();
@@ -116,22 +117,24 @@ public abstract class AppDatabase extends RoomDatabase {
             mRecipeStepDao = db.getRecipeStepDao();
             mRecipeTagDao = db.getRecipeTagDao();
             mShoppingListDao = db.getShoppingListDao();
+            mTagUsageDao = db.getTagUsageDao();
         }
 
         @Override
         protected Void doInBackground(final Void... params) {
 
-            if (Debug.POPULATE_DATABASE || mRecipeDao.getRecipeCount() == 0) {
-                Debug.d(this, "Populating database");
+            mTagUsageDao.deleteAll();
+            mRecipeTagDao.deleteAll();
+            mRecipeStepDao.deleteAll();
+            mRecipeIngredientDao.deleteAll();
+            mRecipeDao.deleteAll();
+            mIngredientDao.deleteAll();
+            mUnitDao.deleteAll();
+            mTagDao.deleteAll();
+            mAisleDao.deleteAll();
 
-                mRecipeTagDao.deleteAll();
-                mRecipeStepDao.deleteAll();
-                mRecipeIngredientDao.deleteAll();
-                mRecipeDao.deleteAll();
-                mIngredientDao.deleteAll();
-                mUnitDao.deleteAll();
-                mTagDao.deleteAll();
-                mAisleDao.deleteAll();
+            if (Debug.POPULATE_DATABASE && mRecipeDao.getRecipeCount() == 0) {
+                Debug.d(this, "Populating database");
 
                 populateAisle();
                 populateTag();

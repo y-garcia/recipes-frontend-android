@@ -3,6 +3,7 @@ package com.yeraygarcia.recipes.viewmodel;
 import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
 import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.MediatorLiveData;
 import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.Transformations;
 import android.util.LongSparseArray;
@@ -10,6 +11,7 @@ import android.util.LongSparseArray;
 import com.yeraygarcia.recipes.database.entity.Recipe;
 import com.yeraygarcia.recipes.database.entity.Tag;
 import com.yeraygarcia.recipes.database.entity.custom.UiShoppingListItem;
+import com.yeraygarcia.recipes.database.remote.Resource;
 import com.yeraygarcia.recipes.database.repository.RecipeRepository;
 import com.yeraygarcia.recipes.util.Debug;
 
@@ -21,7 +23,7 @@ public class RecipeViewModel extends AndroidViewModel {
     private RecipeRepository mRepository;
 
     private MutableLiveData<List<Long>> mTagFilter = new MutableLiveData<>();
-    private LiveData<List<Recipe>> mRecipes = Transformations.switchMap(mTagFilter, tagIds -> mRepository.getRecipesByTagId(tagIds));
+    private LiveData<Resource<List<Recipe>>> mRecipes = Transformations.switchMap(mTagFilter, tagIds -> mRepository.getRecipesByTagId(tagIds));
     private LiveData<List<Tag>> mTags;
     private LiveData<List<Long>> mRecipeIdsInShoppingList;
     private LiveData<List<Recipe>> mRecipesInShoppingList;
@@ -32,17 +34,19 @@ public class RecipeViewModel extends AndroidViewModel {
     public RecipeViewModel(Application application) {
         super(application);
         Debug.d(this, "RecipeViewModel(application)");
+
         mRepository = new RecipeRepository(application);
-        //mRecipes = mRepository.getRecipes();
+
         mTags = mRepository.getTags();
         mTagFilter.setValue(new ArrayList<>());
+
         mRecipeIdsInShoppingList = mRepository.getRecipeIdsInShoppingList();
         mRecipesInShoppingList = mRepository.getRecipesInShoppingList();
         mShoppingListItems = mRepository.getShoppingListItems();
         mShoppingListItemsDraft.setValue(new LongSparseArray<>());
     }
 
-    public LiveData<List<Recipe>> getRecipes() {
+    public LiveData<Resource<List<Recipe>>> getRecipes() {
         Debug.d(this, "getRecipes()");
         return mRecipes;
     }
@@ -99,6 +103,11 @@ public class RecipeViewModel extends AndroidViewModel {
             tagFilterList.add(tagId);
         }
         mTagFilter.setValue(tagFilterList);
+    }
+
+    public void clearTagFilter() {
+        Debug.d(this, "clearTagFilter()");
+        mTagFilter.setValue(new ArrayList<>());
     }
 
     public void updateTagUsage() {

@@ -9,11 +9,14 @@ import com.yeraygarcia.recipes.database.entity.Unit;
 import java.util.List;
 
 @Dao
-public abstract class UnitDao implements BaseDao<Unit> {
+public abstract class UnitDao extends BaseDao<Unit> {
 
     @Query("DELETE FROM unit")
     public abstract void deleteAll();
 
     @Query("SELECT name_plural FROM unit")
     public abstract LiveData<List<String>> findAllNames();
+
+    @Query("SELECT * FROM unit")
+    public abstract LiveData<List<Unit>> findAll();
 }

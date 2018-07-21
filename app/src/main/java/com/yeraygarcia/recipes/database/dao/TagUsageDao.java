@@ -9,7 +9,7 @@ import com.yeraygarcia.recipes.database.entity.TagUsage;
 import java.util.List;
 
 @Dao
-public abstract class TagUsageDao implements BaseDao<TagUsage> {
+public abstract class TagUsageDao extends BaseDao<TagUsage> {
 
     @Query("DELETE FROM usage_tag")
     public abstract void deleteAll();
