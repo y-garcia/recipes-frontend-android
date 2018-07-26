@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.yeraygarcia.recipes.R;
@@ -104,6 +105,7 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipesVie
         TextView itemServingsLabel;
         ImageView itemIncrease;
         ImageView itemAddToCart;
+        LinearLayout itemNameContainer;
 
         private RecipesViewHolder(View itemView) {
             super(itemView);
@@ -115,8 +117,9 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipesVie
             itemServings = itemView.findViewById(R.id.textview_servings);
             itemServingsLabel = itemView.findViewById(R.id.textview_servings_label);
             itemAddToCart = itemView.findViewById(R.id.imageview_add_to_cart);
+            itemNameContainer = itemView.findViewById(R.id.linearlayout_recipe_name);
 
-            itemName.setOnClickListener(view -> {
+            itemNameContainer.setOnClickListener(view -> {
                 final long recipeId = mRecipes.get(getAdapterPosition()).getId();
                 // open Recipe Detail activity
                 Intent intent = new Intent(mContext, RecipeDetailActivity.class);

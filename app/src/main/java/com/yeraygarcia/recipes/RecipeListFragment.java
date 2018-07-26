@@ -9,6 +9,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -34,6 +35,7 @@ public class RecipeListFragment extends Fragment {
     private FragmentActivity mParentActivity;
     private RecipeAdapter mRecipeAdapter;
     private RecipeViewModel mViewModel;
+    private SwipeRefreshLayout mSwipeRefreshLayout;
 
     public RecipeListFragment() {
         // Required empty public constructor
@@ -55,6 +57,17 @@ public class RecipeListFragment extends Fragment {
                 .setAction("Action", null).show());
 
         setHasOptionsMenu(true);
+
+        mSwipeRefreshLayout = rootView.findViewById(R.id.swiperefresh);
+        mSwipeRefreshLayout.setOnRefreshListener(
+                new SwipeRefreshLayout.OnRefreshListener() {
+                    @Override
+                    public void onRefresh() {
+                        Debug.d(this, "onRefresh called from SwipeRefreshLayout");
+                        refreshData();
+                    }
+                }
+        );
 
         mRecipeAdapter = new RecipeAdapter(mParentActivity);
         RecyclerView recipesRecyclerView = rootView.findViewById(R.id.recyclerview_recipe_list);
@@ -78,12 +91,15 @@ public class RecipeListFragment extends Fragment {
                 switch (resource.status) {
                     case SUCCESS:
                         mRecipeAdapter.setRecipes(resource.data);
+                        mSwipeRefreshLayout.setRefreshing(false);
                         break;
                     case ERROR:
+                        Debug.d(this, resource.toString());
                         Toast.makeText(getContext(), resource.message, Toast.LENGTH_LONG).show();
+                        mSwipeRefreshLayout.setRefreshing(false);
                         break;
                     case LOADING:
-                        Toast.makeText(getContext(), "Loading recipes...", Toast.LENGTH_SHORT).show();
+                        mSwipeRefreshLayout.setRefreshing(true);
                         break;
                 }
             } else {
@@ -102,6 +118,11 @@ public class RecipeListFragment extends Fragment {
         mViewModel.getRecipeIdsInShoppingList().observe(this, mRecipeAdapter::setRecipeIdsInShoppingList);
 
         return rootView;
+    }
+
+    private void refreshData() {
+        mViewModel.refreshAll();
+        mSwipeRefreshLayout.setRefreshing(false);
     }
 
     @Override
@@ -127,12 +148,18 @@ public class RecipeListFragment extends Fragment {
         searchView.setOnQueryTextListener(new OnFilterRecipesListener());
     }
 
-    private void setItemsVisibility(Menu menu, MenuItem exception, boolean visible) {
-        for (int i = 0; i < menu.size(); ++i) {
-            MenuItem item = menu.getItem(i);
-            if (item != exception) item.setVisible(visible);
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_refresh:
+                mSwipeRefreshLayout.setRefreshing(true);
+                refreshData();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
     }
+
     // Internal classes
 
     private class OnFilterRecipesListener implements SearchView.OnQueryTextListener {

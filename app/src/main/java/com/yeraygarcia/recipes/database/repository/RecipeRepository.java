@@ -14,16 +14,11 @@ import com.yeraygarcia.recipes.database.dao.RecipeTagDao;
 import com.yeraygarcia.recipes.database.dao.ShoppingListDao;
 import com.yeraygarcia.recipes.database.dao.TagDao;
 import com.yeraygarcia.recipes.database.dao.TagUsageDao;
-import com.yeraygarcia.recipes.database.entity.Aisle;
-import com.yeraygarcia.recipes.database.entity.Ingredient;
+import com.yeraygarcia.recipes.database.entity.LastUpdate;
 import com.yeraygarcia.recipes.database.entity.Recipe;
-import com.yeraygarcia.recipes.database.entity.RecipeIngredient;
-import com.yeraygarcia.recipes.database.entity.RecipeStep;
-import com.yeraygarcia.recipes.database.entity.RecipeTag;
 import com.yeraygarcia.recipes.database.entity.ShoppingListItem;
 import com.yeraygarcia.recipes.database.entity.Tag;
 import com.yeraygarcia.recipes.database.entity.TagUsage;
-import com.yeraygarcia.recipes.database.entity.Unit;
 import com.yeraygarcia.recipes.database.entity.custom.All;
 import com.yeraygarcia.recipes.database.entity.custom.UiShoppingListItem;
 import com.yeraygarcia.recipes.database.remote.ApiResponse;
@@ -34,7 +29,7 @@ import com.yeraygarcia.recipes.database.remote.RetrofitInstance;
 import com.yeraygarcia.recipes.database.remote.Webservice;
 import com.yeraygarcia.recipes.util.Debug;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Singleton;
@@ -59,10 +54,12 @@ public class RecipeRepository {
     private LiveData<List<Long>> mRecipeIdsInShoppingList;
     private LiveData<List<Recipe>> mRecipesInShoppingList;
 
+    private boolean mCacheIsDirty = true;
+
     public RecipeRepository(Application application) {
         mDb = AppDatabase.getDatabase(application);
 
-        mWebservice = RetrofitInstance.getRetrofitInstance().create(Webservice.class);
+        mWebservice = RetrofitInstance.getLiveDataRetrofitInstance().create(Webservice.class);
         appExecutors = new AppExecutors();
 
         mRecipeDao = mDb.getRecipeDao();
@@ -79,151 +76,102 @@ public class RecipeRepository {
 
     // Methods
 
-    public void refreshRecipes() {
-        Debug.d(this, "refreshRecipes()");
-        LiveData<ApiResponse<ResourceData<All>>> apiResponse = mWebservice.getAll();
-        ApiResponse<ResourceData<All>> response = apiResponse.getValue();
+    private void updateAllFromResource(ResourceData<All> resource) {
+        All data = resource.getResult();
+        mDb.getAisleDao().upsert(data.getAisles());
+        mDb.getUnitDao().upsert(data.getUnits());
+        mDb.getTagDao().upsert(data.getTags());
+        mDb.getIngredientDao().upsert(data.getIngredients());
+        mDb.getRecipeDao().upsert(data.getRecipes());
+        mDb.getRecipeIngredientDao().upsert(data.getRecipeIngredients());
+        mDb.getRecipeStepDao().upsert(data.getRecipeSteps());
+        mDb.getRecipeTagDao().upsert(data.getRecipeTags());
 
-        if (response != null && response.isSuccessful()) {
-            appExecutors.diskIO().execute(() -> {
-                if (response.body != null) {
-                    All data = response.body.getResult();
-                    mDb.getAisleDao().upsert(data.getAisles());
-                    mDb.getUnitDao().upsert(data.getUnits());
-                    mDb.getTagDao().upsert(data.getTags());
-                    mDb.getIngredientDao().upsert(data.getIngredients());
-                    mDb.getRecipeDao().upsert(data.getRecipes());
-                    mDb.getRecipeIngredientDao().upsert(data.getRecipeIngredients());
-                    mDb.getRecipeStepDao().upsert(data.getRecipeSteps());
-                    mDb.getRecipeTagDao().upsert(data.getRecipeTags());
-                }
-            });
-        }
+        mDb.getLastUpdateDao().update(new LastUpdate(System.currentTimeMillis()));
+        mCacheIsDirty = false;
+    }
+
+    public void invalidateCache() {
+        mCacheIsDirty = true;
     }
 
     public LiveData<Resource<List<Recipe>>> getRecipes() {
-        return getRecipes(false);
-    }
-
-    public LiveData<Resource<List<Recipe>>> getRecipes(boolean forceFetch) {
         return new NetworkBoundResource<List<Recipe>, ResourceData<All>>(appExecutors) {
             @Override
             protected void saveCallResult(@NonNull ResourceData<All> callResult) {
-                Debug.d(this, "getRecipes(" + forceFetch + ").saveCallResult(callResult)");
-                All data = callResult.getResult();
-                mDb.getAisleDao().upsert(data.getAisles());
-                mDb.getUnitDao().upsert(data.getUnits());
-                mDb.getTagDao().upsert(data.getTags());
-                mDb.getIngredientDao().upsert(data.getIngredients());
-                mDb.getRecipeDao().upsert(data.getRecipes());
-                mDb.getRecipeIngredientDao().upsert(data.getRecipeIngredients());
-                mDb.getRecipeStepDao().upsert(data.getRecipeSteps());
-                mDb.getRecipeTagDao().upsert(data.getRecipeTags());
+                Debug.d(this, "getRecipes().saveCallResult(callResult)");
+                updateAllFromResource(callResult);
             }
 
             @Override
             protected boolean shouldFetch(@Nullable List<Recipe> data) {
-                Debug.d(this, "getRecipes(" + forceFetch + ").shouldFetch(" + (data == null ? "null" : "[" + data.size() + "]") + ")");
-                return forceFetch || (data == null || data.isEmpty());
+                Debug.d(this, "getRecipes().shouldFetch(" + (data == null ? "null" : "[" + data.size() + "]") + ")");
+                return data == null || data.isEmpty() || mCacheIsDirty;
             }
 
             @NonNull
             @Override
             protected LiveData<List<Recipe>> loadFromDb() {
-                Debug.d(this, "getRecipes(" + forceFetch + ").loadFromDb()");
+                Debug.d(this, "getRecipes().loadFromDb()");
                 return mDb.getRecipeDao().findAll();
             }
 
             @NonNull
             @Override
             protected LiveData<ApiResponse<ResourceData<All>>> createCall() {
-                Debug.d(this, "getRecipes(" + forceFetch + ").createCall()");
+                Debug.d(this, "getRecipes().createCall()");
                 return mWebservice.getAll();
             }
         }.asLiveData();
     }
 
-//    public LiveData<Resource<List<Tag>>> getTags() {
-//        return new NetworkBoundResource<List<Tag>, ResourceData<List<Tag>>>(appExecutors) {
-//            @Override
-//            protected void saveCallResult(@NonNull ResourceData<List<Tag>> callResult) {
-//                mTagDao.save(callResult.getResult().toArray(new Tag[callResult.getResult().size()]));
-//            }
-//
-//            @Override
-//            protected boolean shouldFetch(@Nullable List<Tag> data) {
-//                return data == null || data.isEmpty();
-//            }
-//
-//            @NonNull
-//            @Override
-//            protected LiveData<List<Tag>> loadFromDb() {
-//                return mTagDao.findAll();
-//            }
-//
-//            @NonNull
-//            @Override
-//            protected LiveData<ApiResponse<ResourceData<List<Tag>>>> createCall() {
-//                return mWebservice.getTags();
-//            }
-//        }.asLiveData();
-//    }
-
-    public LiveData<List<Tag>> getTags() {
-        Debug.d(this, "getTags()");
-        return mTagDao.findAll();
-    }
-
     public LiveData<Resource<List<Recipe>>> getRecipesByTagId(List<Long> tagIds) {
-        return getRecipesByTagId(tagIds, true);
-    }
-
-    public LiveData<Resource<List<Recipe>>> getRecipesByTagId(List<Long> tagIds, boolean forceFetch) {
         Debug.d(this, "getRecipesByTagId(" + tagIds + ")");
 
         if (tagIds.size() == 0) {
-            return getRecipes(forceFetch);
+            return getRecipes();
         }
 
         return new NetworkBoundResource<List<Recipe>, ResourceData<All>>(appExecutors) {
             @Override
             protected void saveCallResult(@NonNull ResourceData<All> callResult) {
-                Debug.d(this, "getRecipesByTagId(" + tagIds + ", " + forceFetch + ").saveCallResult(callResult)");
-                All data = callResult.getResult();
-                mDb.getAisleDao().save(data.getAisles().toArray(new Aisle[]{}));
-                mDb.getUnitDao().save(data.getUnits().toArray(new Unit[]{}));
-                mDb.getTagDao().save(data.getTags().toArray(new Tag[]{}));
-                mDb.getIngredientDao().save(data.getIngredients().toArray(new Ingredient[]{}));
-                mDb.getRecipeDao().save(data.getRecipes().toArray(new Recipe[]{}));
-                mDb.getRecipeIngredientDao().save(data.getRecipeIngredients().toArray(new RecipeIngredient[]{}));
-                mDb.getRecipeStepDao().save(data.getRecipeSteps().toArray(new RecipeStep[]{}));
-                mDb.getRecipeTagDao().save(data.getRecipeTags().toArray(new RecipeTag[]{}));
+                Debug.d(this, "getRecipesByTagId(" + tagIds + ").saveCallResult(callResult)");
+                updateAllFromResource(callResult);
             }
 
             @Override
             protected boolean shouldFetch(@Nullable List<Recipe> data) {
-                Debug.d(this, "getRecipesByTagId(" + tagIds + ", " + forceFetch + ").shouldFetch(" + (data == null ? "null" : "[" + data.size() + "]") + ")");
-                return forceFetch || (data == null || data.isEmpty());
+                Debug.d(this, "getRecipesByTagId(" + tagIds + ").shouldFetch(" + (data == null ? "null" : "[" + data.size() + "]") + ")");
+                return mCacheIsDirty;
             }
 
             @NonNull
             @Override
             protected LiveData<List<Recipe>> loadFromDb() {
-                Debug.d(this, "getRecipesByTagId(" + tagIds + ", " + forceFetch + ").loadFromDb()");
+                Debug.d(this, "getRecipesByTagId(" + tagIds + ").loadFromDb()");
                 return mRecipeTagDao.findRecipesByAllTagIds(tagIds, tagIds.size());
             }
 
             @NonNull
             @Override
             protected LiveData<ApiResponse<ResourceData<All>>> createCall() {
-                Debug.d(this, "getRecipesByTagId(" + tagIds + ", " + forceFetch + ").createCall()");
+                Debug.d(this, "getRecipesByTagId(" + tagIds + ").createCall()");
                 return mWebservice.getAll();
             }
         }.asLiveData();
     }
 
+    public LiveData<List<Tag>> getTags() {
+        Debug.d(this, "getTags()");
+        return mTagDao.findAll();
+    }
+
     public void insert(Recipe recipe) {
         new RecipeInsertAsyncTask(mRecipeDao).execute(recipe);
+    }
+
+    public void update(Recipe recipe) {
+        new UpdateRecipeAsyncTask(mRecipeDao).execute(recipe);
     }
 
     public void logTagUsage(Long tagId) {
@@ -249,10 +197,6 @@ public class RecipeRepository {
 
     public LiveData<List<UiShoppingListItem>> getShoppingListItems() {
         return mShoppingListItems;
-    }
-
-    public void update(Recipe recipe) {
-        new UpdateRecipeAsyncTask(mRecipeDao).execute(recipe);
     }
 
     public void updatePortionsInShoppingList(Recipe recipe) {
@@ -314,8 +258,8 @@ public class RecipeRepository {
         }
 
         @Override
-        protected Void doInBackground(final Recipe... params) {
-            mDao.insert(params);
+        protected Void doInBackground(final Recipe... recipes) {
+            mDao.insert(recipes[0]);
             return null;
         }
     }
@@ -328,8 +272,8 @@ public class RecipeRepository {
         }
 
         @Override
-        protected Void doInBackground(final TagUsage... params) {
-            mDao.insert(params);
+        protected Void doInBackground(final TagUsage... tagUsages) {
+            mDao.insert(tagUsages[0]);
             return null;
         }
     }
@@ -346,7 +290,7 @@ public class RecipeRepository {
         @Override
         protected Void doInBackground(Void... voids) {
             List<Tag> tags = tagUsageDao.getTagsWithUpdatedUsage();
-            tagDao.update(tags.toArray(new Tag[]{}));
+            tagDao.update(tags);
             return null;
         }
     }
@@ -366,7 +310,7 @@ public class RecipeRepository {
             final long recipeId = recipes[0].getId();
             List<ShoppingListItem> shoppingListItems = recipeIngredientDao.findShoppingListItemByRecipeId(recipeId);
             shoppingListDao.deleteByRecipeId(recipeId);
-            shoppingListDao.insert(shoppingListItems.toArray(new ShoppingListItem[]{}));
+            shoppingListDao.insert(shoppingListItems);
             return null;
         }
     }
@@ -386,7 +330,7 @@ public class RecipeRepository {
             final long recipeId = recipes[0].getId();
             List<ShoppingListItem> shoppingListItems = recipeIngredientDao.findShoppingListItemByRecipeId(recipeId);
             shoppingListDao.deleteByRecipeId(recipeId);
-            shoppingListDao.insert(shoppingListItems.toArray(new ShoppingListItem[]{}));
+            shoppingListDao.insert(shoppingListItems);
             return null;
         }
     }
@@ -420,15 +364,14 @@ public class RecipeRepository {
         @Override
         protected Void doInBackground(final UiShoppingListItem... uiShoppingListItems) {
             Debug.d(this, "Updating shopping list item");
-            ShoppingListItem[] shoppingListItems = new ShoppingListItem[uiShoppingListItems.length];
-            for (int i = 0; i < uiShoppingListItems.length; i++) {
-                UiShoppingListItem uiShoppingListItem = uiShoppingListItems[i];
+            List<ShoppingListItem> shoppingListItems = new ArrayList<>(uiShoppingListItems.length);
+            for (UiShoppingListItem uiShoppingListItem : uiShoppingListItems) {
                 ShoppingListItem shoppingListItem = shoppingListDao.findById(uiShoppingListItem.getId());
                 shoppingListItem.setCompleted(uiShoppingListItem.getCompleted());
                 shoppingListItem.setQuantity(uiShoppingListItem.getQuantity());
-                shoppingListItems[i] = shoppingListItem;
+                shoppingListItems.add(shoppingListItem);
             }
-            Debug.d(this, Arrays.toString(shoppingListItems));
+            Debug.d(this, shoppingListItems.toString());
             shoppingListDao.update(shoppingListItems);
             return null;
         }

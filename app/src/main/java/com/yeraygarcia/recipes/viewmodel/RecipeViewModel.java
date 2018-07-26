@@ -3,7 +3,6 @@ package com.yeraygarcia.recipes.viewmodel;
 import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
 import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.MediatorLiveData;
 import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.Transformations;
 import android.util.LongSparseArray;
@@ -16,6 +15,7 @@ import com.yeraygarcia.recipes.database.repository.RecipeRepository;
 import com.yeraygarcia.recipes.util.Debug;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class RecipeViewModel extends AndroidViewModel {
@@ -105,11 +105,6 @@ public class RecipeViewModel extends AndroidViewModel {
         mTagFilter.setValue(tagFilterList);
     }
 
-    public void clearTagFilter() {
-        Debug.d(this, "clearTagFilter()");
-        mTagFilter.setValue(new ArrayList<>());
-    }
-
     public void updateTagUsage() {
         Debug.d(this, "updateTagUsage()");
         mRepository.updateTagUsage();
@@ -177,5 +172,24 @@ public class RecipeViewModel extends AndroidViewModel {
             shoppingListItems[i] = shoppingListItemsDraft.valueAt(i);
         }
         mRepository.update(shoppingListItems);
+    }
+
+    public void deleteAll() {
+        mRepository.deleteAll();
+    }
+
+    public void refreshAll() {
+        mRepository.invalidateCache();
+        forceRefresh();
+    }
+
+    private void clearTagFilter() {
+        mTagFilter.setValue(Collections.emptyList());
+    }
+
+    private void forceRefresh() {
+        List<Long> tagFilterCopy = mTagFilter.getValue();
+        clearTagFilter();
+        mTagFilter.setValue(tagFilterCopy);
     }
 }

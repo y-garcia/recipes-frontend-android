@@ -7,7 +7,14 @@ import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.yeraygarcia.recipes.util.Debug;
 import com.yeraygarcia.recipes.viewmodel.RecipeViewModel;
 
@@ -28,7 +35,9 @@ public class MainActivity extends AppCompatActivity {
     private Fragment mCurrentFragment;
     private int mCurrentFragmentId;
 
-    RecipeViewModel mViewModel;
+    private RecipeViewModel mViewModel;
+
+    private GoogleSignInClient mGoogleSignInClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +60,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
+        updateUI(account);
+    }
+
+    private void updateUI(GoogleSignInAccount account) {
+        if (account == null) {
+            signOut();
+        }
+    }
+
+    @Override
     protected void onNewIntent(Intent intent) {
         Debug.d(this, "onNewIntent(intent)");
         super.onNewIntent(intent);
@@ -65,6 +87,46 @@ public class MainActivity extends AppCompatActivity {
         super.onSaveInstanceState(outState);
         Debug.d(this, "savedInstanceState." + KEY_FRAGMENT_ID + " = " + mCurrentFragmentId);
         outState.putInt(KEY_FRAGMENT_ID, mCurrentFragmentId);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.options_menu_main_acitivty, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.signout_button:
+                signOut();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void signOut() {
+        if(mGoogleSignInClient == null){
+            initGoogleSignInClient();
+        }
+        mGoogleSignInClient.signOut().addOnCompleteListener(this, task -> {
+            mViewModel.deleteAll();
+            startActivity(new Intent(MainActivity.this, SignInActivity.class));
+            finish();
+        });
+    }
+
+    private void initGoogleSignInClient() {
+        // Configure sign-in to request the user's ID, email address, and basic
+        // profile. ID and basic profile are included in DEFAULT_SIGN_IN.
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
+                .build();
+
+        // Build a GoogleSignInClient with the options specified by gso.
+        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
     }
 
     private int getFragmentIdFromArguments(Bundle savedInstanceState, Intent intent) {

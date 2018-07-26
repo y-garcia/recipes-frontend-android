@@ -118,7 +118,7 @@ public class RecipeDetailRepository {
             final long recipeId = recipeIds[0];
             List<ShoppingListItem> shoppingListItems = recipeIngredientDao.findShoppingListItemByRecipeId(recipeId);
             shoppingListDao.deleteByRecipeId(recipeId);
-            shoppingListDao.insert(shoppingListItems.toArray(new ShoppingListItem[]{}));
+            shoppingListDao.insert(shoppingListItems);
             return null;
         }
     }
