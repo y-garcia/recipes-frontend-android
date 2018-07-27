@@ -7,7 +7,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -21,6 +20,7 @@ import com.yeraygarcia.recipes.database.remote.RetrofitInstance;
 import com.yeraygarcia.recipes.database.remote.User;
 import com.yeraygarcia.recipes.database.remote.Webservice;
 import com.yeraygarcia.recipes.util.Debug;
+import com.yeraygarcia.recipes.util.NetworkUtil;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -125,32 +125,38 @@ public class SignInActivity extends AppCompatActivity {
 
             if (idToken != null) {
 
-                Webservice webservice = RetrofitInstance.getStandardRetrofitInstance().create(Webservice.class);
+                if (NetworkUtil.isOnline(this)) {
 
-                Call<ResourceData<User>> call = webservice.postToken(idToken);
+                    Webservice webservice = RetrofitInstance.getStandardRetrofitInstance().create(Webservice.class);
 
-                call.enqueue(new Callback<ResourceData<User>>() {
-                    @Override
-                    public void onResponse(@NonNull Call<ResourceData<User>> call, @NonNull Response<ResourceData<User>> response) {
-                        Debug.d(this, "call successful");
-                        if (response.isSuccessful()) {
-                            ResourceData<User> body = response.body();
-                            if (body != null && body.getResult() != null & body.getResult().getToken() != null) {
-                                updateUI(account);
+                    Call<ResourceData<User>> call = webservice.postToken(idToken);
+
+                    call.enqueue(new Callback<ResourceData<User>>() {
+                        @Override
+                        public void onResponse(@NonNull Call<ResourceData<User>> call, @NonNull Response<ResourceData<User>> response) {
+                            Debug.d(this, "call successful");
+                            if (response.isSuccessful()) {
+                                ResourceData<User> body = response.body();
+                                if (body != null && body.getResult() != null & body.getResult().getToken() != null) {
+                                    updateUI(account);
+                                } else {
+                                    updateUI(null, getString(R.string.sign_in_error_empty_response));
+                                }
                             } else {
-                                updateUI(null, getString(R.string.sign_in_error_empty_response));
+                                updateUI(null, response.message());
                             }
-                        } else {
-                            updateUI(null, response.message());
                         }
-                    }
 
-                    @Override
-                    public void onFailure(@NonNull Call<ResourceData<User>> call, @NonNull Throwable t) {
-                        Debug.d(this, t.getMessage());
-                        updateUI(null, t.getMessage());
-                    }
-                });
+                        @Override
+                        public void onFailure(@NonNull Call<ResourceData<User>> call, @NonNull Throwable t) {
+                            Debug.d(this, t.getMessage());
+                            updateUI(null, t.getMessage());
+                        }
+                    });
+                } else {
+                    // sign in the user in offline mode
+                    updateUI(account);
+                }
             } else {
                 updateUI(null, getString(R.string.sign_in_error_empty_token));
             }
@@ -174,7 +180,7 @@ public class SignInActivity extends AppCompatActivity {
             finish();
         } else {
             setStatus(SIGNED_OUT);
-            if(errorMessage != null){
+            if (errorMessage != null) {
                 mInfo.setText(R.string.sign_in_error_fail);
                 mInfo.setError(errorMessage);
                 mInfo.setVisibility(View.VISIBLE);

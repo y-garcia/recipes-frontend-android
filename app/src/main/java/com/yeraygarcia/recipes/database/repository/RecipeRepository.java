@@ -2,6 +2,7 @@ package com.yeraygarcia.recipes.database.repository;
 
 import android.app.Application;
 import android.arch.lifecycle.LiveData;
+import android.content.Context;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -28,6 +29,7 @@ import com.yeraygarcia.recipes.database.remote.ResourceData;
 import com.yeraygarcia.recipes.database.remote.RetrofitInstance;
 import com.yeraygarcia.recipes.database.remote.Webservice;
 import com.yeraygarcia.recipes.util.Debug;
+import com.yeraygarcia.recipes.util.NetworkUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +43,7 @@ public class RecipeRepository {
 
     private final AppExecutors appExecutors;
 
+    private Context mContext;
     private AppDatabase mDb;
 
     private RecipeDao mRecipeDao;
@@ -57,6 +60,7 @@ public class RecipeRepository {
     private boolean mCacheIsDirty = true;
 
     public RecipeRepository(Application application) {
+        mContext = application;
         mDb = AppDatabase.getDatabase(application);
 
         mWebservice = RetrofitInstance.getLiveDataRetrofitInstance().create(Webservice.class);
@@ -106,7 +110,7 @@ public class RecipeRepository {
             @Override
             protected boolean shouldFetch(@Nullable List<Recipe> data) {
                 Debug.d(this, "getRecipes().shouldFetch(" + (data == null ? "null" : "[" + data.size() + "]") + ")");
-                return data == null || data.isEmpty() || mCacheIsDirty;
+                return (data == null || data.isEmpty() || mCacheIsDirty) && NetworkUtil.isOnline(mContext);
             }
 
             @NonNull
@@ -142,7 +146,7 @@ public class RecipeRepository {
             @Override
             protected boolean shouldFetch(@Nullable List<Recipe> data) {
                 Debug.d(this, "getRecipesByTagId(" + tagIds + ").shouldFetch(" + (data == null ? "null" : "[" + data.size() + "]") + ")");
-                return mCacheIsDirty;
+                return mCacheIsDirty && NetworkUtil.isOnline(mContext);
             }
 
             @NonNull

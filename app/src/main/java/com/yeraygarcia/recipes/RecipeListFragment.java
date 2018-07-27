@@ -90,7 +90,6 @@ public class RecipeListFragment extends Fragment {
             if (resource != null) {
                 switch (resource.status) {
                     case SUCCESS:
-                        mRecipeAdapter.setRecipes(resource.data);
                         mSwipeRefreshLayout.setRefreshing(false);
                         break;
                     case ERROR:
@@ -101,6 +100,9 @@ public class RecipeListFragment extends Fragment {
                     case LOADING:
                         mSwipeRefreshLayout.setRefreshing(true);
                         break;
+                }
+                if(resource.data != null){
+                    mRecipeAdapter.setRecipes(resource.data);
                 }
             } else {
                 Toast.makeText(getContext(), "Recipe resource is null", Toast.LENGTH_LONG).show();
