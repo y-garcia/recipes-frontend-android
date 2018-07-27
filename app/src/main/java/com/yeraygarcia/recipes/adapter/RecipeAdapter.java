@@ -158,6 +158,16 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipesVie
                 }
             });
 
+            itemDecrease.setOnLongClickListener(view -> {
+                Recipe recipe = mRecipes.get(getAdapterPosition());
+                boolean isInShoppingList = mRecipeIdsInShoppingList.contains(recipe.getId());
+
+                if (isInShoppingList) {
+                    mViewModel.deleteRecipeFromShoppingList(recipe);
+                }
+
+                return true;
+            });
         }
     }
 
