@@ -44,9 +44,11 @@ public class RecipeIngredient {
 
     @Nullable
     @ColumnInfo(name = "unit_id")
+    @SerializedName("unit_id")
     private Long unitId;
 
     @ColumnInfo(name = "sort_order")
+    @SerializedName("sort_order")
     private int sortOrder;
 
     // Constructors ////////////////////////////////////////////////////////////////////////////////

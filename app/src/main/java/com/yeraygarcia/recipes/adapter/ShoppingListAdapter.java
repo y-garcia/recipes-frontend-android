@@ -1,17 +1,14 @@
 package com.yeraygarcia.recipes.adapter;
 
-import android.os.Build;
+import android.graphics.Paint;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.widget.TextViewCompat;
 import android.support.v7.widget.RecyclerView;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
-import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.yeraygarcia.recipes.R;
@@ -43,66 +40,47 @@ public class ShoppingListAdapter extends RecyclerView.Adapter<ShoppingListAdapte
 
     class ShoppingListViewHolder extends RecyclerView.ViewHolder {
 
-        LinearLayout itemContainer;
-        EditText itemQuantity;
+        TextView itemQuantity;
         TextView itemUnit;
         TextView itemName;
         CheckBox itemCompleted;
 
         private ShoppingListViewHolder(View itemView) {
             super(itemView);
-            itemContainer = itemView.findViewById(R.id.container_shopping_list_item);
             itemQuantity = itemView.findViewById(R.id.edittext_item_quantity);
             itemUnit = itemView.findViewById(R.id.textview_item_unit);
             itemName = itemView.findViewById(R.id.textview_item_name);
             itemCompleted = itemView.findViewById(R.id.checkbox_item_completed);
 
-            itemQuantity.addTextChangedListener(new TextWatcher() {
-                @Override
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                }
-
-                @Override
-                public void onTextChanged(CharSequence s, int start, int before, int count) {
-                }
-
-                @Override
-                public void afterTextChanged(Editable s) {
-                    Debug.d(this, "afterTextChanged(" + s.toString() + ")");
-                    saveQuantityToDraft(s.toString(), getAdapterPosition());
-                }
-            });
-
             itemCompleted.setOnClickListener(view -> {
                 boolean checked = ((CheckBox) view).isChecked();
-
                 mViewModel.markComplete(getItemAt(getAdapterPosition()), checked);
             });
         }
     }
 
-    private void saveQuantityToDraft(String newQuantityText, int position) {
-        Debug.d(this, "saveQuantityToDraft(newQuantityText = " + newQuantityText + ", position = " + position + ")");
-        if (position == RecyclerView.NO_POSITION) {
-            return;
-        }
-
-        UiShoppingListItem shoppingListItem = mShoppingListItems.get(position);
-        Double oldQuantity = shoppingListItem.getQuantity();
-
-        try {
-            if (newQuantityText.isEmpty() && oldQuantity != null
-                    || !newQuantityText.isEmpty() && oldQuantity == null
-                    || !Double.valueOf(newQuantityText).equals(oldQuantity)) {
-                // value has changed
-                Double newQuantity = newQuantityText.isEmpty() ? null : Double.valueOf(newQuantityText);
-                shoppingListItem.setQuantity(newQuantity);
-                mViewModel.saveDraft(shoppingListItem);
-            }
-        } catch (NumberFormatException ignored) {
-            Debug.d(this, "The entered value isn't a valid number");
-        }
-    }
+//    private void saveQuantityToDraft(String newQuantityText, int position) {
+//        Debug.d(this, "saveQuantityToDraft(newQuantityText = " + newQuantityText + ", position = " + position + ")");
+//        if (position == RecyclerView.NO_POSITION) {
+//            return;
+//        }
+//
+//        UiShoppingListItem shoppingListItem = mShoppingListItems.get(position);
+//        Double oldQuantity = shoppingListItem.getQuantity();
+//
+//        try {
+//            if (newQuantityText.isEmpty() && oldQuantity != null
+//                    || !newQuantityText.isEmpty() && oldQuantity == null
+//                    || !Double.valueOf(newQuantityText).equals(oldQuantity)) {
+//                // value has changed
+//                Double newQuantity = newQuantityText.isEmpty() ? null : Double.valueOf(newQuantityText);
+//                shoppingListItem.setQuantity(newQuantity);
+//                mViewModel.saveDraft(shoppingListItem);
+//            }
+//        } catch (NumberFormatException ignored) {
+//            Debug.d(this, "The entered value isn't a valid number");
+//        }
+//    }
 
     // Overrides
 
@@ -143,20 +121,12 @@ public class ShoppingListAdapter extends RecyclerView.Adapter<ShoppingListAdapte
 
     private void formatCompletedView(ShoppingListViewHolder holder, boolean completed) {
         int textAppearance = completed ? R.style.shopping_list_item_completed : R.style.shopping_list_item;
-        int strikeThrough = completed ? R.drawable.selector_strikethrough : 0;
+        int strikeThrough = completed ?
+                holder.itemName.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG :
+                holder.itemName.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            holder.itemQuantity.setEnabled(!completed);
-            holder.itemQuantity.setTextAppearance(textAppearance);
-            holder.itemUnit.setTextAppearance(textAppearance);
-            holder.itemName.setTextAppearance(textAppearance);
-            holder.itemContainer.setBackgroundResource(strikeThrough);
-        } else {
-            holder.itemQuantity.setTextAppearance(mInflater.getContext(), textAppearance);
-            holder.itemUnit.setTextAppearance(mInflater.getContext(), textAppearance);
-            holder.itemName.setTextAppearance(mInflater.getContext(), textAppearance);
-            holder.itemContainer.setBackgroundResource(strikeThrough);
-        }
+        TextViewCompat.setTextAppearance(holder.itemName, textAppearance);
+        holder.itemName.setPaintFlags(strikeThrough);
     }
 
     private UiShoppingListItem getItemAt(int position) {

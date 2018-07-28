@@ -6,6 +6,7 @@ import android.arch.persistence.room.Transaction;
 import android.arch.persistence.room.Update;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static android.arch.persistence.room.OnConflictStrategy.IGNORE;
@@ -32,6 +33,11 @@ abstract class BaseDao<T> {
 
     @Update
     public abstract void update(List<T> entities);
+
+    @Transaction
+    public void upsert(T entity) {
+        upsert(Collections.singletonList(entity));
+    }
 
     @Transaction
     public void upsert(List<T> entities) {

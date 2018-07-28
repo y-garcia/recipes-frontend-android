@@ -50,20 +50,12 @@ public class ShoppingListItem {
     @NonNull
     private Boolean completed;
 
+    @NonNull
+    private Boolean visible;
+
     // Constructors ////////////////////////////////////////////////////////////////////////////////
 
-    @Ignore
-    public ShoppingListItem(Long recipeId, Long ingredientId, @NonNull String name, Double quantity, Long unitId, @NonNull Long sortOrder, @NonNull Boolean completed) {
-        this.recipeId = recipeId;
-        this.ingredientId = ingredientId;
-        this.name = name;
-        this.quantity = quantity;
-        this.unitId = unitId;
-        this.sortOrder = sortOrder;
-        this.completed = completed;
-    }
-
-    public ShoppingListItem(long id, Long recipeId, Long ingredientId, @NonNull String name, Double quantity, Long unitId, @NonNull Long sortOrder, @NonNull Boolean completed) {
+    public ShoppingListItem(long id, Long recipeId, Long ingredientId, @NonNull String name, Double quantity, Long unitId, @NonNull Long sortOrder, @NonNull Boolean completed, @NonNull Boolean visible) {
         this.id = id;
         this.recipeId = recipeId;
         this.ingredientId = ingredientId;
@@ -72,6 +64,37 @@ public class ShoppingListItem {
         this.unitId = unitId;
         this.sortOrder = sortOrder;
         this.completed = completed;
+        this.visible = visible;
+    }
+
+    @Ignore
+    public ShoppingListItem(Long recipeId, Long ingredientId, @NonNull String name, Double quantity, Long unitId, @NonNull Long sortOrder, @NonNull Boolean completed, @NonNull Boolean visible) {
+        this.recipeId = recipeId;
+        this.ingredientId = ingredientId;
+        this.name = name;
+        this.quantity = quantity;
+        this.unitId = unitId;
+        this.sortOrder = sortOrder;
+        this.completed = completed;
+        this.visible = visible;
+    }
+
+    @Ignore
+    public ShoppingListItem(@NonNull String name) {
+        this.name = name;
+        this.sortOrder = 0L;
+        this.completed = false;
+        this.visible = true;
+    }
+
+    @Ignore
+    public ShoppingListItem(@NonNull String name, Double quantity, Long unitId) {
+        this.name = name;
+        this.quantity = quantity;
+        this.unitId = unitId;
+        this.sortOrder = 0L;
+        this.completed = false;
+        this.visible = true;
     }
 
     // Getters and Setters /////////////////////////////////////////////////////////////////////////
@@ -134,12 +157,36 @@ public class ShoppingListItem {
         this.sortOrder = sortOrder;
     }
 
+    public void setCompleted(@NonNull Boolean completed) {
+        this.completed = completed;
+    }
+
     @NonNull
-    public Boolean isCompleted() {
+    public Boolean getCompleted() {
         return completed;
     }
 
-    public void setCompleted(@NonNull Boolean completed) {
-        this.completed = completed;
+    @NonNull
+    public Boolean getVisible() {
+        return visible;
+    }
+
+    public void setVisible(@NonNull Boolean visible) {
+        this.visible = visible;
+    }
+
+    @Override
+    public String toString() {
+        return "ShoppingListItem{" +
+                "id=" + id +
+                ", recipeId=" + recipeId +
+                ", ingredientId=" + ingredientId +
+                ", name='" + name + '\'' +
+                ", quantity=" + quantity +
+                ", unitId=" + unitId +
+                ", sortOrder=" + sortOrder +
+                ", completed=" + completed +
+                ", visible=" + visible +
+                '}';
     }
 }

@@ -85,7 +85,7 @@ public class EditRecipeFragment extends Fragment {
                 mAppBarLayout.setTitle(uiRecipe.getRecipe().getName());
                 mEditRecipeAdapter.setRecipe(uiRecipe);
             });
-            mViewModel.getUnitNames().observe(this, mEditRecipeAdapter::setUnits);
+            mViewModel.getUnitPluralNames().observe(this, mEditRecipeAdapter::setUnits);
             mViewModel.getRecipeIngredients().observe(this, mEditRecipeAdapter::setIngredients);
         }
     }

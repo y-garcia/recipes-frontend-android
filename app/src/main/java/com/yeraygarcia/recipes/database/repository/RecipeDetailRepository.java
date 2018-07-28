@@ -64,8 +64,8 @@ public class RecipeDetailRepository {
         new AddToShoppingListAsyncTask(mShoppingListDao, mRecipeIngredientDao).execute(recipeId);
     }
 
-    public LiveData<List<String>> getUnitNames() {
-        return mUnitDao.findAllNames();
+    public LiveData<List<String>> getUnitPluralNames() {
+        return mUnitDao.findAllPluralNames();
     }
 
     public void update(UiRecipeIngredient... ingredients) {

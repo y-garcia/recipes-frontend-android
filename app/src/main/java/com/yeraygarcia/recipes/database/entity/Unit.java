@@ -72,4 +72,13 @@ public class Unit {
     public void setNamePlural(@NonNull String namePlural) {
         this.namePlural = namePlural;
     }
+
+    @Override
+    public String toString() {
+        return "Unit{" +
+                "id=" + id +
+                ", nameSingular='" + nameSingular + '\'' +
+                ", namePlural='" + namePlural + '\'' +
+                '}';
+    }
 }

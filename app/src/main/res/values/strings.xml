@@ -39,10 +39,12 @@
     <string name="no_shopping_list_items">No items in the shopping list</string>
 
     <string name="action_open">OPEN</string>
-    <string name="edit_button">Edit</string>
     <string name="hint_ingredient">Milk</string>
+
+    <string name="edit_button">Edit</string>
     <string name="refresh_button">Refresh</string>
     <string name="signout_button">Sign out</string>
+    <string name="clear_completed_button">Clear completed</string>
 
     <string name="server_client_id">***REMOVED***</string>
     <string name="sign_in_welcome">Welcome</string>

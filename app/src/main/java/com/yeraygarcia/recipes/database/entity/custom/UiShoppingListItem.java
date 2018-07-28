@@ -19,15 +19,11 @@ public class UiShoppingListItem {
 
     private String name;
 
-    @NonNull
     private Boolean completed;
 
     private String aisle;
 
-    public UiShoppingListItem(@NonNull Boolean completed, String aisle) {
-        this.completed = completed;
-        this.aisle = aisle;
-    }
+    private String recipe;
 
     @NonNull
     public Boolean getCompleted() {
@@ -84,6 +80,14 @@ public class UiShoppingListItem {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getRecipe() {
+        return recipe;
+    }
+
+    public void setRecipe(String recipe) {
+        this.recipe = recipe;
     }
 
     public String getFormattedQuantity() {

@@ -20,6 +20,7 @@ import com.yeraygarcia.recipes.database.entity.Recipe;
 import com.yeraygarcia.recipes.database.entity.ShoppingListItem;
 import com.yeraygarcia.recipes.database.entity.Tag;
 import com.yeraygarcia.recipes.database.entity.TagUsage;
+import com.yeraygarcia.recipes.database.entity.Unit;
 import com.yeraygarcia.recipes.database.entity.custom.All;
 import com.yeraygarcia.recipes.database.entity.custom.UiShoppingListItem;
 import com.yeraygarcia.recipes.database.remote.ApiResponse;
@@ -91,7 +92,7 @@ public class RecipeRepository {
         mDb.getRecipeStepDao().upsert(data.getRecipeSteps());
         mDb.getRecipeTagDao().upsert(data.getRecipeTags());
 
-        mDb.getLastUpdateDao().update(new LastUpdate(System.currentTimeMillis()));
+        mDb.getLastUpdateDao().upsert(new LastUpdate(System.currentTimeMillis()));
         mCacheIsDirty = false;
     }
 
@@ -237,6 +238,21 @@ public class RecipeRepository {
         });
     }
 
+    public void addToShoppingList(ShoppingListItem item) {
+        appExecutors.diskIO().execute(() -> mDb.getShoppingListDao().insert(item));
+    }
+
+    public LiveData<List<Unit>> getUnits() {
+        return mDb.getUnitDao().findAll();
+    }
+
+    public void clearCompletedFromShoppingList() {
+        appExecutors.diskIO().execute(() -> {
+            mDb.getShoppingListDao().hideCompletedRecipeItems();
+            mDb.getShoppingListDao().deleteCompletedOrphanItems();
+        });
+    }
+
     // Internal classes
 
     private static class UpdateRecipeAsyncTask extends AsyncTask<Recipe, Void, Void> {
@@ -371,9 +387,11 @@ public class RecipeRepository {
             List<ShoppingListItem> shoppingListItems = new ArrayList<>(uiShoppingListItems.length);
             for (UiShoppingListItem uiShoppingListItem : uiShoppingListItems) {
                 ShoppingListItem shoppingListItem = shoppingListDao.findById(uiShoppingListItem.getId());
-                shoppingListItem.setCompleted(uiShoppingListItem.getCompleted());
-                shoppingListItem.setQuantity(uiShoppingListItem.getQuantity());
-                shoppingListItems.add(shoppingListItem);
+                if (shoppingListItem != null) {
+                    shoppingListItem.setCompleted(uiShoppingListItem.getCompleted());
+                    shoppingListItem.setQuantity(uiShoppingListItem.getQuantity());
+                    shoppingListItems.add(shoppingListItem);
+                }
             }
             Debug.d(this, shoppingListItems.toString());
             shoppingListDao.update(shoppingListItems);

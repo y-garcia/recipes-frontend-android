@@ -142,7 +142,7 @@ public class RecipeListFragment extends Fragment {
 
         // Associate searchable configuration with the SearchView
         SearchManager searchManager = (SearchManager) mParentActivity.getSystemService(Context.SEARCH_SERVICE);
-        SearchView searchView = (SearchView) menu.findItem(R.id.search).getActionView();
+        SearchView searchView = (SearchView) menu.findItem(R.id.search_button).getActionView();
         if (searchManager != null) {
             searchView.setSearchableInfo(searchManager.getSearchableInfo(mParentActivity.getComponentName()));
         }
@@ -153,7 +153,7 @@ public class RecipeListFragment extends Fragment {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.menu_refresh:
+            case R.id.refresh_button:
                 mSwipeRefreshLayout.setRefreshing(true);
                 refreshData();
                 return true;

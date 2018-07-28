@@ -28,12 +28,15 @@ public abstract class ShoppingListDao extends BaseDao<ShoppingListItem> {
             "u.name_plural AS unit_name_plural, " +
             "sli.name, " +
             "sli.completed, " +
-            "a.name as aisle " +
+            "a.name as aisle," +
+            "r.name as recipe " +
             "FROM shopping_list_item sli " +
             "LEFT OUTER JOIN ingredient i ON sli.ingredient_id = i.id " +
             "LEFT OUTER JOIN aisle a ON i.aisle_id = a.id " +
             "LEFT OUTER JOIN unit u ON sli.unit_id = u.id " +
-            "ORDER BY a.name, sli.name ASC")
+            "LEFT OUTER JOIN recipe r ON sli.recipe_id = r.id " +
+            "WHERE sli.visible = 1 " +
+            "ORDER BY sli.completed ASC, a.name, sli.name ASC")
     public abstract LiveData<List<UiShoppingListItem>> findAll();
 
     @Query("SELECT DISTINCT recipe_id FROM shopping_list_item")
@@ -44,4 +47,10 @@ public abstract class ShoppingListDao extends BaseDao<ShoppingListItem> {
 
     @Query("SELECT COUNT(DISTINCT recipe_id) FROM shopping_list_item WHERE recipe_id = :recipeId")
     public abstract LiveData<Boolean> isInShoppingList(long recipeId);
+
+    @Query("UPDATE shopping_list_item SET visible = 0 WHERE completed = 1 AND recipe_id IS NOT NULL")
+    public abstract void hideCompletedRecipeItems();
+
+    @Query("DELETE FROM shopping_list_item WHERE completed = 1 AND recipe_id IS NULL")
+    public abstract void deleteCompletedOrphanItems();
 }

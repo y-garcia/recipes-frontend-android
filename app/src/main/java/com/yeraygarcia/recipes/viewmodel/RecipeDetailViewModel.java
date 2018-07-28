@@ -19,7 +19,7 @@ public class RecipeDetailViewModel extends ViewModel {
     private LiveData<UiRecipe> mRecipeDetail;
     private LiveData<List<UiRecipeIngredient>> mRecipeIngredients;
     private LiveData<Boolean> mInShoppingList;
-    private LiveData<List<String>> mUnitNames;
+    private LiveData<List<String>> mUnitPluralNames;
 
     private MutableLiveData<LongSparseArray<UiRecipeIngredient>> mRecipeIngredientsDraft = new MutableLiveData<>();
 
@@ -28,7 +28,7 @@ public class RecipeDetailViewModel extends ViewModel {
         mRecipeDetail = mRecipeDetailRepository.getRecipeById(recipeId);
         mRecipeIngredients = mRecipeDetailRepository.getIngredientsByRecipeId(recipeId);
         mInShoppingList = mRecipeDetailRepository.isInShoppingList(recipeId);
-        mUnitNames = mRecipeDetailRepository.getUnitNames();
+        mUnitPluralNames = mRecipeDetailRepository.getUnitPluralNames();
         mRecipeIngredientsDraft.setValue(new LongSparseArray<>());
     }
 
@@ -57,8 +57,8 @@ public class RecipeDetailViewModel extends ViewModel {
         mRecipeDetailRepository.addToShoppingList(recipeId);
     }
 
-    public LiveData<List<String>> getUnitNames() {
-        return mUnitNames;
+    public LiveData<List<String>> getUnitPluralNames() {
+        return mUnitPluralNames;
     }
 
     public void update(UiRecipeIngredient ingredient) {

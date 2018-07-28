@@ -9,7 +9,6 @@
         android:id="@+id/linearlayout_recipe_name"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:longClickable="true"
         android:orientation="vertical"
         android:paddingBottom="16dp"
         android:paddingEnd="0dp"

@@ -10,6 +10,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class RetrofitInstance {
 
+    //private static final String BASE_URL = "http://192.168.178.61/recipes-api/src/";
     private static final String BASE_URL = "https://yeraygarcia.com/recipes/src/";
 
     private static Retrofit standardRetrofit;
