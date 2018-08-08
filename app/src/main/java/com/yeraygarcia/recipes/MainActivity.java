@@ -15,6 +15,9 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.tasks.Task;
+import com.yeraygarcia.recipes.database.remote.RetrofitInstance;
 import com.yeraygarcia.recipes.util.Debug;
 import com.yeraygarcia.recipes.viewmodel.RecipeViewModel;
 
@@ -63,12 +66,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
-        updateUI(account);
-    }
-
-    private void updateUI(GoogleSignInAccount account) {
-        if (account == null) {
-            signOut();
+        if (account != null && !account.isExpired()) {
+            updateUI(account);
+        } else {
+            signIn();
         }
     }
 
@@ -107,26 +108,60 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void signOut() {
-        if(mGoogleSignInClient == null){
-            initGoogleSignInClient();
+    private void setupGoogleSignInClient() {
+        mGoogleSignInClient = GoogleSignIn.getClient(this, new GoogleSignInOptions
+                .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.server_client_id))
+                .requestEmail()
+                .build());
+    }
+
+    private void signIn() {
+        if (mGoogleSignInClient == null) {
+            setupGoogleSignInClient();
         }
+
+        mGoogleSignInClient.silentSignIn().addOnCompleteListener(this, this::handleSignInResult);
+    }
+
+    private void signOut() {
+        if (mGoogleSignInClient == null) {
+            setupGoogleSignInClient();
+        }
+
         mGoogleSignInClient.signOut().addOnCompleteListener(this, task -> {
             mViewModel.deleteAll();
+            RetrofitInstance.clear();
             startActivity(new Intent(MainActivity.this, SignInActivity.class));
             finish();
         });
     }
 
-    private void initGoogleSignInClient() {
-        // Configure sign-in to request the user's ID, email address, and basic
-        // profile. ID and basic profile are included in DEFAULT_SIGN_IN.
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestEmail()
-                .build();
+    private void handleSignInResult(Task<GoogleSignInAccount> completedTask) {
+        try {
+            GoogleSignInAccount account = completedTask.getResult(ApiException.class);
+            String idToken = account.getIdToken();
 
-        // Build a GoogleSignInClient with the options specified by gso.
-        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
+            Debug.d(MainActivity.this, idToken);
+
+            if (idToken != null) {
+                updateUI(account);
+            } else {
+                updateUI(null);
+            }
+        } catch (ApiException e) {
+            Debug.d(this, "signInResult:failed code=" + e.getStatusCode());
+            updateUI(null);
+        }
+    }
+
+    private void updateUI(GoogleSignInAccount account) {
+        Debug.d(this, "updateUI(account, errorMessage)");
+        if (account != null) {
+            RetrofitInstance.get().setIdToken(account.getIdToken());
+        } else {
+            signOut();
+        }
     }
 
     private int getFragmentIdFromArguments(Bundle savedInstanceState, Intent intent) {

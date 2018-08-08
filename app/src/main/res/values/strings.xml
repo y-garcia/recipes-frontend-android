@@ -50,8 +50,12 @@
     <string name="sign_in_welcome">Welcome</string>
     <string name="sign_in_subtitle">Please sign in by clicking the button below</string>
     <string name="sign_in_signing_in">Signing in…</string>
-    <string name="sign_in_signed_in">Signed in</string>
+    <string name="sign_in_signed_in">Signed in successfully</string>
     <string name="sign_in_error_empty_response">Server response body was empty</string>
     <string name="sign_in_error_fail">Sign-In failed</string>
     <string name="sign_in_error_empty_token">Token was empty</string>
+    <string name="hint_quantity">1200</string>
+    <string name="hint_unit">ml</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
 </resources>

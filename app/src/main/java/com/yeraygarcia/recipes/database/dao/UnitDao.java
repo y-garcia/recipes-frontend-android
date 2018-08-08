@@ -6,6 +6,7 @@ import android.arch.persistence.room.Query;
 
 import com.yeraygarcia.recipes.database.entity.Unit;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Dao
@@ -19,4 +20,15 @@ public abstract class UnitDao extends BaseDao<Unit> {
 
     @Query("SELECT * FROM unit")
     public abstract LiveData<List<Unit>> findAll();
+
+    @Query("DELETE FROM unit WHERE id NOT IN (:ids)")
+    abstract void deleteIfIdNotIn(List<Long> ids);
+
+    public void deleteIfNotIn(List<Unit> entities) {
+        List<Long> ids = new ArrayList<>();
+        for (Unit entity : entities) {
+            ids.add(entity.getId());
+        }
+        deleteIfIdNotIn(ids);
+    }
 }

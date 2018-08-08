@@ -8,6 +8,7 @@ import com.yeraygarcia.recipes.database.entity.RecipeIngredient;
 import com.yeraygarcia.recipes.database.entity.ShoppingListItem;
 import com.yeraygarcia.recipes.database.entity.custom.UiRecipeIngredient;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Dao
@@ -39,4 +40,15 @@ public abstract class RecipeIngredientDao extends BaseDao<RecipeIngredient> {
 
     @Query("SELECT * FROM recipe_ingredient")
     public abstract LiveData<List<RecipeIngredient>> findAll();
+
+    @Query("DELETE FROM recipe_ingredient WHERE id NOT IN (:ids)")
+    abstract void deleteIfIdNotIn(List<Long> ids);
+
+    public void deleteIfNotIn(List<RecipeIngredient> entities) {
+        List<Long> ids = new ArrayList<>();
+        for (RecipeIngredient entity : entities) {
+            ids.add(entity.getId());
+        }
+        deleteIfIdNotIn(ids);
+    }
 }

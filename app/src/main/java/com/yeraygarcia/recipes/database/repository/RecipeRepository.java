@@ -64,7 +64,7 @@ public class RecipeRepository {
         mContext = application;
         mDb = AppDatabase.getDatabase(application);
 
-        mWebservice = RetrofitInstance.getLiveDataRetrofitInstance().create(Webservice.class);
+        mWebservice = RetrofitInstance.get().create(Webservice.class);
         appExecutors = new AppExecutors();
 
         mRecipeDao = mDb.getRecipeDao();
@@ -81,8 +81,22 @@ public class RecipeRepository {
 
     // Methods
 
+    private boolean canFetch() {
+        return NetworkUtil.isOnline(mContext) && RetrofitInstance.get().getIdToken() != null;
+    }
+
     private void updateAllFromResource(ResourceData<All> resource) {
         All data = resource.getResult();
+
+        mDb.getRecipeTagDao().deleteIfNotIn(data.getRecipeTags());
+        mDb.getRecipeStepDao().deleteIfNotIn(data.getRecipeSteps());
+        mDb.getRecipeIngredientDao().deleteIfNotIn(data.getRecipeIngredients());
+        mDb.getRecipeDao().deleteIfNotIn(data.getRecipes());
+        mDb.getIngredientDao().deleteIfNotIn(data.getIngredients());
+        mDb.getTagDao().deleteIfNotIn(data.getTags());
+        mDb.getUnitDao().deleteIfNotIn(data.getUnits());
+        mDb.getAisleDao().deleteIfNotIn(data.getAisles());
+
         mDb.getAisleDao().upsert(data.getAisles());
         mDb.getUnitDao().upsert(data.getUnits());
         mDb.getTagDao().upsert(data.getTags());
@@ -111,7 +125,7 @@ public class RecipeRepository {
             @Override
             protected boolean shouldFetch(@Nullable List<Recipe> data) {
                 Debug.d(this, "getRecipes().shouldFetch(" + (data == null ? "null" : "[" + data.size() + "]") + ")");
-                return (data == null || data.isEmpty() || mCacheIsDirty) && NetworkUtil.isOnline(mContext);
+                return (data == null || data.isEmpty() || mCacheIsDirty) && canFetch();
             }
 
             @NonNull
@@ -147,7 +161,7 @@ public class RecipeRepository {
             @Override
             protected boolean shouldFetch(@Nullable List<Recipe> data) {
                 Debug.d(this, "getRecipesByTagId(" + tagIds + ").shouldFetch(" + (data == null ? "null" : "[" + data.size() + "]") + ")");
-                return mCacheIsDirty && NetworkUtil.isOnline(mContext);
+                return mCacheIsDirty && canFetch();
             }
 
             @NonNull

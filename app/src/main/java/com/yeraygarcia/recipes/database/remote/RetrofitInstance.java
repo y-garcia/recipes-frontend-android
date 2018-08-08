@@ -13,56 +13,55 @@ public class RetrofitInstance {
     //private static final String BASE_URL = "http://192.168.178.61/recipes-api/src/";
     private static final String BASE_URL = "https://yeraygarcia.com/recipes/src/";
 
-    private static Retrofit standardRetrofit;
-    private static Retrofit liveDataRetrofit;
+    private static RetrofitInstance mRetrofitInstance;
 
-    private static String idToken;
+    private final GsonConverterFactory mGsonConverter;
+    private final LiveDataCallAdapterFactory mLiveDataCallAdapter;
+    private final ServiceInterceptor mInterceptor;
+    private final OkHttpClient mOkHttpClient;
+    private Retrofit mRetrofit;
 
-    /**
-     * Create an instance of Retrofit object
-     */
-    public static Retrofit getLiveDataRetrofitInstance() {
-        Debug.d("RetrofitInstance", "getLiveDataRetrofitInstance()");
-        if (liveDataRetrofit == null) {
-            Debug.d("RetrofitInstance", "liveDataRetrofit == null");
+    private RetrofitInstance() {
+        mGsonConverter = GsonConverterFactory.create();
+        mLiveDataCallAdapter = new LiveDataCallAdapterFactory();
+        mInterceptor = new ServiceInterceptor();
+        mOkHttpClient = new OkHttpClient.Builder().addInterceptor(mInterceptor).build();
+    }
 
-            Retrofit.Builder builder = new Retrofit.Builder()
-                    .baseUrl(BASE_URL)
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .addCallAdapterFactory(new LiveDataCallAdapterFactory());
-
-            Debug.d("RetrofitInstance", "idToken == " + (idToken == null ? "null" : idToken));
-
-            if (idToken != null) {
-                OkHttpClient okHttpClient = new OkHttpClient.Builder().addInterceptor(chain -> {
-                    Request originalRequest = chain.request();
-                    Request newRequest = originalRequest.newBuilder().header("Authorization", "Bearer " + idToken).build();
-                    return chain.proceed(newRequest);
-                }).build();
-
-                builder.client(okHttpClient);
-            }
-
-            return builder.build();
+    public static RetrofitInstance get() {
+        if (mRetrofitInstance == null) {
+            mRetrofitInstance = new RetrofitInstance();
         }
-        return liveDataRetrofit;
+        return mRetrofitInstance;
+    }
+
+    public static void clear() {
+        mRetrofitInstance = null;
     }
 
     /**
-     * Create an instance of Retrofit object
+     * Gets an instance of Retrofit object and creates a service from it
      */
-    public static Retrofit getStandardRetrofitInstance() {
-        if (standardRetrofit == null) {
+    public <T> T create(Class<T> service) {
+        Debug.d("RetrofitInstance", "get()");
+        if (mRetrofit == null) {
+            Debug.d("RetrofitInstance", "mRetrofit == null");
 
-            standardRetrofit = new Retrofit.Builder()
+            mRetrofit = new Retrofit.Builder()
                     .baseUrl(BASE_URL)
-                    .addConverterFactory(GsonConverterFactory.create())
+                    .addConverterFactory(mGsonConverter)
+                    .addCallAdapterFactory(mLiveDataCallAdapter)
+                    .client(mOkHttpClient)
                     .build();
         }
-        return standardRetrofit;
+        return mRetrofit.create(service);
     }
 
-    public static void setIdToken(String idToken) {
-        RetrofitInstance.idToken = idToken;
+    public void setIdToken(String idToken){
+        mInterceptor.setIdToken(idToken);
+    }
+
+    public String getIdToken(){
+        return mInterceptor.getIdToken();
     }
 }

@@ -95,8 +95,13 @@ public class SignInActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        setStatus(SIGNING_IN);
-        mGoogleSignInClient.silentSignIn().addOnCompleteListener(this, this::handleSignInResult);
+        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
+        if (account != null && !account.isExpired()) {
+            updateUI(account);
+        } else {
+            setStatus(SIGNING_IN);
+            mGoogleSignInClient.silentSignIn().addOnCompleteListener(this, this::handleSignInResult);
+        }
     }
 
     private void signIn() {
@@ -127,8 +132,7 @@ public class SignInActivity extends AppCompatActivity {
 
                 if (NetworkUtil.isOnline(this)) {
 
-                    Webservice webservice = RetrofitInstance.getStandardRetrofitInstance().create(Webservice.class);
-
+                    Webservice webservice = RetrofitInstance.get().create(Webservice.class);
                     Call<ResourceData<User>> call = webservice.postToken(idToken);
 
                     call.enqueue(new Callback<ResourceData<User>>() {
@@ -174,7 +178,7 @@ public class SignInActivity extends AppCompatActivity {
         Debug.d(this, "updateUI(account, errorMessage)");
         if (account != null) {
             setStatus(SIGNED_IN);
-            RetrofitInstance.setIdToken(account.getIdToken());
+            RetrofitInstance.get().setIdToken(account.getIdToken());
             Intent intent = new Intent(SignInActivity.this, MainActivity.class);
             startActivity(intent);
             finish();

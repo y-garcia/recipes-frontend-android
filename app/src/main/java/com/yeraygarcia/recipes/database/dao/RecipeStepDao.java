@@ -6,6 +6,7 @@ import android.arch.persistence.room.Query;
 
 import com.yeraygarcia.recipes.database.entity.RecipeStep;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Dao
@@ -16,4 +17,15 @@ public abstract class RecipeStepDao extends BaseDao<RecipeStep> {
 
     @Query("SELECT * FROM recipe_step")
     public abstract LiveData<List<RecipeStep>> findAll();
+
+    @Query("DELETE FROM recipe_step WHERE id NOT IN (:ids)")
+    abstract void deleteIfIdNotIn(List<Long> ids);
+
+    public void deleteIfNotIn(List<RecipeStep> entities) {
+        List<Long> ids = new ArrayList<>();
+        for (RecipeStep entity : entities) {
+            ids.add(entity.getId());
+        }
+        deleteIfIdNotIn(ids);
+    }
 }

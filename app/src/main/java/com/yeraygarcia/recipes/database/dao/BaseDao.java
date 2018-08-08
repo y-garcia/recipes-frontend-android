@@ -54,5 +54,4 @@ abstract class BaseDao<T> {
             update(updateList);
         }
     }
-
 }

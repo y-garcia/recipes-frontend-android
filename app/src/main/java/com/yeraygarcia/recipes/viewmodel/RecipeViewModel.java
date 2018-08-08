@@ -210,8 +210,8 @@ public class RecipeViewModel extends AndroidViewModel {
             Long unit;
             String ingredient;
 
-            Matcher matcher1 = Pattern.compile("([0-9/]+(?:(?:.|,)[0-9]+)?) ?(" + units + ") (.+)$", Pattern.CASE_INSENSITIVE).matcher(newItem);
-            Matcher matcher2 = Pattern.compile("([0-9/]+(?:(?:.|,)[0-9]+)?) (.+)$", Pattern.CASE_INSENSITIVE).matcher(newItem);
+            Matcher matcher1 = Pattern.compile("([0-9]+(?:(?:.|,)[0-9]+)?) ?(" + units + ") (.+)$", Pattern.CASE_INSENSITIVE).matcher(newItem);
+            Matcher matcher2 = Pattern.compile("([0-9]+(?:(?:.|,)[0-9]+)?) (.+)$", Pattern.CASE_INSENSITIVE).matcher(newItem);
 
             if (matcher1.matches()) {
                 String q = matcher1.group(1).replace(",", ".");
@@ -266,7 +266,7 @@ public class RecipeViewModel extends AndroidViewModel {
 
             if (!unit.getNameSingular().equals(unit.getNamePlural())) {
                 regex.append(unit.getNamePlural()).append("|");
-            } ;
+            }
         }
 
         regex.deleteCharAt(regex.length() - 1);

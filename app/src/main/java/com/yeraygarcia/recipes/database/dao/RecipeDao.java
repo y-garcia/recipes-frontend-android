@@ -6,6 +6,7 @@ import android.arch.persistence.room.Query;
 
 import com.yeraygarcia.recipes.database.entity.Recipe;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Dao
@@ -25,4 +26,15 @@ public abstract class RecipeDao extends BaseDao<Recipe> {
 
     @Query("SELECT * FROM recipe WHERE id IN (SELECT DISTINCT recipe_id FROM shopping_list_item)")
     public abstract LiveData<List<Recipe>> findRecipesInShoppingList();
+
+    @Query("DELETE FROM recipe WHERE id NOT IN (:ids)")
+    abstract void deleteIfIdNotIn(List<Long> ids);
+
+    public void deleteIfNotIn(List<Recipe> entities) {
+        List<Long> ids = new ArrayList<>();
+        for (Recipe entity : entities) {
+            ids.add(entity.getId());
+        }
+        deleteIfIdNotIn(ids);
+    }
 }

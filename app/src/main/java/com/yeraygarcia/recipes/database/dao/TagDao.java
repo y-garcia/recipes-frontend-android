@@ -6,6 +6,7 @@ import android.arch.persistence.room.Query;
 
 import com.yeraygarcia.recipes.database.entity.Tag;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Dao
@@ -17,6 +18,14 @@ public abstract class TagDao extends BaseDao<Tag> {
     @Query("SELECT * FROM tag ORDER BY usage_count DESC, name ASC")
     public abstract LiveData<List<Tag>> findAll();
 
-    @Query("SELECT count(1) = 0 AS is_empty FROM tag")
-    public abstract boolean isEmpty();
+    @Query("DELETE FROM tag WHERE id NOT IN (:ids)")
+    abstract void deleteIfIdNotIn(List<Long> ids);
+
+    public void deleteIfNotIn(List<Tag> entities) {
+        List<Long> ids = new ArrayList<>();
+        for (Tag entity : entities) {
+            ids.add(entity.getId());
+        }
+        deleteIfIdNotIn(ids);
+    }
 }
