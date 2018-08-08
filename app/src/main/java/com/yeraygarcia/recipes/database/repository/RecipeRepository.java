@@ -106,6 +106,8 @@ public class RecipeRepository {
         mDb.getRecipeStepDao().upsert(data.getRecipeSteps());
         mDb.getRecipeTagDao().upsert(data.getRecipeTags());
 
+        updateTagUsage();
+
         mDb.getLastUpdateDao().upsert(new LastUpdate(System.currentTimeMillis()));
         mCacheIsDirty = false;
     }

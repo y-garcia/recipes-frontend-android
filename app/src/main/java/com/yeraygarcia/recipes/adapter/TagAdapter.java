@@ -45,13 +45,26 @@ public class TagAdapter extends RecyclerView.Adapter<TagAdapter.TagViewHolder> {
             itemTag.setOnClickListener(v -> {
                 final Tag tag = mTags.get(getAdapterPosition());
 
-                if(v.isSelected()){
+                if (v.isSelected()) {
+                    mViewModel.removeTagFromFilter(tag);
+                    v.setSelected(false);
+                } else {
+                    mViewModel.setTagFilter(tag);
+                    v.setSelected(true);
+                }
+            });
+            itemTag.setOnLongClickListener(v -> {
+                final Tag tag = mTags.get(getAdapterPosition());
+
+                if (v.isSelected()) {
                     mViewModel.removeTagFromFilter(tag);
                     v.setSelected(false);
                 } else {
                     mViewModel.addTagToFilter(tag);
                     v.setSelected(true);
                 }
+
+                return true;
             });
         }
     }
@@ -94,7 +107,7 @@ public class TagAdapter extends RecyclerView.Adapter<TagAdapter.TagViewHolder> {
     }
 
     public void setTagFilter(List<Long> tagIds) {
-        Debug.d(this, "setTagFilter(tagIds("+tagIds.size()+"))");
+        Debug.d(this, "setTagFilter(tagIds(" + tagIds.size() + "))");
         mSelectedTagIds = tagIds;
         notifyDataSetChanged();
     }

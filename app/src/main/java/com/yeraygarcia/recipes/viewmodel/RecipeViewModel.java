@@ -102,6 +102,14 @@ public class RecipeViewModel extends AndroidViewModel {
         mTagFilter.setValue(newTags);
     }
 
+    public void setTagFilter(Tag tag) {
+        Debug.d(this, "setTagFilter(tag)");
+        List<Long> tagFilterList = new ArrayList<>();
+        tagFilterList.add(tag.getId());
+        mTagFilter.setValue(tagFilterList);
+        mRepository.logTagUsage(tag.getId());
+    }
+
     public void setTagFilter(long[] tagFilter) {
         Debug.d(this, "setTagFilter(tagFilter)");
         List<Long> tagFilterList = new ArrayList<>();
