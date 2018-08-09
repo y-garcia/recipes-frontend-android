@@ -2,6 +2,7 @@ package com.yeraygarcia.recipes.adapter;
 
 import android.graphics.Paint;
 import android.support.annotation.NonNull;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.widget.TextViewCompat;
 import android.support.v7.widget.RecyclerView;
@@ -9,8 +10,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.yeraygarcia.recipes.EditShoppingListItemDialogFragment;
 import com.yeraygarcia.recipes.R;
 import com.yeraygarcia.recipes.database.entity.custom.UiShoppingListItem;
 import com.yeraygarcia.recipes.util.Debug;
@@ -18,8 +21,11 @@ import com.yeraygarcia.recipes.viewmodel.RecipeViewModel;
 
 import java.util.List;
 
+import static com.yeraygarcia.recipes.ShoppingListFragment.TAG_FRAGMENT_EDIT_DIALOG;
+
 public class ShoppingListAdapter extends RecyclerView.Adapter<ShoppingListAdapter.ShoppingListViewHolder> {
 
+    private final FragmentActivity mParentActivity;
     private List<UiShoppingListItem> mShoppingListItems;
 
     private LayoutInflater mInflater;
@@ -28,6 +34,7 @@ public class ShoppingListAdapter extends RecyclerView.Adapter<ShoppingListAdapte
     // Constructors
 
     public ShoppingListAdapter(FragmentActivity parent, RecipeViewModel viewModel) {
+        mParentActivity = parent;
         mInflater = LayoutInflater.from(parent);
         mViewModel = viewModel;
     }
@@ -40,6 +47,7 @@ public class ShoppingListAdapter extends RecyclerView.Adapter<ShoppingListAdapte
 
     class ShoppingListViewHolder extends RecyclerView.ViewHolder {
 
+        LinearLayout itemContainer;
         TextView itemQuantity;
         TextView itemUnit;
         TextView itemName;
@@ -47,16 +55,26 @@ public class ShoppingListAdapter extends RecyclerView.Adapter<ShoppingListAdapte
 
         private ShoppingListViewHolder(View itemView) {
             super(itemView);
+            itemContainer = itemView.findViewById(R.id.container_shopping_list_item);
             itemQuantity = itemView.findViewById(R.id.edittext_item_quantity);
             itemUnit = itemView.findViewById(R.id.textview_item_unit);
             itemName = itemView.findViewById(R.id.textview_item_name);
             itemCompleted = itemView.findViewById(R.id.checkbox_item_completed);
 
+            itemContainer.setOnClickListener(view -> {
+                Long shoppingListItemId = mShoppingListItems.get(getAdapterPosition()).getId();
+                showEditDialog(shoppingListItemId);
+            });
             itemCompleted.setOnClickListener(view -> {
                 boolean checked = ((CheckBox) view).isChecked();
                 mViewModel.markComplete(getItemAt(getAdapterPosition()), checked);
             });
         }
+    }
+
+    private void showEditDialog(Long shoppingListItemId) {
+        DialogFragment dialog = EditShoppingListItemDialogFragment.newInstance(shoppingListItemId);
+        dialog.show(mParentActivity.getSupportFragmentManager(), TAG_FRAGMENT_EDIT_DIALOG);
     }
 
 //    private void saveQuantityToDraft(String newQuantityText, int position) {

@@ -27,6 +27,8 @@ import com.yeraygarcia.recipes.viewmodel.RecipeViewModel;
 
 public class ShoppingListFragment extends Fragment {
 
+    public static final String TAG_FRAGMENT_EDIT_DIALOG = "tagEditDialogFragment";
+
     private FragmentActivity mParentActivity;
     private RecipeViewModel mViewModel;
 

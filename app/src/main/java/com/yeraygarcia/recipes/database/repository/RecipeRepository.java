@@ -269,6 +269,20 @@ public class RecipeRepository {
         });
     }
 
+    public LiveData<UiShoppingListItem> getShoppingListItemById(long id) {
+        return mDb.getShoppingListDao().findById(id);
+    }
+
+    public void updateShoppingListItem(Long id, String ingredient, Double quantity, Long unitId) {
+        appExecutors.diskIO().execute(() -> {
+            ShoppingListItem shoppingListItem = mDb.getShoppingListDao().findByIdRaw(id);
+            shoppingListItem.setName(ingredient);
+            shoppingListItem.setQuantity(quantity);
+            shoppingListItem.setUnitId(unitId);
+            mDb.getShoppingListDao().update(shoppingListItem);
+        });
+    }
+
     // Internal classes
 
     private static class UpdateRecipeAsyncTask extends AsyncTask<Recipe, Void, Void> {
@@ -382,7 +396,7 @@ public class RecipeRepository {
         protected Void doInBackground(UiShoppingListItem... shoppingListItems) {
             Debug.d(this, "Updating portions for one item in shopping list");
             UiShoppingListItem uiShoppingListItem = shoppingListItems[0];
-            ShoppingListItem shoppingListItem = shoppingListDao.findById(uiShoppingListItem.getId());
+            ShoppingListItem shoppingListItem = shoppingListDao.findByIdRaw(uiShoppingListItem.getId());
             shoppingListItem.setQuantity(uiShoppingListItem.getQuantity());
             shoppingListDao.update(shoppingListItem);
             return null;
@@ -402,7 +416,7 @@ public class RecipeRepository {
             Debug.d(this, "Updating shopping list item");
             List<ShoppingListItem> shoppingListItems = new ArrayList<>(uiShoppingListItems.length);
             for (UiShoppingListItem uiShoppingListItem : uiShoppingListItems) {
-                ShoppingListItem shoppingListItem = shoppingListDao.findById(uiShoppingListItem.getId());
+                ShoppingListItem shoppingListItem = shoppingListDao.findByIdRaw(uiShoppingListItem.getId());
                 if (shoppingListItem != null) {
                     shoppingListItem.setCompleted(uiShoppingListItem.getCompleted());
                     shoppingListItem.setQuantity(uiShoppingListItem.getQuantity());

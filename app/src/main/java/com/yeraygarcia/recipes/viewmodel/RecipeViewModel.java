@@ -35,6 +35,7 @@ public class RecipeViewModel extends AndroidViewModel {
     private LiveData<List<Unit>> mUnits;
 
     private MutableLiveData<LongSparseArray<UiShoppingListItem>> mShoppingListItemsDraft = new MutableLiveData<>();
+    private LiveData<UiShoppingListItem> mShoppingListItem;
 
     public RecipeViewModel(Application application) {
         super(application);
@@ -244,10 +245,10 @@ public class RecipeViewModel extends AndroidViewModel {
         }
     }
 
-    private Long getUnitIdByName(String name) {
+    public Long getUnitIdByName(String name) {
         List<Unit> units = mUnits.getValue();
 
-        if (units == null) {
+        if (units == null || name == null || name.isEmpty()) {
             return null;
         }
 
@@ -288,5 +289,16 @@ public class RecipeViewModel extends AndroidViewModel {
 
     public LiveData<List<Unit>> getUnits() {
         return mUnits;
+    }
+
+    public LiveData<UiShoppingListItem> getShoppingListItem(long id) {
+        if (mShoppingListItem == null || mShoppingListItem.getValue() != null && mShoppingListItem.getValue().getId() != id) {
+            mShoppingListItem = mRepository.getShoppingListItemById(id);
+        }
+        return mShoppingListItem;
+    }
+
+    public void updateShoppingListItem(Long id, String ingredient, Double quantity, Long unitId) {
+        mRepository.updateShoppingListItem(id, ingredient, quantity, unitId);
     }
 }

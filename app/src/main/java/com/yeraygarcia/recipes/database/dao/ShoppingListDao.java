@@ -42,8 +42,26 @@ public abstract class ShoppingListDao extends BaseDao<ShoppingListItem> {
     @Query("SELECT DISTINCT recipe_id FROM shopping_list_item")
     public abstract LiveData<List<Long>> findDistinctRecipeIds();
 
+
+    @Query("SELECT " +
+            "sli.id, " +
+            "sli.quantity, " +
+            "u.name_singular AS unit_name, " +
+            "u.name_plural AS unit_name_plural, " +
+            "sli.name, " +
+            "sli.completed, " +
+            "a.name as aisle," +
+            "r.name as recipe " +
+            "FROM shopping_list_item sli " +
+            "LEFT OUTER JOIN ingredient i ON sli.ingredient_id = i.id " +
+            "LEFT OUTER JOIN aisle a ON i.aisle_id = a.id " +
+            "LEFT OUTER JOIN unit u ON sli.unit_id = u.id " +
+            "LEFT OUTER JOIN recipe r ON sli.recipe_id = r.id " +
+            "WHERE sli.id = :id")
+    public abstract LiveData<UiShoppingListItem> findById(Long id);
+
     @Query("SELECT * FROM shopping_list_item WHERE id = :id")
-    public abstract ShoppingListItem findById(Long id);
+    public abstract ShoppingListItem findByIdRaw(Long id);
 
     @Query("SELECT COUNT(DISTINCT recipe_id) FROM shopping_list_item WHERE recipe_id = :recipeId")
     public abstract LiveData<Boolean> isInShoppingList(long recipeId);
