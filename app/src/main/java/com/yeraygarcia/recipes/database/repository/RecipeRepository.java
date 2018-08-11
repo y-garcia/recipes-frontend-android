@@ -3,18 +3,11 @@ package com.yeraygarcia.recipes.database.repository;
 import android.app.Application;
 import android.arch.lifecycle.LiveData;
 import android.content.Context;
-import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.yeraygarcia.recipes.AppExecutors;
 import com.yeraygarcia.recipes.database.AppDatabase;
-import com.yeraygarcia.recipes.database.dao.RecipeDao;
-import com.yeraygarcia.recipes.database.dao.RecipeIngredientDao;
-import com.yeraygarcia.recipes.database.dao.RecipeTagDao;
-import com.yeraygarcia.recipes.database.dao.ShoppingListDao;
-import com.yeraygarcia.recipes.database.dao.TagDao;
-import com.yeraygarcia.recipes.database.dao.TagUsageDao;
 import com.yeraygarcia.recipes.database.entity.LastUpdate;
 import com.yeraygarcia.recipes.database.entity.Recipe;
 import com.yeraygarcia.recipes.database.entity.ShoppingListItem;
@@ -42,17 +35,10 @@ public class RecipeRepository {
 
     private Webservice mWebservice;
 
-    private final AppExecutors appExecutors;
+    private final AppExecutors mAppExecutors;
 
     private Context mContext;
     private AppDatabase mDb;
-
-    private RecipeDao mRecipeDao;
-    private RecipeTagDao mRecipeTagDao;
-    private TagUsageDao mTagUsageDao;
-    private TagDao mTagDao;
-    private RecipeIngredientDao mRecipeIngredientDao;
-    private ShoppingListDao mShoppingListDao;
 
     private LiveData<List<UiShoppingListItem>> mShoppingListItems;
     private LiveData<List<Long>> mRecipeIdsInShoppingList;
@@ -65,18 +51,11 @@ public class RecipeRepository {
         mDb = AppDatabase.getDatabase(application);
 
         mWebservice = RetrofitInstance.get().create(Webservice.class);
-        appExecutors = new AppExecutors();
+        mAppExecutors = new AppExecutors();
 
-        mRecipeDao = mDb.getRecipeDao();
-        mRecipeTagDao = mDb.getRecipeTagDao();
-        mTagUsageDao = mDb.getTagUsageDao();
-        mTagDao = mDb.getTagDao();
-        mRecipeIngredientDao = mDb.getRecipeIngredientDao();
-        mShoppingListDao = mDb.getShoppingListDao();
-
-        mShoppingListItems = mShoppingListDao.findAll();
-        mRecipeIdsInShoppingList = mShoppingListDao.findDistinctRecipeIds();
-        mRecipesInShoppingList = mRecipeDao.findRecipesInShoppingList();
+        mShoppingListItems = mDb.getShoppingListDao().findAll();
+        mRecipeIdsInShoppingList = mDb.getShoppingListDao().findDistinctRecipeIds();
+        mRecipesInShoppingList = mDb.getRecipeDao().findRecipesInShoppingList();
     }
 
     // Methods
@@ -117,7 +96,7 @@ public class RecipeRepository {
     }
 
     public LiveData<Resource<List<Recipe>>> getRecipes() {
-        return new NetworkBoundResource<List<Recipe>, ResourceData<All>>(appExecutors) {
+        return new NetworkBoundResource<List<Recipe>, ResourceData<All>>(mAppExecutors) {
             @Override
             protected void saveCallResult(@NonNull ResourceData<All> callResult) {
                 Debug.d(this, "getRecipes().saveCallResult(callResult)");
@@ -153,7 +132,7 @@ public class RecipeRepository {
             return getRecipes();
         }
 
-        return new NetworkBoundResource<List<Recipe>, ResourceData<All>>(appExecutors) {
+        return new NetworkBoundResource<List<Recipe>, ResourceData<All>>(mAppExecutors) {
             @Override
             protected void saveCallResult(@NonNull ResourceData<All> callResult) {
                 Debug.d(this, "getRecipesByTagId(" + tagIds + ").saveCallResult(callResult)");
@@ -170,7 +149,7 @@ public class RecipeRepository {
             @Override
             protected LiveData<List<Recipe>> loadFromDb() {
                 Debug.d(this, "getRecipesByTagId(" + tagIds + ").loadFromDb()");
-                return mRecipeTagDao.findRecipesByAllTagIds(tagIds, tagIds.size());
+                return mDb.getRecipeTagDao().findRecipesByAllTagIds(tagIds, tagIds.size());
             }
 
             @NonNull
@@ -184,36 +163,51 @@ public class RecipeRepository {
 
     public LiveData<List<Tag>> getTags() {
         Debug.d(this, "getTags()");
-        return mTagDao.findAll();
+        return mDb.getTagDao().findAll();
     }
 
     public void insert(Recipe recipe) {
-        new RecipeInsertAsyncTask(mRecipeDao).execute(recipe);
+        mAppExecutors.diskIO().execute(() -> mDb.getRecipeDao().insert(recipe));
     }
 
     public void update(Recipe recipe) {
-        new UpdateRecipeAsyncTask(mRecipeDao).execute(recipe);
+        mAppExecutors.diskIO().execute(() -> mDb.getRecipeDao().update(recipe));
     }
 
     public void logTagUsage(Long tagId) {
         TagUsage tagUsage = new TagUsage(tagId);
-        new TagUsageInsertAsyncTask(mTagUsageDao).execute(tagUsage);
+        mAppExecutors.diskIO().execute(() -> mDb.getTagUsageDao().insert(tagUsage));
     }
 
     public void updateTagUsage() {
-        new TagUpdateAsyncTask(mTagUsageDao, mTagDao).execute();
+        mAppExecutors.diskIO().execute(() -> {
+            List<Tag> tags = mDb.getTagUsageDao().getTagsWithUpdatedUsage();
+            mDb.getTagDao().update(tags);
+        });
     }
 
     public void addToShoppingList(Recipe recipe) {
-        new ShoppingListInsertAsyncTask(mShoppingListDao, mRecipeIngredientDao).execute(recipe);
+        Debug.d(this, "Adding '" + recipe.getName() + "' to shopping list");
+        mAppExecutors.diskIO().execute(() -> {
+            final long recipeId = recipe.getId();
+            List<ShoppingListItem> shoppingListItems = mDb.getRecipeIngredientDao().findShoppingListItemByRecipeId(recipeId);
+            mDb.getShoppingListDao().deleteByRecipeId(recipeId);
+            mDb.getShoppingListDao().insert(shoppingListItems);
+        });
     }
 
     public void removeFromShoppingList(Recipe recipe) {
-        new ShoppingListDeleteRecipeAsyncTask(mShoppingListDao).execute(recipe);
+        mAppExecutors.diskIO().execute(() -> {
+            final long recipeId = recipe.getId();
+            mDb.getShoppingListDao().deleteByRecipeId(recipeId);
+        });
     }
 
     public void removeFromShoppingList(UiShoppingListItem shoppingListItem) {
-        new ShoppingListDeleteItemAsyncTask(mShoppingListDao).execute(shoppingListItem);
+        mAppExecutors.diskIO().execute(() -> {
+            final long shoppingListItemId = shoppingListItem.getId();
+            mDb.getShoppingListDao().deleteById(shoppingListItemId);
+        });
     }
 
     public LiveData<List<UiShoppingListItem>> getShoppingListItems() {
@@ -221,19 +215,43 @@ public class RecipeRepository {
     }
 
     public void updatePortionsInShoppingList(Recipe recipe) {
-        new ShoppingListUpdateRecipeAsyncTask(mShoppingListDao, mRecipeIngredientDao).execute(recipe);
+        Debug.d(this, "Updating portions for '" + recipe.getName() + "' in shopping list");
+        mAppExecutors.diskIO().execute(() -> {
+            final long recipeId = recipe.getId();
+            List<ShoppingListItem> shoppingListItems = mDb.getRecipeIngredientDao().findShoppingListItemByRecipeId(recipeId);
+            mDb.getShoppingListDao().deleteByRecipeId(recipeId);
+            mDb.getShoppingListDao().insert(shoppingListItems);
+        });
     }
 
-    public void updatePortionsInShoppingList(UiShoppingListItem shoppingListItem) {
-        new ShoppingListUpdatePortionsAsyncTask(mShoppingListDao).execute(shoppingListItem);
+    public void updatePortionsInShoppingList(UiShoppingListItem uiShoppingListItem) {
+        Debug.d(this, "Updating portions for one item in shopping list");
+        mAppExecutors.diskIO().execute(() -> {
+            ShoppingListItem shoppingListItem = mDb.getShoppingListDao().findByIdRaw(uiShoppingListItem.getId());
+            shoppingListItem.setQuantity(uiShoppingListItem.getQuantity());
+            mDb.getShoppingListDao().update(shoppingListItem);
+        });
     }
 
     public LiveData<List<Long>> getRecipeIdsInShoppingList() {
         return mRecipeIdsInShoppingList;
     }
 
-    public void update(UiShoppingListItem... shoppingListItems) {
-        new UpdateShoppingListItemAsyncTask(mShoppingListDao).execute(shoppingListItems);
+    public void update(UiShoppingListItem... uiShoppingListItems) {
+        Debug.d(this, "Updating shopping list item");
+        mAppExecutors.diskIO().execute(() -> {
+            List<ShoppingListItem> shoppingListItems = new ArrayList<>(uiShoppingListItems.length);
+            for (UiShoppingListItem uiShoppingListItem : uiShoppingListItems) {
+                ShoppingListItem shoppingListItem = mDb.getShoppingListDao().findByIdRaw(uiShoppingListItem.getId());
+                if (shoppingListItem != null) {
+                    shoppingListItem.setCompleted(uiShoppingListItem.getCompleted());
+                    shoppingListItem.setQuantity(uiShoppingListItem.getQuantity());
+                    shoppingListItems.add(shoppingListItem);
+                }
+            }
+            Debug.d(this, shoppingListItems.toString());
+            mDb.getShoppingListDao().update(shoppingListItems);
+        });
     }
 
     public LiveData<List<Recipe>> getRecipesInShoppingList() {
@@ -241,7 +259,7 @@ public class RecipeRepository {
     }
 
     public void deleteAll() {
-        appExecutors.diskIO().execute(() -> {
+        mAppExecutors.diskIO().execute(() -> {
             mDb.getTagUsageDao().deleteAll();
             mDb.getRecipeTagDao().deleteAll();
             mDb.getRecipeStepDao().deleteAll();
@@ -255,7 +273,7 @@ public class RecipeRepository {
     }
 
     public void addToShoppingList(ShoppingListItem item) {
-        appExecutors.diskIO().execute(() -> mDb.getShoppingListDao().insert(item));
+        mAppExecutors.diskIO().execute(() -> mDb.getShoppingListDao().insert(item));
     }
 
     public LiveData<List<Unit>> getUnits() {
@@ -263,7 +281,7 @@ public class RecipeRepository {
     }
 
     public void clearCompletedFromShoppingList() {
-        appExecutors.diskIO().execute(() -> {
+        mAppExecutors.diskIO().execute(() -> {
             mDb.getShoppingListDao().hideCompletedRecipeItems();
             mDb.getShoppingListDao().deleteCompletedOrphanItems();
         });
@@ -274,7 +292,7 @@ public class RecipeRepository {
     }
 
     public void updateShoppingListItem(Long id, String ingredient, Double quantity, Long unitId) {
-        appExecutors.diskIO().execute(() -> {
+        mAppExecutors.diskIO().execute(() -> {
             ShoppingListItem shoppingListItem = mDb.getShoppingListDao().findByIdRaw(id);
             shoppingListItem.setName(ingredient);
             shoppingListItem.setQuantity(quantity);
@@ -293,181 +311,5 @@ public class RecipeRepository {
 
     public LiveData<List<String>> getUnitNames() {
         return mDb.getUnitDao().getUnitNames();
-    }
-
-    // Internal classes
-
-    private static class UpdateRecipeAsyncTask extends AsyncTask<Recipe, Void, Void> {
-
-        private RecipeDao mAsyncRecipeDao;
-
-        UpdateRecipeAsyncTask(RecipeDao dao) {
-            mAsyncRecipeDao = dao;
-        }
-
-        @Override
-        protected Void doInBackground(final Recipe... params) {
-            mAsyncRecipeDao.update(params[0]);
-            return null;
-        }
-    }
-
-    private static class RecipeInsertAsyncTask extends AsyncTask<Recipe, Void, Void> {
-        private RecipeDao mDao;
-
-        RecipeInsertAsyncTask(RecipeDao dao) {
-            mDao = dao;
-        }
-
-        @Override
-        protected Void doInBackground(final Recipe... recipes) {
-            mDao.insert(recipes[0]);
-            return null;
-        }
-    }
-
-    private static class TagUsageInsertAsyncTask extends AsyncTask<TagUsage, Void, Void> {
-        private TagUsageDao mDao;
-
-        TagUsageInsertAsyncTask(TagUsageDao dao) {
-            mDao = dao;
-        }
-
-        @Override
-        protected Void doInBackground(final TagUsage... tagUsages) {
-            mDao.insert(tagUsages[0]);
-            return null;
-        }
-    }
-
-    private static class TagUpdateAsyncTask extends AsyncTask<Void, Void, Void> {
-        private TagUsageDao tagUsageDao;
-        private TagDao tagDao;
-
-        TagUpdateAsyncTask(TagUsageDao tagUsageDao, TagDao tagDao) {
-            this.tagUsageDao = tagUsageDao;
-            this.tagDao = tagDao;
-        }
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-            List<Tag> tags = tagUsageDao.getTagsWithUpdatedUsage();
-            tagDao.update(tags);
-            return null;
-        }
-    }
-
-    private static class ShoppingListInsertAsyncTask extends AsyncTask<Recipe, Void, Void> {
-        private ShoppingListDao shoppingListDao;
-        private RecipeIngredientDao recipeIngredientDao;
-
-        ShoppingListInsertAsyncTask(ShoppingListDao shoppingListDao, RecipeIngredientDao recipeIngredientDao) {
-            this.shoppingListDao = shoppingListDao;
-            this.recipeIngredientDao = recipeIngredientDao;
-        }
-
-        @Override
-        protected Void doInBackground(Recipe... recipes) {
-            Debug.d(this, "Adding '" + recipes[0].getName() + "' to shopping list");
-            final long recipeId = recipes[0].getId();
-            List<ShoppingListItem> shoppingListItems = recipeIngredientDao.findShoppingListItemByRecipeId(recipeId);
-            shoppingListDao.deleteByRecipeId(recipeId);
-            shoppingListDao.insert(shoppingListItems);
-            return null;
-        }
-    }
-
-    private static class ShoppingListUpdateRecipeAsyncTask extends AsyncTask<Recipe, Void, Void> {
-        private ShoppingListDao shoppingListDao;
-        private RecipeIngredientDao recipeIngredientDao;
-
-        ShoppingListUpdateRecipeAsyncTask(ShoppingListDao shoppingListDao, RecipeIngredientDao recipeIngredientDao) {
-            this.shoppingListDao = shoppingListDao;
-            this.recipeIngredientDao = recipeIngredientDao;
-        }
-
-        @Override
-        protected Void doInBackground(Recipe... recipes) {
-            Debug.d(this, "Updating portions for '" + recipes[0].getName() + "' in shopping list");
-            final long recipeId = recipes[0].getId();
-            List<ShoppingListItem> shoppingListItems = recipeIngredientDao.findShoppingListItemByRecipeId(recipeId);
-            shoppingListDao.deleteByRecipeId(recipeId);
-            shoppingListDao.insert(shoppingListItems);
-            return null;
-        }
-    }
-
-    private static class ShoppingListUpdatePortionsAsyncTask extends AsyncTask<UiShoppingListItem, Void, Void> {
-        private ShoppingListDao shoppingListDao;
-
-        ShoppingListUpdatePortionsAsyncTask(ShoppingListDao shoppingListDao) {
-            this.shoppingListDao = shoppingListDao;
-        }
-
-        @Override
-        protected Void doInBackground(UiShoppingListItem... shoppingListItems) {
-            Debug.d(this, "Updating portions for one item in shopping list");
-            UiShoppingListItem uiShoppingListItem = shoppingListItems[0];
-            ShoppingListItem shoppingListItem = shoppingListDao.findByIdRaw(uiShoppingListItem.getId());
-            shoppingListItem.setQuantity(uiShoppingListItem.getQuantity());
-            shoppingListDao.update(shoppingListItem);
-            return null;
-        }
-    }
-
-    private static class UpdateShoppingListItemAsyncTask extends AsyncTask<UiShoppingListItem, Void, Void> {
-
-        private ShoppingListDao shoppingListDao;
-
-        UpdateShoppingListItemAsyncTask(ShoppingListDao dao) {
-            shoppingListDao = dao;
-        }
-
-        @Override
-        protected Void doInBackground(final UiShoppingListItem... uiShoppingListItems) {
-            Debug.d(this, "Updating shopping list item");
-            List<ShoppingListItem> shoppingListItems = new ArrayList<>(uiShoppingListItems.length);
-            for (UiShoppingListItem uiShoppingListItem : uiShoppingListItems) {
-                ShoppingListItem shoppingListItem = shoppingListDao.findByIdRaw(uiShoppingListItem.getId());
-                if (shoppingListItem != null) {
-                    shoppingListItem.setCompleted(uiShoppingListItem.getCompleted());
-                    shoppingListItem.setQuantity(uiShoppingListItem.getQuantity());
-                    shoppingListItems.add(shoppingListItem);
-                }
-            }
-            Debug.d(this, shoppingListItems.toString());
-            shoppingListDao.update(shoppingListItems);
-            return null;
-        }
-    }
-
-    private static class ShoppingListDeleteRecipeAsyncTask extends AsyncTask<Recipe, Void, Void> {
-        private ShoppingListDao shoppingListDao;
-
-        ShoppingListDeleteRecipeAsyncTask(ShoppingListDao shoppingListDao) {
-            this.shoppingListDao = shoppingListDao;
-        }
-
-        @Override
-        protected Void doInBackground(Recipe... recipes) {
-            final long recipeId = recipes[0].getId();
-            shoppingListDao.deleteByRecipeId(recipeId);
-            return null;
-        }
-    }
-
-    private static class ShoppingListDeleteItemAsyncTask extends AsyncTask<UiShoppingListItem, Void, Void> {
-        private ShoppingListDao shoppingListDao;
-
-        ShoppingListDeleteItemAsyncTask(ShoppingListDao shoppingListDao) {
-            this.shoppingListDao = shoppingListDao;
-        }
-
-        @Override
-        protected Void doInBackground(UiShoppingListItem... shoppingListItems) {
-            final long shoppingListItemId = shoppingListItems[0].getId();
-            shoppingListDao.deleteById(shoppingListItemId);
-            return null;
-        }
     }
 }
