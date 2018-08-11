@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package com.yeraygarcia.recipes.util;
+package com.yeraygarcia.recipes.database.remote;
 
 import android.arch.lifecycle.LiveData;
 import android.support.annotation.NonNull;
-
-import com.yeraygarcia.recipes.database.remote.ApiResponse;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;

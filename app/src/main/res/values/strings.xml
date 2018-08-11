@@ -59,6 +59,6 @@
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
     <string name="ingredient_not_empty">The ingredient name cannot be empty.</string>
-    <string name="quantity_valid_number">Quatity must be a valid number.</string>
-    <string name="unit_does_not_exist">That unit doesn\'t exist.</string>
+    <string name="quantity_valid_number">Quantity must be a valid number.</string>
+    <string name="unit_does_not_exist">Please use a unit from the list.</string>
 </resources>

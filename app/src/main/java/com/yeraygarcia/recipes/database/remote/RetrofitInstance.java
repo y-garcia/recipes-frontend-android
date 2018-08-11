@@ -1,10 +1,8 @@
 package com.yeraygarcia.recipes.database.remote;
 
 import com.yeraygarcia.recipes.util.Debug;
-import com.yeraygarcia.recipes.util.LiveDataCallAdapterFactory;
 
 import okhttp3.OkHttpClient;
-import okhttp3.Request;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -57,11 +55,11 @@ public class RetrofitInstance {
         return mRetrofit.create(service);
     }
 
-    public void setIdToken(String idToken){
+    public void setIdToken(String idToken) {
         mInterceptor.setIdToken(idToken);
     }
 
-    public String getIdToken(){
+    public String getIdToken() {
         return mInterceptor.getIdToken();
     }
 }

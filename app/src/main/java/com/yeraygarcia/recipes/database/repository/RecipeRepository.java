@@ -283,6 +283,18 @@ public class RecipeRepository {
         });
     }
 
+    public LiveData<List<String>> getUnitsAndIngredientNames() {
+        return mDb.getIngredientDao().getUnitsAndIngredientNames();
+    }
+
+    public LiveData<List<String>> getIngredientNames() {
+        return mDb.getIngredientDao().getIngredientNames();
+    }
+
+    public LiveData<List<String>> getUnitNames() {
+        return mDb.getUnitDao().getUnitNames();
+    }
+
     // Internal classes
 
     private static class UpdateRecipeAsyncTask extends AsyncTask<Recipe, Void, Void> {

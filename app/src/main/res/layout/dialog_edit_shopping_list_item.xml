@@ -5,13 +5,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <EditText
+    <AutoCompleteTextView
         android:id="@+id/edittext_ingredient_name"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
+        android:completionThreshold="1"
         android:ems="10"
         android:hint="@string/hint_ingredient"
         android:inputType="textPersonName"
@@ -45,6 +46,7 @@
         android:layout_marginEnd="16dp"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
+        android:completionThreshold="1"
         android:hint="@string/hint_unit"
         android:maxLines="1"
         android:selectAllOnFocus="true"

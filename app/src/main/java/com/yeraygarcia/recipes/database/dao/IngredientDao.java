@@ -28,4 +28,10 @@ public abstract class IngredientDao extends BaseDao<Ingredient> {
         }
         deleteIfIdNotIn(ids);
     }
+
+    @Query("SELECT name FROM ingredient UNION SELECT name_singular FROM unit UNION SELECT name_plural FROM unit")
+    public abstract LiveData<List<String>> getUnitsAndIngredientNames();
+
+    @Query("SELECT name FROM ingredient")
+    public abstract LiveData<List<String>> getIngredientNames();
 }

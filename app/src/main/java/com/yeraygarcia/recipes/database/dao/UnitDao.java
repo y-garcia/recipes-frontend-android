@@ -21,6 +21,9 @@ public abstract class UnitDao extends BaseDao<Unit> {
     @Query("SELECT * FROM unit")
     public abstract LiveData<List<Unit>> findAll();
 
+    @Query("SELECT name_singular FROM unit UNION SELECT name_plural FROM unit")
+    public abstract LiveData<List<String>> getUnitNames();
+
     @Query("DELETE FROM unit WHERE id NOT IN (:ids)")
     abstract void deleteIfIdNotIn(List<Long> ids);
 

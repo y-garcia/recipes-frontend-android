@@ -16,14 +16,18 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
+import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
+import android.widget.MultiAutoCompleteTextView;
 
 import com.yeraygarcia.recipes.adapter.ShoppingListAdapter;
 import com.yeraygarcia.recipes.database.entity.custom.UiShoppingListItem;
 import com.yeraygarcia.recipes.util.Debug;
 import com.yeraygarcia.recipes.util.ShortDividerItemDecoration;
+import com.yeraygarcia.recipes.util.SpaceTokenizer;
 import com.yeraygarcia.recipes.viewmodel.RecipeViewModel;
+
+import java.util.ArrayList;
 
 public class ShoppingListFragment extends Fragment {
 
@@ -48,7 +52,17 @@ public class ShoppingListFragment extends Fragment {
 
         mViewModel = ViewModelProviders.of(this).get(RecipeViewModel.class);
 
-        setupAddItemViews(rootView);
+        MultiAutoCompleteTextView newItemEditText = rootView.findViewById(R.id.edittext_new_item);
+        ArrayAdapter<String> newItemAdapter = new ArrayAdapter<>(mParentActivity, android.R.layout.simple_dropdown_item_1line, new ArrayList<>());
+        newItemEditText.setAdapter(newItemAdapter);
+        newItemEditText.setTokenizer(new SpaceTokenizer());
+
+        ImageButton imageButtonAddItem = rootView.findViewById(R.id.imagebutton_add_item);
+        imageButtonAddItem.setOnClickListener(view -> {
+            String newItem = newItemEditText.getText().toString();
+            mViewModel.addItemToShoppingList(newItem);
+            newItemEditText.setText("");
+        });
 
         ShoppingListAdapter shoppingListAdapter = new ShoppingListAdapter(mParentActivity, mViewModel);
         RecyclerView shoppingListRecyclerView = rootView.findViewById(R.id.recyclerview_shopping_list);
@@ -57,7 +71,18 @@ public class ShoppingListFragment extends Fragment {
         shoppingListRecyclerView.setAdapter(shoppingListAdapter);
 
         mViewModel.getShoppingListItems().observe(this, shoppingListAdapter::setShoppingListItems);
-        mViewModel.getUnits().observe(this, units -> {/* TODO This is a hack :-( */});
+        mViewModel.getUnits().observe(this, units -> {
+            /* RecipeViewModel.getUnits() needs to be observed in order to fill RecipeViewModel.mUnits
+             * which is used in RecipeViewModel.getUnitIdByName()
+             * which is used in RecipeViewModel.addItemToShoppingList
+             * which is used further up */
+        });
+        mViewModel.getUnitsAndIngredientNames().observe(this, unitsAndIngredients -> {
+            if (unitsAndIngredients != null) {
+                newItemAdapter.clear();
+                newItemAdapter.addAll(unitsAndIngredients);
+            }
+        });
 
         // recognize when a user swipes an item
         new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
@@ -76,17 +101,6 @@ public class ShoppingListFragment extends Fragment {
 
 
         return rootView;
-    }
-
-    private void setupAddItemViews(View rootView) {
-        EditText editTextNewItem = rootView.findViewById(R.id.edittext_new_item);
-        ImageButton imageButtonAddItem = rootView.findViewById(R.id.imagebutton_add_item);
-
-        imageButtonAddItem.setOnClickListener(view -> {
-            String newItem = editTextNewItem.getText().toString();
-            mViewModel.addItemToShoppingList(newItem);
-            editTextNewItem.setText("");
-        });
     }
 
     @Override

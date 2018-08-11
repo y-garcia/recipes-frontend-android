@@ -36,6 +36,9 @@ public class RecipeViewModel extends AndroidViewModel {
 
     private MutableLiveData<LongSparseArray<UiShoppingListItem>> mShoppingListItemsDraft = new MutableLiveData<>();
     private LiveData<UiShoppingListItem> mShoppingListItem;
+    private LiveData<List<String>> mUnitsAndIngredientNames;
+    private LiveData<List<String>> mIngredientNames;
+    private LiveData<List<String>> mUnitNames;
 
     public RecipeViewModel(Application application) {
         super(application);
@@ -51,6 +54,9 @@ public class RecipeViewModel extends AndroidViewModel {
         mShoppingListItems = mRepository.getShoppingListItems();
         mShoppingListItemsDraft.setValue(new LongSparseArray<>());
         mUnits = mRepository.getUnits();
+        mUnitsAndIngredientNames = mRepository.getUnitsAndIngredientNames();
+        mIngredientNames = mRepository.getIngredientNames();
+        mUnitNames = mRepository.getUnitNames();
     }
 
     public LiveData<Resource<List<Recipe>>> getRecipes() {
@@ -246,16 +252,22 @@ public class RecipeViewModel extends AndroidViewModel {
     }
 
     public Long getUnitIdByName(String name) {
+        Debug.d(this, "getUnitIdByName(" + (name == null ? "null" : name) + ")");
         List<Unit> units = mUnits.getValue();
 
         if (units == null || name == null || name.isEmpty()) {
             return null;
         }
 
+        name = name.toLowerCase();
+
         for (Unit unit : units) {
-            if (unit.getNameSingular().equals(name) || unit.getNamePlural().equals(name)) {
+            String debugMessage = name + " = " + unit.getNameSingular().toLowerCase() + " or " + unit.getNamePlural().toLowerCase() + " ? ";
+            if (unit.getNameSingular().toLowerCase().equals(name) || unit.getNamePlural().toLowerCase().equals(name)) {
+                Debug.d(this, debugMessage + "true");
                 return unit.getId();
             }
+            Debug.d(this, debugMessage + "false");
         }
 
         return null;
@@ -300,5 +312,17 @@ public class RecipeViewModel extends AndroidViewModel {
 
     public void updateShoppingListItem(Long id, String ingredient, Double quantity, Long unitId) {
         mRepository.updateShoppingListItem(id, ingredient, quantity, unitId);
+    }
+
+    public LiveData<List<String>> getUnitsAndIngredientNames() {
+        return mUnitsAndIngredientNames;
+    }
+
+    public LiveData<List<String>> getIngredientNames() {
+        return mIngredientNames;
+    }
+
+    public LiveData<List<String>> getUnitNames() {
+        return mUnitNames;
     }
 }
