@@ -31,8 +31,6 @@ import java.util.ArrayList;
 
 public class ShoppingListFragment extends Fragment {
 
-    public static final String TAG_FRAGMENT_EDIT_DIALOG = "tagEditDialogFragment";
-
     private FragmentActivity mParentActivity;
     private RecipeViewModel mViewModel;
 

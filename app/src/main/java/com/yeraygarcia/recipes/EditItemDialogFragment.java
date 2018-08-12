@@ -20,22 +20,25 @@ import com.yeraygarcia.recipes.viewmodel.RecipeViewModel;
 
 import java.util.ArrayList;
 
-public class EditShoppingListItemDialogFragment extends DialogFragment {
+public class EditItemDialogFragment extends DialogFragment {
 
-    public static final String TAG_FRAGMENT_EDIT_DIALOG = "tagEditDialogFragment";
-    private static final String ARG_SHOPPING_LIST_ITEM_ID = "argShoppingListItemId";
-    private static final long DEFAULT_SHOPPING_LIST_ITEM_ID = -1;
+    public static final String TAG_FRAGMENT_EDIT_ITEM_DIALOG = "tagEditItemDialogFragment";
 
-    private long mShoppingListItemId;
+    private static final String ARG_ITEM_ID = "argItemId";
+    private static final long DEFAULT_ITEM_ID = -1;
 
-    public EditShoppingListItemDialogFragment() {
+    private long mItemId;
+    private RecipeViewModel mViewModel;
+    private int mPortions;
+
+    public EditItemDialogFragment() {
 
     }
 
-    public static EditShoppingListItemDialogFragment newInstance(long shoppingListItemId) {
-        EditShoppingListItemDialogFragment fragment = new EditShoppingListItemDialogFragment();
+    public static EditItemDialogFragment newInstance(long shoppingListItemId) {
+        EditItemDialogFragment fragment = new EditItemDialogFragment();
         Bundle args = new Bundle();
-        args.putLong(ARG_SHOPPING_LIST_ITEM_ID, shoppingListItemId);
+        args.putLong(ARG_ITEM_ID, shoppingListItemId);
         fragment.setArguments(args);
         return fragment;
     }
@@ -45,7 +48,7 @@ public class EditShoppingListItemDialogFragment extends DialogFragment {
     public Dialog onCreateDialog(Bundle savedInstanceState) {
 
         FragmentActivity mParentActivity = requireActivity();
-        mShoppingListItemId = getShoppingListItemIdFromArgs();
+        mItemId = getItemIdFromArgs();
 
         // setup all views
         LayoutInflater inflater = mParentActivity.getLayoutInflater();
@@ -62,12 +65,13 @@ public class EditShoppingListItemDialogFragment extends DialogFragment {
         unitEditText.setAdapter(unitAdapter);
 
         // setup view model
-        RecipeViewModel mViewModel = ViewModelProviders.of(mParentActivity).get(RecipeViewModel.class);
-        mViewModel.getShoppingListItem(mShoppingListItemId).observe(mParentActivity, shoppingListItem -> {
-            if (shoppingListItem != null) {
-                ingredientEditText.setText(shoppingListItem.getName());
-                quantityEditText.setText(shoppingListItem.getFormattedQuantity());
-                unitEditText.setText(shoppingListItem.getFormattedUnit());
+        mViewModel = ViewModelProviders.of(mParentActivity).get(RecipeViewModel.class);
+        mViewModel.getIngredient(mItemId).observe(mParentActivity, item -> {
+            if (item != null) {
+                ingredientEditText.setText(item.getName());
+                quantityEditText.setText(item.getFormattedQuantity());
+                unitEditText.setText(item.getFormattedUnit());
+                mPortions = item.getPortions();
             }
         });
         mViewModel.getIngredientNames().observe(mParentActivity, ingredientNames -> {
@@ -119,6 +123,9 @@ public class EditShoppingListItemDialogFragment extends DialogFragment {
                 if (!quantityText.isEmpty()) {
                     try {
                         quantity = Double.valueOf(quantityText);
+                        if (mPortions != 0) {
+                            quantity /= (double) mPortions;
+                        }
                     } catch (NumberFormatException e) {
                         Toast.makeText(getContext(), R.string.quantity_valid_number, Toast.LENGTH_LONG).show();
                         return;
@@ -139,7 +146,7 @@ public class EditShoppingListItemDialogFragment extends DialogFragment {
                     unitId = null;
                 }
 
-                mViewModel.updateShoppingListItem(mShoppingListItemId, ingredient, quantity, unitId);
+                mViewModel.updateRecipeIngredient(mItemId, ingredient, quantity, unitId);
                 alertDialog.dismiss();
             });
         });
@@ -147,11 +154,11 @@ public class EditShoppingListItemDialogFragment extends DialogFragment {
         return alertDialog;
     }
 
-    private long getShoppingListItemIdFromArgs() {
-        long id = DEFAULT_SHOPPING_LIST_ITEM_ID;
+    private long getItemIdFromArgs() {
+        long id = DEFAULT_ITEM_ID;
 
         if (getArguments() != null) {
-            id = getArguments().getLong(ARG_SHOPPING_LIST_ITEM_ID, DEFAULT_SHOPPING_LIST_ITEM_ID);
+            id = getArguments().getLong(ARG_ITEM_ID, DEFAULT_ITEM_ID);
         }
 
         return id;

@@ -21,7 +21,7 @@ import com.yeraygarcia.recipes.viewmodel.RecipeViewModel;
 
 import java.util.List;
 
-import static com.yeraygarcia.recipes.ShoppingListFragment.TAG_FRAGMENT_EDIT_DIALOG;
+import static com.yeraygarcia.recipes.EditShoppingListItemDialogFragment.TAG_FRAGMENT_EDIT_DIALOG;
 
 public class ShoppingListAdapter extends RecyclerView.Adapter<ShoppingListAdapter.ShoppingListViewHolder> {
 
@@ -56,7 +56,7 @@ public class ShoppingListAdapter extends RecyclerView.Adapter<ShoppingListAdapte
         private ShoppingListViewHolder(View itemView) {
             super(itemView);
             itemContainer = itemView.findViewById(R.id.container_shopping_list_item);
-            itemQuantity = itemView.findViewById(R.id.edittext_item_quantity);
+            itemQuantity = itemView.findViewById(R.id.textview_item_quantity);
             itemUnit = itemView.findViewById(R.id.textview_item_unit);
             itemName = itemView.findViewById(R.id.textview_item_name);
             itemCompleted = itemView.findViewById(R.id.checkbox_item_completed);

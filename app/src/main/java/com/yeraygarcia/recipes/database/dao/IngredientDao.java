@@ -34,4 +34,7 @@ public abstract class IngredientDao extends BaseDao<Ingredient> {
 
     @Query("SELECT name FROM ingredient")
     public abstract LiveData<List<String>> getIngredientNames();
+
+    @Query("SELECT id FROM ingredient WHERE name = :name")
+    public abstract Long getIngredientIdByName(String name);
 }

@@ -1,24 +1,22 @@
 package com.yeraygarcia.recipes.adapter;
 
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.widget.TextViewCompat;
 import android.support.v7.widget.RecyclerView;
-import android.text.Editable;
 import android.text.SpannableString;
-import android.text.TextWatcher;
 import android.text.style.UnderlineSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.URLUtil;
-import android.widget.ArrayAdapter;
 import android.widget.ImageView;
-import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.yeraygarcia.recipes.EditItemDialogFragment;
 import com.yeraygarcia.recipes.R;
 import com.yeraygarcia.recipes.database.entity.RecipeStep;
 import com.yeraygarcia.recipes.database.entity.custom.UiRecipe;
@@ -31,6 +29,8 @@ import java.net.URL;
 import java.util.List;
 import java.util.Locale;
 
+import static com.yeraygarcia.recipes.EditItemDialogFragment.TAG_FRAGMENT_EDIT_ITEM_DIALOG;
+
 public class EditRecipeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private static final int VIEWTYPE_DURATION_SOURCE = 1;
@@ -39,28 +39,26 @@ public class EditRecipeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     private static final int VIEWTYPE_INGREDIENT = 4;
     private static final int VIEWTYPE_STEP = 5;
 
-    private Context mContext;
+    private FragmentActivity mParentActivity;
     private RecipeDetailViewModel mViewModel;
     private LayoutInflater mInflater;
 
     private UiRecipe mUiRecipe;
     private List<UiRecipeIngredient> mIngredients;
     private List<RecipeStep> mSteps;
-    private List<String> mUnits;
 
     private int mSelectedStep = RecyclerView.NO_POSITION;
 
     private Integer mItemCount;
-    private ArrayAdapter<String> mSpinnerAdapter;
 
     // Constructors
 
-    public EditRecipeAdapter(Context context, RecipeDetailViewModel viewModel) {
-        Debug.d(this, "RecipeDetailAdapter(context, viewModel)");
+    public EditRecipeAdapter(FragmentActivity parent, RecipeDetailViewModel viewModel) {
+        Debug.d(this, "RecipeDetailAdapter(parent, viewModel)");
 
-        mContext = context;
+        mParentActivity = parent;
         mViewModel = viewModel;
-        mInflater = LayoutInflater.from(context);
+        mInflater = LayoutInflater.from(parent);
     }
 
     // Internal classes
@@ -120,7 +118,7 @@ public class EditRecipeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
                 if (URLUtil.isValidUrl(urlString)) {
                     Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(urlString));
-                    mContext.startActivity(browserIntent);
+                    mParentActivity.startActivity(browserIntent);
                 }
             });
         }
@@ -129,62 +127,48 @@ public class EditRecipeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
     class IngredientsViewHolder extends RecyclerView.ViewHolder {
 
-        TextView itemQuantity;
-        Spinner itemUnit;
         TextView itemIngredientName;
 
         private IngredientsViewHolder(View itemView) {
             super(itemView);
-            itemQuantity = itemView.findViewById(R.id.edittext_ingredient_quantity);
-            itemUnit = itemView.findViewById(R.id.spinner_ingredient_unit);
-            itemIngredientName = itemView.findViewById(R.id.edittext_ingredient_name);
+            itemIngredientName = itemView.findViewById(R.id.textview_ingredient_name);
 
-            mSpinnerAdapter = new ArrayAdapter<>(mContext, android.R.layout.simple_spinner_dropdown_item, mUnits);
-            mSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-            itemUnit.setAdapter(mSpinnerAdapter);
-
-            itemQuantity.addTextChangedListener(new TextWatcher() {
-                @Override
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                }
-
-                @Override
-                public void onTextChanged(CharSequence s, int start, int before, int count) {
-                }
-
-                @Override
-                public void afterTextChanged(Editable s) {
-                    Debug.d(this, "afterTextChanged(" + s.toString() + ")");
-                    saveQuantityToDraft(s.toString(), getAdapterPosition());
-                }
+            itemIngredientName.setOnClickListener(view -> {
+                Long shoppingListItemId = mIngredients.get(getIngredientPosition(getAdapterPosition())).getId();
+                showEditDialog(shoppingListItemId);
             });
         }
     }
 
-    private void saveQuantityToDraft(String newQuantityText, int position) {
-        Debug.d(this, "saveQuantityToDraft(newQuantityText = " + newQuantityText + ", position = " + position + ")");
-        if (position == RecyclerView.NO_POSITION) {
-            return;
-        }
-
-        UiRecipeIngredient ingredient = mIngredients.get(getIngredientPosition(position));
-        Double oldUnitQuantity = ingredient.getQuantity();
-        double portions = ingredient.getPortions();
-        Double oldQuantity = oldUnitQuantity == null ? null : oldUnitQuantity * portions;
-
-        try {
-            if (newQuantityText.isEmpty() && oldQuantity != null
-                    || !newQuantityText.isEmpty() && oldQuantity == null
-                    || !Double.valueOf(newQuantityText).equals(oldQuantity)) {
-                // value has changed
-                Double newQuantity = newQuantityText.isEmpty() ? null : Double.valueOf(newQuantityText) / portions;
-                ingredient.setQuantity(newQuantity);
-                mViewModel.saveDraft(ingredient);
-            }
-        } catch (NumberFormatException ignored) {
-            Debug.d(this, "The entered value isn't a valid number");
-        }
+    private void showEditDialog(Long shoppingListItemId) {
+        DialogFragment dialog = EditItemDialogFragment.newInstance(shoppingListItemId);
+        dialog.show(mParentActivity.getSupportFragmentManager(), TAG_FRAGMENT_EDIT_ITEM_DIALOG);
     }
+
+//    private void saveQuantityToDraft(String newQuantityText, int position) {
+//        Debug.d(this, "saveQuantityToDraft(newQuantityText = " + newQuantityText + ", position = " + position + ")");
+//        if (position == RecyclerView.NO_POSITION) {
+//            return;
+//        }
+//
+//        UiRecipeIngredient ingredient = mIngredients.get(getIngredientPosition(position));
+//        Double oldUnitQuantity = ingredient.getQuantity();
+//        double portions = ingredient.getPortions();
+//        Double oldQuantity = oldUnitQuantity == null ? null : oldUnitQuantity * portions;
+//
+//        try {
+//            if (newQuantityText.isEmpty() && oldQuantity != null
+//                    || !newQuantityText.isEmpty() && oldQuantity == null
+//                    || !Double.valueOf(newQuantityText).equals(oldQuantity)) {
+//                // value has changed
+//                Double newQuantity = newQuantityText.isEmpty() ? null : Double.valueOf(newQuantityText) / portions;
+//                ingredient.setQuantity(newQuantity);
+//                mViewModel.saveDraft(ingredient);
+//            }
+//        } catch (NumberFormatException ignored) {
+//            Debug.d(this, "The entered value isn't a valid number");
+//        }
+//    }
 
     class StepsViewHolder extends RecyclerView.ViewHolder {
 
@@ -293,13 +277,11 @@ public class EditRecipeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                 IngredientsViewHolder viewHolder = (IngredientsViewHolder) holder;
                 if (mIngredients != null && mIngredients.size() > 0) {
                     UiRecipeIngredient ingredient = mIngredients.get(getIngredientPosition(position));
-                    UiRecipeIngredient ingredientDraft = mViewModel.getRecipeIngredientsDraft().get(ingredient.getId());
-                    if (ingredientDraft != null) {
-                        ingredient = ingredientDraft;
-                    }
-                    viewHolder.itemQuantity.setText(ingredient.getFormattedQuantity());
-                    viewHolder.itemUnit.setSelection(mUnits.indexOf(ingredient.getUnitNamePlural()));
-                    viewHolder.itemIngredientName.setText(ingredient.getName());
+//                    UiRecipeIngredient ingredientDraft = mViewModel.getRecipeIngredientsDraft().get(ingredient.getId());
+//                    if (ingredientDraft != null) {
+//                        ingredient = ingredientDraft;
+//                    }
+                    viewHolder.itemIngredientName.setText(ingredient.toString());
                 } else {
                     Debug.d(this, "no ingredients");
                     // Covers the case of data not being ready yet.
@@ -371,14 +353,6 @@ public class EditRecipeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         notifyDataSetChanged();
     }
 
-    public void setUnits(List<String> units) {
-        Debug.d(this, "setUnits(units(" + units.size() + "))");
-        mUnits = units;
-        if (mSpinnerAdapter != null) {
-            mSpinnerAdapter.notifyDataSetChanged();
-        }
-    }
-
     // Methods
 
     private String formatSortOrder(int sortOrder) {
@@ -386,7 +360,7 @@ public class EditRecipeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     }
 
     private String formatDuration(long duration) {
-        return mContext.getString(R.string.duration_format, String.format(Locale.getDefault(), "%d", duration));
+        return mParentActivity.getString(R.string.duration_format, String.format(Locale.getDefault(), "%d", duration));
     }
 
     private void formatDurationSourceView(DurationSourceViewHolder viewHolder,
@@ -419,7 +393,7 @@ public class EditRecipeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     private String formatUrl(String urlString) {
 
         if (urlString == null) {
-            return mContext.getString(R.string.no_source);
+            return mParentActivity.getString(R.string.no_source);
         }
 
         try {

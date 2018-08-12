@@ -167,8 +167,6 @@ public class MainActivity extends AppCompatActivity {
             GoogleSignInAccount account = completedTask.getResult(ApiException.class);
             String idToken = account.getIdToken();
 
-            Debug.d(MainActivity.this, idToken);
-
             if (idToken != null) {
                 updateUI(account);
             } else {

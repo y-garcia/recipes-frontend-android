@@ -56,6 +56,7 @@ public class RetrofitInstance {
     }
 
     public void setIdToken(String idToken) {
+        Debug.d(this, "Setting token: " + idToken);
         mInterceptor.setIdToken(idToken);
     }
 

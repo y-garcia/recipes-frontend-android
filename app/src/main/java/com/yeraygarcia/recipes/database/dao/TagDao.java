@@ -15,7 +15,7 @@ public abstract class TagDao extends BaseDao<Tag> {
     @Query("DELETE FROM tag")
     public abstract void deleteAll();
 
-    @Query("SELECT * FROM tag ORDER BY usage_count DESC, name ASC")
+    @Query("SELECT * FROM tag ORDER BY usage_count DESC, name COLLATE NOCASE ASC")
     public abstract LiveData<List<Tag>> findAll();
 
     @Query("DELETE FROM tag WHERE id NOT IN (:ids)")

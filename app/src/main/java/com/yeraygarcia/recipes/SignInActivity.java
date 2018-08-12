@@ -126,8 +126,6 @@ public class SignInActivity extends AppCompatActivity {
             GoogleSignInAccount account = completedTask.getResult(ApiException.class);
             String idToken = account.getIdToken();
 
-            Debug.d(this, idToken);
-
             if (idToken != null) {
 
                 if (NetworkUtil.isOnline(this)) {

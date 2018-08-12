@@ -22,6 +22,8 @@ import static android.arch.persistence.room.ForeignKey.RESTRICT;
 )
 public class Ingredient {
 
+    private static final long DEFAULT_AISLE_ID = 1;
+
     @PrimaryKey(autoGenerate = true)
     private long id;
 
@@ -33,6 +35,12 @@ public class Ingredient {
     private long aisleId;
 
     // Constructors ////////////////////////////////////////////////////////////////////////////////
+
+    @Ignore
+    public Ingredient(@NonNull String name) {
+        this.name = name;
+        this.aisleId = DEFAULT_AISLE_ID;
+    }
 
     @Ignore
     public Ingredient(@NonNull String name, long aisleId) {

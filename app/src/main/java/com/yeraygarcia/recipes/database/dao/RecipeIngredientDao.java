@@ -35,8 +35,17 @@ public abstract class RecipeIngredientDao extends BaseDao<RecipeIngredient> {
             "ORDER BY sort_order ASC")
     public abstract List<ShoppingListItem> findShoppingListItemByRecipeId(long recipeId);
 
+
+    @Query("SELECT ri.id, r.portions, ri.quantity, u.name_singular AS unit_name, u.name_plural AS unit_name_plural, i.name " +
+            "FROM recipe_ingredient ri " +
+            "INNER JOIN recipe r ON ri.recipe_id = r.id " +
+            "INNER JOIN ingredient i ON ri.ingredient_id = i.id " +
+            "LEFT OUTER JOIN unit u ON ri.unit_id = u.id " +
+            "WHERE ri.id = :id ")
+    public abstract LiveData<UiRecipeIngredient> findById(long id);
+
     @Query("SELECT * FROM recipe_ingredient WHERE id = :id")
-    public abstract RecipeIngredient findById(Long id);
+    public abstract RecipeIngredient findByIdRaw(Long id);
 
     @Query("SELECT * FROM recipe_ingredient")
     public abstract LiveData<List<RecipeIngredient>> findAll();

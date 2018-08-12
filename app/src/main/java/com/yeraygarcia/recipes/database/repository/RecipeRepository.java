@@ -8,13 +8,16 @@ import android.support.annotation.Nullable;
 
 import com.yeraygarcia.recipes.AppExecutors;
 import com.yeraygarcia.recipes.database.AppDatabase;
+import com.yeraygarcia.recipes.database.entity.Ingredient;
 import com.yeraygarcia.recipes.database.entity.LastUpdate;
 import com.yeraygarcia.recipes.database.entity.Recipe;
+import com.yeraygarcia.recipes.database.entity.RecipeIngredient;
 import com.yeraygarcia.recipes.database.entity.ShoppingListItem;
 import com.yeraygarcia.recipes.database.entity.Tag;
 import com.yeraygarcia.recipes.database.entity.TagUsage;
 import com.yeraygarcia.recipes.database.entity.Unit;
 import com.yeraygarcia.recipes.database.entity.custom.All;
+import com.yeraygarcia.recipes.database.entity.custom.UiRecipeIngredient;
 import com.yeraygarcia.recipes.database.entity.custom.UiShoppingListItem;
 import com.yeraygarcia.recipes.database.remote.ApiResponse;
 import com.yeraygarcia.recipes.database.remote.NetworkBoundResource;
@@ -29,6 +32,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Singleton;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 @Singleton
 public class RecipeRepository {
@@ -97,10 +104,11 @@ public class RecipeRepository {
 
     public LiveData<Resource<List<Recipe>>> getRecipes() {
         return new NetworkBoundResource<List<Recipe>, ResourceData<All>>(mAppExecutors) {
+            @NonNull
             @Override
-            protected void saveCallResult(@NonNull ResourceData<All> callResult) {
-                Debug.d(this, "getRecipes().saveCallResult(callResult)");
-                updateAllFromResource(callResult);
+            protected LiveData<List<Recipe>> loadFromDb() {
+                Debug.d(this, "getRecipes().loadFromDb()");
+                return mDb.getRecipeDao().findAll();
             }
 
             @Override
@@ -111,16 +119,15 @@ public class RecipeRepository {
 
             @NonNull
             @Override
-            protected LiveData<List<Recipe>> loadFromDb() {
-                Debug.d(this, "getRecipes().loadFromDb()");
-                return mDb.getRecipeDao().findAll();
-            }
-
-            @NonNull
-            @Override
             protected LiveData<ApiResponse<ResourceData<All>>> createCall() {
                 Debug.d(this, "getRecipes().createCall()");
                 return mWebservice.getAll();
+            }
+
+            @Override
+            protected void saveCallResult(@NonNull ResourceData<All> callResult) {
+                Debug.d(this, "getRecipes().saveCallResult(callResult)");
+                updateAllFromResource(callResult);
             }
         }.asLiveData();
     }
@@ -133,10 +140,11 @@ public class RecipeRepository {
         }
 
         return new NetworkBoundResource<List<Recipe>, ResourceData<All>>(mAppExecutors) {
+            @NonNull
             @Override
-            protected void saveCallResult(@NonNull ResourceData<All> callResult) {
-                Debug.d(this, "getRecipesByTagId(" + tagIds + ").saveCallResult(callResult)");
-                updateAllFromResource(callResult);
+            protected LiveData<List<Recipe>> loadFromDb() {
+                Debug.d(this, "getRecipesByTagId(" + tagIds + ").loadFromDb()");
+                return mDb.getRecipeTagDao().findRecipesByAllTagIds(tagIds, tagIds.size());
             }
 
             @Override
@@ -147,16 +155,15 @@ public class RecipeRepository {
 
             @NonNull
             @Override
-            protected LiveData<List<Recipe>> loadFromDb() {
-                Debug.d(this, "getRecipesByTagId(" + tagIds + ").loadFromDb()");
-                return mDb.getRecipeTagDao().findRecipesByAllTagIds(tagIds, tagIds.size());
-            }
-
-            @NonNull
-            @Override
             protected LiveData<ApiResponse<ResourceData<All>>> createCall() {
                 Debug.d(this, "getRecipesByTagId(" + tagIds + ").createCall()");
                 return mWebservice.getAll();
+            }
+
+            @Override
+            protected void saveCallResult(@NonNull ResourceData<All> callResult) {
+                Debug.d(this, "getRecipesByTagId(" + tagIds + ").saveCallResult(callResult)");
+                updateAllFromResource(callResult);
             }
         }.asLiveData();
     }
@@ -311,5 +318,63 @@ public class RecipeRepository {
 
     public LiveData<List<String>> getUnitNames() {
         return mDb.getUnitDao().getUnitNames();
+    }
+
+    public LiveData<UiRecipeIngredient> getUiRecipeIngredient(long id) {
+        return mDb.getRecipeIngredientDao().findById(id);
+    }
+
+    public void updateRecipeIngredient(long id, String ingredientName, Double quantity, Long unitId) {
+        Debug.d(this, "updateRecipeIngredient(id, ingredientName, quantity, unitId)");
+        if (canFetch()) {
+            mAppExecutors.networkIO().execute(() -> {
+                Long ingredientId = mDb.getIngredientDao().getIngredientIdByName(ingredientName);
+                if (ingredientId == null) {
+                    Ingredient ingredient = new Ingredient(ingredientName);
+                    ingredientId = mDb.getIngredientDao().insert(ingredient);
+                }
+                RecipeIngredient oldRecipeIngredient = mDb.getRecipeIngredientDao().findByIdRaw(id);
+                RecipeIngredient newRecipeIngredient = mDb.getRecipeIngredientDao().findByIdRaw(id);
+
+                newRecipeIngredient.setIngredientId(ingredientId);
+                newRecipeIngredient.setQuantity(quantity);
+                newRecipeIngredient.setUnitId(unitId);
+
+                mDb.getRecipeIngredientDao().update(newRecipeIngredient);
+
+                Debug.d(RecipeRepository.this, "Sending request to server.");
+                Call<ResourceData<RecipeIngredient>> call = mWebservice.updateRecipeIngredient(newRecipeIngredient);
+                call.enqueue(new Callback<ResourceData<RecipeIngredient>>() {
+                    @Override
+                    public void onResponse(@NonNull Call<ResourceData<RecipeIngredient>> call,
+                                           @NonNull Response<ResourceData<RecipeIngredient>> response) {
+                        Debug.d(RecipeRepository.this, "We got a response from the server.");
+                        if (response.isSuccessful()) {
+                            Debug.d(RecipeRepository.this, "Response was successful: " + response.code());
+                            ResourceData<RecipeIngredient> body = response.body();
+                            if (body != null && body.getResult() != null) {
+                                Debug.d(RecipeRepository.this, "Body contains payload. Update database.");
+                            } else {
+                                Debug.d(RecipeRepository.this, "Body was empty. Abort.");
+                                mAppExecutors.diskIO().execute(() -> mDb.getRecipeIngredientDao().update(oldRecipeIngredient));
+                            }
+                        } else {
+                            Debug.d(RecipeRepository.this, "Response was not successful: " + response.code() + " - " + response.errorBody());
+                            mAppExecutors.diskIO().execute(() -> mDb.getRecipeIngredientDao().update(oldRecipeIngredient));
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull Call<ResourceData<RecipeIngredient>> call, @NonNull Throwable t) {
+                        Debug.d(RecipeRepository.this, "Call failed");
+                        mAppExecutors.diskIO().execute(() -> mDb.getRecipeIngredientDao().update(oldRecipeIngredient));
+                    }
+                });
+            });
+        }
+    }
+
+    public LiveData<List<Ingredient>> getIngredients() {
+        return mDb.getIngredientDao().findAll();
     }
 }

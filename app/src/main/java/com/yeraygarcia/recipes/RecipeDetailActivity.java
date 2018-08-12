@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -115,18 +116,48 @@ public class RecipeDetailActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
-                navigateUpTo(new Intent(this, MainActivity.class));
+                if (isVisible(TAG_FRAGMENT_RECIPE_EDIT)) {
+                    selectFragment(TAG_FRAGMENT_RECIPE_DETAIL);
+                } else {
+                    navigateUpTo(new Intent(this, MainActivity.class));
+                }
                 return true;
         }
         return false;
     }
 
+    @Override
+    public void onBackPressed() {
+        if (isVisible(TAG_FRAGMENT_RECIPE_EDIT)) {
+            selectFragment(TAG_FRAGMENT_RECIPE_DETAIL);
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    private boolean isVisible(String tag) {
+        return getSupportFragmentManager().findFragmentByTag(tag) != null;
+    }
+
     private void selectFragment(String tag) {
         Fragment fragment = getFragmentByTag(tag);
         if (fragment.getTag() == null || !fragment.getTag().equals(mCurrentFragment)) {
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.recipe_detail_container, fragment, tag)
-                    .commit();
+            FragmentManager fragmentManager = getSupportFragmentManager();
+
+            if (tag.equals(TAG_FRAGMENT_RECIPE_DETAIL)) {
+                fragmentManager.popBackStack(TAG_FRAGMENT_RECIPE_DETAIL, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                fragmentManager
+                        .beginTransaction()
+                        .replace(R.id.recipe_detail_container, fragment, tag)
+                        .commit();
+            } else {
+                fragmentManager
+                        .beginTransaction()
+                        .replace(R.id.recipe_detail_container, fragment, tag)
+                        .addToBackStack(TAG_FRAGMENT_RECIPE_DETAIL)
+                        .commit();
+            }
+
             mCurrentFragment = tag;
         }
         showButtonsByTag(tag);

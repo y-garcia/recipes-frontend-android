@@ -7,10 +7,12 @@ import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.Transformations;
 import android.util.LongSparseArray;
 
+import com.yeraygarcia.recipes.database.entity.Ingredient;
 import com.yeraygarcia.recipes.database.entity.Recipe;
 import com.yeraygarcia.recipes.database.entity.ShoppingListItem;
 import com.yeraygarcia.recipes.database.entity.Tag;
 import com.yeraygarcia.recipes.database.entity.Unit;
+import com.yeraygarcia.recipes.database.entity.custom.UiRecipeIngredient;
 import com.yeraygarcia.recipes.database.entity.custom.UiShoppingListItem;
 import com.yeraygarcia.recipes.database.remote.Resource;
 import com.yeraygarcia.recipes.database.repository.RecipeRepository;
@@ -39,6 +41,8 @@ public class RecipeViewModel extends AndroidViewModel {
     private LiveData<List<String>> mUnitsAndIngredientNames;
     private LiveData<List<String>> mIngredientNames;
     private LiveData<List<String>> mUnitNames;
+    private LiveData<UiRecipeIngredient> mRecipeIngredient;
+    private LiveData<List<Ingredient>> mIngredients;
 
     public RecipeViewModel(Application application) {
         super(application);
@@ -57,6 +61,7 @@ public class RecipeViewModel extends AndroidViewModel {
         mUnitsAndIngredientNames = mRepository.getUnitsAndIngredientNames();
         mIngredientNames = mRepository.getIngredientNames();
         mUnitNames = mRepository.getUnitNames();
+        mIngredients = mRepository.getIngredients();
     }
 
     public LiveData<Resource<List<Recipe>>> getRecipes() {
@@ -273,6 +278,28 @@ public class RecipeViewModel extends AndroidViewModel {
         return null;
     }
 
+    public Long getIngredientIdByName(String name) {
+        Debug.d(this, "getIngredientIdByName(" + (name == null ? "null" : name) + ")");
+        List<Ingredient> ingredients = mIngredients.getValue();
+
+        if (ingredients == null || name == null || name.isEmpty()) {
+            return null;
+        }
+
+        name = name.toLowerCase();
+
+        for (Ingredient ingredient : ingredients) {
+            String debugMessage = name + " = " + ingredient.getName().toLowerCase() + " ? ";
+            if (ingredient.getName().toLowerCase().equals(name)) {
+                Debug.d(this, debugMessage + "true");
+                return ingredient.getId();
+            }
+            Debug.d(this, debugMessage + "false");
+        }
+
+        return null;
+    }
+
     private String getUnitRegex() {
         List<Unit> units = mUnits.getValue();
 
@@ -324,5 +351,16 @@ public class RecipeViewModel extends AndroidViewModel {
 
     public LiveData<List<String>> getUnitNames() {
         return mUnitNames;
+    }
+
+    public LiveData<UiRecipeIngredient> getIngredient(long id) {
+        if (mRecipeIngredient == null || mRecipeIngredient.getValue() != null && mRecipeIngredient.getValue().getId() != id) {
+            mRecipeIngredient = mRepository.getUiRecipeIngredient(id);
+        }
+        return mRecipeIngredient;
+    }
+
+    public void updateRecipeIngredient(long id, String ingredientName, Double quantity, Long unitId) {
+        mRepository.updateRecipeIngredient(id, ingredientName, quantity, unitId);
     }
 }

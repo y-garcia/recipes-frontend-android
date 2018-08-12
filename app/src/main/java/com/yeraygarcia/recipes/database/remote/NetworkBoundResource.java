@@ -89,7 +89,7 @@ public abstract class NetworkBoundResource<ResultType, RequestType> {
         });
     }
 
-    protected void onFetchFailed() {
+    private void onFetchFailed() {
     }
 
     public LiveData<Resource<ResultType>> asLiveData() {
@@ -97,21 +97,21 @@ public abstract class NetworkBoundResource<ResultType, RequestType> {
     }
 
     @WorkerThread
-    protected RequestType processResponse(ApiResponse<RequestType> response) {
+    private RequestType processResponse(ApiResponse<RequestType> response) {
         return response.body;
     }
 
-    @WorkerThread
-    protected abstract void saveCallResult(@NonNull RequestType item);
+    @NonNull
+    @MainThread
+    protected abstract LiveData<ResultType> loadFromDb();
 
     @MainThread
     protected abstract boolean shouldFetch(@Nullable ResultType data);
 
     @NonNull
     @MainThread
-    protected abstract LiveData<ResultType> loadFromDb();
-
-    @NonNull
-    @MainThread
     protected abstract LiveData<ApiResponse<RequestType>> createCall();
+
+    @WorkerThread
+    protected abstract void saveCallResult(@NonNull RequestType item);
 }

@@ -92,22 +92,11 @@ public class UiRecipeIngredient {
     public String toString() {
         StringBuilder ingredient = new StringBuilder();
 
-        if (quantity == null) {
-            return ingredient.append(name).toString();
+        if (quantity != null) {
+            ingredient.append(getFormattedQuantity()).append(" ");
         }
-
-        if (quantity == Math.rint(quantity)) {
-            ingredient.append(quantity.intValue()).append(" ");
-        } else {
-            ingredient.append(quantity).append(" ");
-        }
-
-        if (unitName != null) {
-            if (quantity == 1) {
-                ingredient.append(unitName).append(" ");
-            } else {
-                ingredient.append(unitNamePlural).append(" ");
-            }
+        if (quantity != null && unitName != null && unitNamePlural != null) {
+            ingredient.append(getFormattedUnit()).append(" ");
         }
 
         return ingredient.append(name).toString();

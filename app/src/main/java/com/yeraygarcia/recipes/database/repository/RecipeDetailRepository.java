@@ -64,10 +64,6 @@ public class RecipeDetailRepository {
         new AddToShoppingListAsyncTask(mShoppingListDao, mRecipeIngredientDao).execute(recipeId);
     }
 
-    public LiveData<List<String>> getUnitPluralNames() {
-        return mUnitDao.findAllPluralNames();
-    }
-
     public void update(UiRecipeIngredient... ingredients) {
         new UpdateIngredientAsyncTask(mRecipeIngredientDao).execute(ingredients);
     }
@@ -135,7 +131,7 @@ public class RecipeDetailRepository {
         protected Void doInBackground(final UiRecipeIngredient... ingredients) {
             for (UiRecipeIngredient uiRecipeIngredient : ingredients) {
                 Debug.d(this, "Saving ingredient " + uiRecipeIngredient.toString());
-                RecipeIngredient recipeIngredient = recipeIngredientDao.findById(uiRecipeIngredient.getId());
+                RecipeIngredient recipeIngredient = recipeIngredientDao.findByIdRaw(uiRecipeIngredient.getId());
                 recipeIngredient.setQuantity(uiRecipeIngredient.getQuantity());
                 recipeIngredientDao.update(recipeIngredient);
             }

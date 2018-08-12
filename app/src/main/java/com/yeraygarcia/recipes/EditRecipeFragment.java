@@ -1,12 +1,12 @@
 package com.yeraygarcia.recipes;
 
-import android.app.Activity;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -27,7 +27,7 @@ public class EditRecipeFragment extends Fragment {
 
     private long mRecipeId = DEFAULT_RECIPE_ID;
 
-    private Activity mParentActivity;
+    private FragmentActivity mParentActivity;
     private CollapsingToolbarLayout mAppBarLayout;
     private RecipeDetailViewModel mViewModel;
 
@@ -85,7 +85,6 @@ public class EditRecipeFragment extends Fragment {
                 mAppBarLayout.setTitle(uiRecipe.getRecipe().getName());
                 mEditRecipeAdapter.setRecipe(uiRecipe);
             });
-            mViewModel.getUnitPluralNames().observe(this, mEditRecipeAdapter::setUnits);
             mViewModel.getRecipeIngredients().observe(this, mEditRecipeAdapter::setIngredients);
         }
     }
@@ -101,7 +100,7 @@ public class EditRecipeFragment extends Fragment {
     public void onPause() {
         super.onPause();
         Debug.d(this, "onPause()");
-        mViewModel.persistDraft();
+//        mViewModel.persistDraft();
     }
 
     @Override
@@ -114,7 +113,7 @@ public class EditRecipeFragment extends Fragment {
         RecyclerView recipeDetailRecyclerView = rootView.findViewById(R.id.recyclerview_recipe_edit);
         recipeDetailRecyclerView.setLayoutManager(new LinearLayoutManager(mParentActivity));
         recipeDetailRecyclerView.setAdapter(mEditRecipeAdapter);
-        //mRecipeDetailRecyclerView.addItemDecoration(new ShortDividerItemDecoration(mParentActivity, DividerItemDecoration.VERTICAL, 16, 0));
+        //recipeDetailRecyclerView.addItemDecoration(new ShortDividerItemDecoration(mParentActivity, DividerItemDecoration.VERTICAL, 16));
         recipeDetailRecyclerView.setNestedScrollingEnabled(false);
 
         return rootView;

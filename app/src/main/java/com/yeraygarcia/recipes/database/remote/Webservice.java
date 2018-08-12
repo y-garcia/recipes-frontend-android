@@ -3,6 +3,7 @@ package com.yeraygarcia.recipes.database.remote;
 import android.arch.lifecycle.LiveData;
 
 import com.yeraygarcia.recipes.database.entity.Recipe;
+import com.yeraygarcia.recipes.database.entity.RecipeIngredient;
 import com.yeraygarcia.recipes.database.entity.ShoppingListItem;
 import com.yeraygarcia.recipes.database.entity.custom.All;
 
@@ -13,6 +14,7 @@ import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.Headers;
 import retrofit2.http.POST;
+import retrofit2.http.PUT;
 import retrofit2.http.Query;
 
 public interface Webservice {
@@ -29,4 +31,7 @@ public interface Webservice {
 
     @POST("shopping-list-items")
     LiveData<ApiResponse<ResourceData<ShoppingListItem>>> postShoppingListItem(@Body ShoppingListItem item);
+
+    @PUT("recipe-ingredients")
+    Call<ResourceData<RecipeIngredient>> updateRecipeIngredient(@Body RecipeIngredient recipeIngredient);
 }
