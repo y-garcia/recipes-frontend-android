@@ -9,7 +9,6 @@ import com.yeraygarcia.recipes.database.dao.RecipeDao;
 import com.yeraygarcia.recipes.database.dao.RecipeDetailDao;
 import com.yeraygarcia.recipes.database.dao.RecipeIngredientDao;
 import com.yeraygarcia.recipes.database.dao.ShoppingListDao;
-import com.yeraygarcia.recipes.database.dao.UnitDao;
 import com.yeraygarcia.recipes.database.entity.Recipe;
 import com.yeraygarcia.recipes.database.entity.RecipeIngredient;
 import com.yeraygarcia.recipes.database.entity.ShoppingListItem;
@@ -18,6 +17,7 @@ import com.yeraygarcia.recipes.database.entity.custom.UiRecipeIngredient;
 import com.yeraygarcia.recipes.util.Debug;
 
 import java.util.List;
+import java.util.UUID;
 
 public class RecipeDetailRepository {
 
@@ -25,7 +25,6 @@ public class RecipeDetailRepository {
     private RecipeDetailDao mRecipeDetailDao;
     private RecipeIngredientDao mRecipeIngredientDao;
     private ShoppingListDao mShoppingListDao;
-    private UnitDao mUnitDao;
 
     public RecipeDetailRepository(Application application) {
         AppDatabase db = AppDatabase.getDatabase(application);
@@ -33,18 +32,17 @@ public class RecipeDetailRepository {
         mRecipeDetailDao = db.getRecipeDetailDao();
         mRecipeIngredientDao = db.getRecipeIngredientDao();
         mShoppingListDao = db.getShoppingListDao();
-        mUnitDao = db.getUnitDao();
     }
 
     public LiveData<List<UiRecipe>> getRecipes() {
         return mRecipeDetailDao.findAll();
     }
 
-    public LiveData<UiRecipe> getRecipeById(long id) {
+    public LiveData<UiRecipe> getRecipeById(UUID id) {
         return mRecipeDetailDao.findById(id);
     }
 
-    public LiveData<List<UiRecipeIngredient>> getIngredientsByRecipeId(long recipeId) {
+    public LiveData<List<UiRecipeIngredient>> getIngredientsByRecipeId(UUID recipeId) {
         return mRecipeIngredientDao.findByRecipeId(recipeId);
     }
 
@@ -52,15 +50,15 @@ public class RecipeDetailRepository {
         new UpdateRecipeAsyncTask(mRecipeDao).execute(recipe);
     }
 
-    public LiveData<Boolean> isInShoppingList(long recipeId) {
+    public LiveData<Boolean> isInShoppingList(UUID recipeId) {
         return mShoppingListDao.isInShoppingList(recipeId);
     }
 
-    public void removeFromShoppingList(long recipeId) {
+    public void removeFromShoppingList(UUID recipeId) {
         new RemoveFromShoppingListAsyncTask(mShoppingListDao).execute(recipeId);
     }
 
-    public void addToShoppingList(long recipeId) {
+    public void addToShoppingList(UUID recipeId) {
         new AddToShoppingListAsyncTask(mShoppingListDao, mRecipeIngredientDao).execute(recipeId);
     }
 
@@ -83,7 +81,7 @@ public class RecipeDetailRepository {
         }
     }
 
-    private static class RemoveFromShoppingListAsyncTask extends AsyncTask<Long, Void, Void> {
+    private static class RemoveFromShoppingListAsyncTask extends AsyncTask<UUID, Void, Void> {
 
         private ShoppingListDao mAsyncRecipeDao;
 
@@ -92,13 +90,13 @@ public class RecipeDetailRepository {
         }
 
         @Override
-        protected Void doInBackground(final Long... recipeIds) {
+        protected Void doInBackground(final UUID... recipeIds) {
             mAsyncRecipeDao.deleteByRecipeId(recipeIds[0]);
             return null;
         }
     }
 
-    private static class AddToShoppingListAsyncTask extends AsyncTask<Long, Void, Void> {
+    private static class AddToShoppingListAsyncTask extends AsyncTask<UUID, Void, Void> {
 
         private ShoppingListDao shoppingListDao;
         private RecipeIngredientDao recipeIngredientDao;
@@ -109,9 +107,9 @@ public class RecipeDetailRepository {
         }
 
         @Override
-        protected Void doInBackground(Long... recipeIds) {
+        protected Void doInBackground(UUID... recipeIds) {
             Debug.d(this, "Adding recipe with id '" + recipeIds[0] + "' to shopping list");
-            final long recipeId = recipeIds[0];
+            final UUID recipeId = recipeIds[0];
             List<ShoppingListItem> shoppingListItems = recipeIngredientDao.findShoppingListItemByRecipeId(recipeId);
             shoppingListDao.deleteByRecipeId(recipeId);
             shoppingListDao.insert(shoppingListItems);

@@ -19,23 +19,24 @@ import android.widget.Toast;
 import com.yeraygarcia.recipes.viewmodel.RecipeViewModel;
 
 import java.util.ArrayList;
+import java.util.UUID;
 
 public class EditShoppingListItemDialogFragment extends DialogFragment {
 
     public static final String TAG_FRAGMENT_EDIT_DIALOG = "tagEditDialogFragment";
     private static final String ARG_SHOPPING_LIST_ITEM_ID = "argShoppingListItemId";
-    private static final long DEFAULT_SHOPPING_LIST_ITEM_ID = -1;
+    private static final String DEFAULT_SHOPPING_LIST_ITEM_ID = UUID.randomUUID().toString();
 
-    private long mShoppingListItemId;
+    private UUID mShoppingListItemId;
 
     public EditShoppingListItemDialogFragment() {
 
     }
 
-    public static EditShoppingListItemDialogFragment newInstance(long shoppingListItemId) {
+    public static EditShoppingListItemDialogFragment newInstance(UUID shoppingListItemId) {
         EditShoppingListItemDialogFragment fragment = new EditShoppingListItemDialogFragment();
         Bundle args = new Bundle();
-        args.putLong(ARG_SHOPPING_LIST_ITEM_ID, shoppingListItemId);
+        args.putString(ARG_SHOPPING_LIST_ITEM_ID, shoppingListItemId.toString());
         fragment.setArguments(args);
         return fragment;
     }
@@ -125,7 +126,7 @@ public class EditShoppingListItemDialogFragment extends DialogFragment {
                     }
                 }
 
-                Long unitId = null;
+                UUID unitId = null;
                 String unitName = unitEditText.getText().toString().trim();
                 if (!unitName.isEmpty()) {
                     unitId = mViewModel.getUnitIdByName(unitName);
@@ -147,11 +148,11 @@ public class EditShoppingListItemDialogFragment extends DialogFragment {
         return alertDialog;
     }
 
-    private long getShoppingListItemIdFromArgs() {
-        long id = DEFAULT_SHOPPING_LIST_ITEM_ID;
+    private UUID getShoppingListItemIdFromArgs() {
+        UUID id = UUID.fromString(DEFAULT_SHOPPING_LIST_ITEM_ID);
 
         if (getArguments() != null) {
-            id = getArguments().getLong(ARG_SHOPPING_LIST_ITEM_ID, DEFAULT_SHOPPING_LIST_ITEM_ID);
+            id = UUID.fromString(getArguments().getString(ARG_SHOPPING_LIST_ITEM_ID, DEFAULT_SHOPPING_LIST_ITEM_ID));
         }
 
         return id;

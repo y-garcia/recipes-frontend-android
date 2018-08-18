@@ -20,6 +20,7 @@ import com.yeraygarcia.recipes.util.Debug;
 import com.yeraygarcia.recipes.viewmodel.RecipeViewModel;
 
 import java.util.List;
+import java.util.UUID;
 
 import static com.yeraygarcia.recipes.EditShoppingListItemDialogFragment.TAG_FRAGMENT_EDIT_DIALOG;
 
@@ -62,7 +63,7 @@ public class ShoppingListAdapter extends RecyclerView.Adapter<ShoppingListAdapte
             itemCompleted = itemView.findViewById(R.id.checkbox_item_completed);
 
             itemContainer.setOnClickListener(view -> {
-                Long shoppingListItemId = mShoppingListItems.get(getAdapterPosition()).getId();
+                UUID shoppingListItemId = mShoppingListItems.get(getAdapterPosition()).getId();
                 showEditDialog(shoppingListItemId);
             });
             itemCompleted.setOnClickListener(view -> {
@@ -72,7 +73,7 @@ public class ShoppingListAdapter extends RecyclerView.Adapter<ShoppingListAdapte
         }
     }
 
-    private void showEditDialog(Long shoppingListItemId) {
+    private void showEditDialog(UUID shoppingListItemId) {
         DialogFragment dialog = EditShoppingListItemDialogFragment.newInstance(shoppingListItemId);
         dialog.show(mParentActivity.getSupportFragmentManager(), TAG_FRAGMENT_EDIT_DIALOG);
     }

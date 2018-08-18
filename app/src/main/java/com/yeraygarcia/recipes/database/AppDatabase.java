@@ -4,6 +4,7 @@ import android.arch.persistence.db.SupportSQLiteDatabase;
 import android.arch.persistence.room.Database;
 import android.arch.persistence.room.Room;
 import android.arch.persistence.room.RoomDatabase;
+import android.arch.persistence.room.TypeConverters;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
@@ -41,9 +42,10 @@ import com.yeraygarcia.recipes.util.Debug;
                 Recipe.class, RecipeIngredient.class, RecipeStep.class, RecipeTag.class,
                 TagUsage.class, ShoppingListItem.class, LastUpdate.class
         },
-        version = 1,
+        version = 2,
         exportSchema = false
 )
+@TypeConverters({UUIDTypeConverter.class})
 public abstract class AppDatabase extends RoomDatabase {
 
     private static final String TAG = AppDatabase.class.getSimpleName();
@@ -109,7 +111,7 @@ public abstract class AppDatabase extends RoomDatabase {
         @Override
         protected Void doInBackground(final Void... params) {
 
-            if(mLastUpdateDao.getLastUpdate() == null){
+            if (mLastUpdateDao.getLastUpdate() == null) {
                 mLastUpdateDao.insert(new LastUpdate(0L));
             }
 

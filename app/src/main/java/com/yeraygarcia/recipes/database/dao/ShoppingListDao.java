@@ -8,6 +8,7 @@ import com.yeraygarcia.recipes.database.entity.ShoppingListItem;
 import com.yeraygarcia.recipes.database.entity.custom.UiShoppingListItem;
 
 import java.util.List;
+import java.util.UUID;
 
 @Dao
 public abstract class ShoppingListDao extends BaseDao<ShoppingListItem> {
@@ -16,10 +17,10 @@ public abstract class ShoppingListDao extends BaseDao<ShoppingListItem> {
     public abstract void deleteAll();
 
     @Query("DELETE FROM shopping_list_item WHERE recipe_id = :recipeId")
-    public abstract void deleteByRecipeId(long recipeId);
+    public abstract void deleteByRecipeId(UUID recipeId);
 
-    @Query("DELETE FROM shopping_list_item WHERE id = :itemId")
-    public abstract void deleteById(long itemId);
+    @Query("DELETE FROM shopping_list_item WHERE id = :id")
+    public abstract void deleteById(UUID id);
 
     @Query("SELECT " +
             "sli.id, " +
@@ -40,7 +41,7 @@ public abstract class ShoppingListDao extends BaseDao<ShoppingListItem> {
     public abstract LiveData<List<UiShoppingListItem>> findAll();
 
     @Query("SELECT DISTINCT recipe_id FROM shopping_list_item")
-    public abstract LiveData<List<Long>> findDistinctRecipeIds();
+    public abstract LiveData<List<UUID>> findDistinctRecipeIds();
 
 
     @Query("SELECT " +
@@ -58,13 +59,13 @@ public abstract class ShoppingListDao extends BaseDao<ShoppingListItem> {
             "LEFT OUTER JOIN unit u ON sli.unit_id = u.id " +
             "LEFT OUTER JOIN recipe r ON sli.recipe_id = r.id " +
             "WHERE sli.id = :id")
-    public abstract LiveData<UiShoppingListItem> findById(Long id);
+    public abstract LiveData<UiShoppingListItem> findById(UUID id);
 
     @Query("SELECT * FROM shopping_list_item WHERE id = :id")
-    public abstract ShoppingListItem findByIdRaw(Long id);
+    public abstract ShoppingListItem findByIdRaw(UUID id);
 
     @Query("SELECT COUNT(DISTINCT recipe_id) FROM shopping_list_item WHERE recipe_id = :recipeId")
-    public abstract LiveData<Boolean> isInShoppingList(long recipeId);
+    public abstract LiveData<Boolean> isInShoppingList(UUID recipeId);
 
     @Query("UPDATE shopping_list_item SET visible = 0 WHERE completed = 1 AND recipe_id IS NOT NULL")
     public abstract void hideCompletedRecipeItems();

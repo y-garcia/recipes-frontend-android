@@ -9,6 +9,9 @@ import android.arch.persistence.room.PrimaryKey;
 import android.support.annotation.NonNull;
 
 import com.google.gson.annotations.SerializedName;
+import com.yeraygarcia.recipes.database.UUIDTypeConverter;
+
+import java.util.UUID;
 
 import static android.arch.persistence.room.ForeignKey.CASCADE;
 
@@ -26,26 +29,30 @@ import static android.arch.persistence.room.ForeignKey.CASCADE;
 )
 public class RecipeTag {
 
-    @PrimaryKey(autoGenerate = true)
-    private long id;
+    @PrimaryKey
+    @NonNull
+    @ColumnInfo(typeAffinity = ColumnInfo.BLOB)
+    private UUID id;
 
+    @NonNull
     @ColumnInfo(name = "recipe_id")
     @SerializedName("recipe_id")
-    private long recipeId;
+    private UUID recipeId;
 
     @ColumnInfo(name = "tag_id")
     @SerializedName("tag_id")
-    private long tagId;
+    private UUID tagId;
 
     // Constructors ////////////////////////////////////////////////////////////////////////////////
 
     @Ignore
-    public RecipeTag(long recipeId, long tagId) {
+    public RecipeTag(@NonNull UUID recipeId, UUID tagId) {
+        this.id = UUIDTypeConverter.newUUID();
         this.recipeId = recipeId;
         this.tagId = tagId;
     }
 
-    public RecipeTag(long id, long recipeId, long tagId) {
+    public RecipeTag(@NonNull UUID id, @NonNull UUID recipeId, UUID tagId) {
         this.id = id;
         this.recipeId = recipeId;
         this.tagId = tagId;
@@ -53,27 +60,29 @@ public class RecipeTag {
 
     // Getters and Setters /////////////////////////////////////////////////////////////////////////
 
-    public long getId() {
+    @NonNull
+    public UUID getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(@NonNull UUID id) {
         this.id = id;
     }
 
-    public long getRecipeId() {
+    @NonNull
+    public UUID getRecipeId() {
         return recipeId;
     }
 
-    public void setRecipeId(long recipeId) {
+    public void setRecipeId(@NonNull UUID recipeId) {
         this.recipeId = recipeId;
     }
 
-    public long getTagId() {
+    public UUID getTagId() {
         return tagId;
     }
 
-    public void setTagId(long tagId) {
+    public void setTagId(UUID tagId) {
         this.tagId = tagId;
     }
 }

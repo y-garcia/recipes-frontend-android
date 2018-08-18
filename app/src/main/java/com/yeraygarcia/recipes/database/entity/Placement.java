@@ -6,6 +6,11 @@ import android.arch.persistence.room.ForeignKey;
 import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.Index;
 import android.arch.persistence.room.PrimaryKey;
+import android.support.annotation.NonNull;
+
+import com.yeraygarcia.recipes.database.UUIDTypeConverter;
+
+import java.util.UUID;
 
 import static android.arch.persistence.room.ForeignKey.RESTRICT;
 
@@ -23,14 +28,18 @@ import static android.arch.persistence.room.ForeignKey.RESTRICT;
 )
 public class Placement {
 
-    @PrimaryKey(autoGenerate = true)
-    private long id;
+    @PrimaryKey
+    @NonNull
+    @ColumnInfo(typeAffinity = ColumnInfo.BLOB)
+    private UUID id;
 
-    @ColumnInfo(name = "aisle_id")
-    private long aisleId;
+    @NonNull
+    @ColumnInfo(name = "aisle_id", typeAffinity = ColumnInfo.BLOB)
+    private UUID aisleId;
 
-    @ColumnInfo(name = "store_id")
-    private long storeId;
+    @NonNull
+    @ColumnInfo(name = "store_id", typeAffinity = ColumnInfo.BLOB)
+    private UUID storeId;
 
     @ColumnInfo(name = "sort_order")
     private int sortOrder;
@@ -38,13 +47,14 @@ public class Placement {
     // Constructors ////////////////////////////////////////////////////////////////////////////////
 
     @Ignore
-    public Placement(long aisleId, long storeId, int sortOrder) {
+    public Placement(@NonNull UUID aisleId, @NonNull UUID storeId, int sortOrder) {
+        this.id = UUIDTypeConverter.newUUID();
         this.aisleId = aisleId;
         this.storeId = storeId;
         this.sortOrder = sortOrder;
     }
 
-    public Placement(long id, long aisleId, long storeId, int sortOrder) {
+    public Placement(@NonNull UUID id, @NonNull UUID aisleId, @NonNull UUID storeId, int sortOrder) {
         this.id = id;
         this.aisleId = aisleId;
         this.storeId = storeId;
@@ -53,27 +63,30 @@ public class Placement {
 
     // Getters and Setters /////////////////////////////////////////////////////////////////////////
 
-    public long getId() {
+    @NonNull
+    public UUID getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(@NonNull UUID id) {
         this.id = id;
     }
 
-    public long getAisleId() {
+    @NonNull
+    public UUID getAisleId() {
         return aisleId;
     }
 
-    public void setAisleId(long aisleId) {
+    public void setAisleId(@NonNull UUID aisleId) {
         this.aisleId = aisleId;
     }
 
-    public long getStoreId() {
+    @NonNull
+    public UUID getStoreId() {
         return storeId;
     }
 
-    public void setStoreId(long storeId) {
+    public void setStoreId(@NonNull UUID storeId) {
         this.storeId = storeId;
     }
 

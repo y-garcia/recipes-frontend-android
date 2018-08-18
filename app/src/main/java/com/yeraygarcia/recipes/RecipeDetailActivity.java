@@ -19,6 +19,8 @@ import com.yeraygarcia.recipes.util.Debug;
 import com.yeraygarcia.recipes.viewmodel.RecipeDetailViewModel;
 import com.yeraygarcia.recipes.viewmodel.RecipeDetailViewModelFactory;
 
+import java.util.UUID;
+
 public class RecipeDetailActivity extends AppCompatActivity {
 
     private static final String TAG_FRAGMENT_RECIPE_DETAIL = "tagRecipeDetailFragment";
@@ -28,7 +30,7 @@ public class RecipeDetailActivity extends AppCompatActivity {
     private static final String KEY_FRAGMENT_TAG = "keyFragmentTag";
 
     private String mCurrentFragment;
-    private long mRecipeId;
+    private UUID mRecipeId;
 
     private RecipeDetailViewModel mViewModel;
     private FloatingActionButton mFabAddToCart;
@@ -58,7 +60,7 @@ public class RecipeDetailActivity extends AppCompatActivity {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
 
-        mRecipeId = getIntent().getLongExtra(RecipeDetailFragment.ARG_RECIPE_ID, RecipeDetailFragment.DEFAULT_RECIPE_ID);
+        mRecipeId = (UUID) getIntent().getSerializableExtra(RecipeDetailFragment.ARG_RECIPE_ID);
 
         selectFragment(getFragmentTagFromArguments(savedInstanceState));
 

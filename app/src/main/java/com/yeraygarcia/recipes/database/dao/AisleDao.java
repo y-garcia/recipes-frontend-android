@@ -4,10 +4,12 @@ import android.arch.lifecycle.LiveData;
 import android.arch.persistence.room.Dao;
 import android.arch.persistence.room.Query;
 
+import com.yeraygarcia.recipes.database.UUIDTypeConverter;
 import com.yeraygarcia.recipes.database.entity.Aisle;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Dao
 public abstract class AisleDao extends BaseDao<Aisle> {
@@ -19,10 +21,10 @@ public abstract class AisleDao extends BaseDao<Aisle> {
     public abstract LiveData<List<Aisle>> findAll();
 
     @Query("DELETE FROM aisle WHERE id NOT IN (:ids)")
-    abstract void deleteIfIdNotIn(List<Long> ids);
+    abstract void deleteIfIdNotIn(List<UUID> ids);
 
     public void deleteIfNotIn(List<Aisle> entities) {
-        List<Long> ids = new ArrayList<>();
+        List<UUID> ids = new ArrayList<>();
         for (Aisle entity : entities) {
             ids.add(entity.getId());
         }

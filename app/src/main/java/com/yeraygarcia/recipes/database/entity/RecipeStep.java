@@ -6,8 +6,12 @@ import android.arch.persistence.room.ForeignKey;
 import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.Index;
 import android.arch.persistence.room.PrimaryKey;
+import android.support.annotation.NonNull;
 
 import com.google.gson.annotations.SerializedName;
+import com.yeraygarcia.recipes.database.UUIDTypeConverter;
+
+import java.util.UUID;
 
 import static android.arch.persistence.room.ForeignKey.CASCADE;
 
@@ -22,12 +26,15 @@ import static android.arch.persistence.room.ForeignKey.CASCADE;
 )
 public class RecipeStep {
 
-    @PrimaryKey(autoGenerate = true)
-    private long id;
+    @PrimaryKey
+    @NonNull
+    @ColumnInfo(typeAffinity = ColumnInfo.BLOB)
+    private UUID id;
 
-    @ColumnInfo(name = "recipe_id")
+    @NonNull
+    @ColumnInfo(name = "recipe_id", typeAffinity = ColumnInfo.BLOB)
     @SerializedName("recipe_id")
-    private long recipeId;
+    private UUID recipeId;
 
     private String description;
 
@@ -42,14 +49,15 @@ public class RecipeStep {
     // Constructors ////////////////////////////////////////////////////////////////////////////////
 
     @Ignore
-    public RecipeStep(long recipeId, String description, boolean section, int sortOrder) {
+    public RecipeStep(@NonNull UUID recipeId, String description, boolean section, int sortOrder) {
+        this.id = UUIDTypeConverter.newUUID();
         this.recipeId = recipeId;
         this.description = description;
         this.section = section;
         this.sortOrder = sortOrder;
     }
 
-    public RecipeStep(long id, long recipeId, String description, boolean section, int sortOrder) {
+    public RecipeStep(@NonNull UUID id, @NonNull UUID recipeId, String description, boolean section, int sortOrder) {
         this.id = id;
         this.recipeId = recipeId;
         this.description = description;
@@ -59,19 +67,21 @@ public class RecipeStep {
 
     // Getters and Setters /////////////////////////////////////////////////////////////////////////
 
-    public long getId() {
+    @NonNull
+    public UUID getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(@NonNull UUID id) {
         this.id = id;
     }
 
-    public long getRecipeId() {
+    @NonNull
+    public UUID getRecipeId() {
         return recipeId;
     }
 
-    public void setRecipeId(long recipeId) {
+    public void setRecipeId(@NonNull UUID recipeId) {
         this.recipeId = recipeId;
     }
 

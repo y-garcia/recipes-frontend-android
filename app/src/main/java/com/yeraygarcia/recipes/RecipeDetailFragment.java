@@ -19,16 +19,18 @@ import com.yeraygarcia.recipes.util.Debug;
 import com.yeraygarcia.recipes.viewmodel.RecipeDetailViewModel;
 import com.yeraygarcia.recipes.viewmodel.RecipeDetailViewModelFactory;
 
+import java.util.UUID;
+
 public class RecipeDetailFragment extends Fragment {
 
     public static final String ARG_RECIPE_ID = "argRecipeId";
     public static final String KEY_RECIPE_ID = "keyRecipeId";
-    public static final long DEFAULT_RECIPE_ID = -1;
+    public static final UUID DEFAULT_RECIPE_ID = UUID.randomUUID();
 
     private static final String KEY_SELECTED_INGREDIENT = "keySelectedIngredient";
     private static final String KEY_SELECTED_STEP = "keySelectedStep";
 
-    private long mRecipeId = DEFAULT_RECIPE_ID;
+    private UUID mRecipeId = DEFAULT_RECIPE_ID;
 
     private FragmentActivity mParentActivity;
     private CollapsingToolbarLayout mAppBarLayout;
@@ -42,10 +44,10 @@ public class RecipeDetailFragment extends Fragment {
     public RecipeDetailFragment() {
     }
 
-    public static RecipeDetailFragment newInstance(long recipeId) {
+    public static RecipeDetailFragment newInstance(UUID recipeId) {
         RecipeDetailFragment fragment = new RecipeDetailFragment();
         Bundle args = new Bundle();
-        args.putLong(ARG_RECIPE_ID, recipeId);
+        args.putString(ARG_RECIPE_ID, recipeId.toString());
         fragment.setArguments(args);
         return fragment;
     }
@@ -63,14 +65,14 @@ public class RecipeDetailFragment extends Fragment {
 
             // get recipe id from savedInstanceState (if not empty)
             if (savedInstanceState != null && savedInstanceState.containsKey(KEY_RECIPE_ID)) {
-                mRecipeId = savedInstanceState.getLong(KEY_RECIPE_ID, DEFAULT_RECIPE_ID);
+                mRecipeId = (UUID) savedInstanceState.getSerializable(KEY_RECIPE_ID);
             }
 
             // get recipe id from intent (if savedInstanceState was empty)
             Intent intent = mParentActivity.getIntent();
             if (intent != null && intent.hasExtra(ARG_RECIPE_ID)) {
-                if (mRecipeId == DEFAULT_RECIPE_ID) {
-                    mRecipeId = intent.getLongExtra(ARG_RECIPE_ID, DEFAULT_RECIPE_ID);
+                if (mRecipeId.equals(DEFAULT_RECIPE_ID)) {
+                    mRecipeId = (UUID) intent.getSerializableExtra(ARG_RECIPE_ID);
                 }
             }
 
@@ -83,10 +85,10 @@ public class RecipeDetailFragment extends Fragment {
 
             // get selected ingredient and step from savedInstanceState (if not empty)
             if (savedInstanceState != null) {
-                if(savedInstanceState.containsKey(KEY_SELECTED_INGREDIENT)){
+                if (savedInstanceState.containsKey(KEY_SELECTED_INGREDIENT)) {
                     mRecipeDetailAdapter.setSelectedIngredient(savedInstanceState.getInt(KEY_SELECTED_INGREDIENT, RecyclerView.NO_POSITION));
                 }
-                if(savedInstanceState.containsKey(KEY_SELECTED_STEP)){
+                if (savedInstanceState.containsKey(KEY_SELECTED_STEP)) {
                     mRecipeDetailAdapter.setSelectedStep(savedInstanceState.getInt(KEY_SELECTED_STEP, RecyclerView.NO_POSITION));
                 }
             }
@@ -106,7 +108,7 @@ public class RecipeDetailFragment extends Fragment {
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         Debug.d(this, "onSaveInstanceState(outState)");
-        outState.putLong(KEY_RECIPE_ID, mRecipeId);
+        outState.putSerializable(KEY_RECIPE_ID, mRecipeId);
         outState.putInt(KEY_SELECTED_INGREDIENT, mRecipeDetailAdapter.getSelectedIngredient());
         outState.putInt(KEY_SELECTED_STEP, mRecipeDetailAdapter.getSelectedStep());
         super.onSaveInstanceState(outState);

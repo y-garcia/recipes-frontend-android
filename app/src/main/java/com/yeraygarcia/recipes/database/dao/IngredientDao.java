@@ -8,6 +8,7 @@ import com.yeraygarcia.recipes.database.entity.Ingredient;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Dao
 public abstract class IngredientDao extends BaseDao<Ingredient> {
@@ -19,10 +20,10 @@ public abstract class IngredientDao extends BaseDao<Ingredient> {
     public abstract LiveData<List<Ingredient>> findAll();
 
     @Query("DELETE FROM ingredient WHERE id NOT IN (:ids)")
-    abstract void deleteIfIdNotIn(List<Long> ids);
+    abstract void deleteIfIdNotIn(List<UUID> ids);
 
     public void deleteIfNotIn(List<Ingredient> entities) {
-        List<Long> ids = new ArrayList<>();
+        List<UUID> ids = new ArrayList<>();
         for (Ingredient entity : entities) {
             ids.add(entity.getId());
         }
@@ -36,5 +37,5 @@ public abstract class IngredientDao extends BaseDao<Ingredient> {
     public abstract LiveData<List<String>> getIngredientNames();
 
     @Query("SELECT id FROM ingredient WHERE name = :name")
-    public abstract Long getIngredientIdByName(String name);
+    public abstract UUID getIngredientIdByName(String name);
 }

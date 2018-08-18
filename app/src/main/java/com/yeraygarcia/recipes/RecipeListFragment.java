@@ -24,6 +24,7 @@ import android.widget.Toast;
 
 import com.yeraygarcia.recipes.adapter.RecipeAdapter;
 import com.yeraygarcia.recipes.adapter.TagAdapter;
+import com.yeraygarcia.recipes.database.remote.RetrofitClient;
 import com.yeraygarcia.recipes.util.Debug;
 import com.yeraygarcia.recipes.util.ShortDividerItemDecoration;
 import com.yeraygarcia.recipes.viewmodel.RecipeViewModel;
@@ -82,7 +83,7 @@ public class RecipeListFragment extends Fragment {
 
         mViewModel = ViewModelProviders.of(mParentActivity).get(RecipeViewModel.class);
         if (savedInstanceState != null && savedInstanceState.containsKey(EXTRA_TAG_FILTER)) {
-            long[] tagFilter = savedInstanceState.getLongArray(EXTRA_TAG_FILTER);
+            String[] tagFilter = savedInstanceState.getStringArray(EXTRA_TAG_FILTER);
             mViewModel.setTagFilter(tagFilter);
         }
         mViewModel.getRecipes().observe(this, resource -> {
@@ -101,7 +102,7 @@ public class RecipeListFragment extends Fragment {
                         mSwipeRefreshLayout.setRefreshing(true);
                         break;
                 }
-                if(resource.data != null){
+                if (resource.data != null) {
                     mRecipeAdapter.setRecipes(resource.data);
                 }
             } else {
@@ -109,7 +110,7 @@ public class RecipeListFragment extends Fragment {
             }
         });
         mViewModel.getTags().observe(this, tags -> {
-            Debug.d(this, "getTags().observe(" + tags + ")");
+            Debug.d(this, "getTags().observe(tags)");
             if (tags != null) {
                 tagAdapter.setTags(tags);
             } else {
@@ -123,6 +124,7 @@ public class RecipeListFragment extends Fragment {
     }
 
     private void refreshData() {
+        RetrofitClient.get(mParentActivity).setIdToken(null);
         mViewModel.refreshAll();
         mSwipeRefreshLayout.setRefreshing(false);
     }
@@ -131,7 +133,7 @@ public class RecipeListFragment extends Fragment {
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         Debug.d(this, "onSaveInstanceState(outState)");
-        outState.putLongArray(EXTRA_TAG_FILTER, mViewModel.getTagFilterAsArray());
+        outState.putStringArrayList(EXTRA_TAG_FILTER, mViewModel.getTagFilterAsArray());
     }
 
     @Override

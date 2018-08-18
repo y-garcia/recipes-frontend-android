@@ -1,6 +1,5 @@
 package com.yeraygarcia.recipes.adapter;
 
-import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
@@ -14,9 +13,9 @@ import com.yeraygarcia.recipes.R;
 import com.yeraygarcia.recipes.RecipeDetailActivity;
 import com.yeraygarcia.recipes.RecipeDetailFragment;
 import com.yeraygarcia.recipes.database.entity.Recipe;
-import com.yeraygarcia.recipes.viewmodel.RecipeViewModel;
 
 import java.util.List;
+import java.util.UUID;
 
 public class TodayAdapter extends RecyclerView.Adapter<TodayAdapter.RecipesViewHolder> {
 
@@ -41,7 +40,7 @@ public class TodayAdapter extends RecyclerView.Adapter<TodayAdapter.RecipesViewH
             itemName = itemView.findViewById(R.id.textview_recipe_name);
 
             itemName.setOnClickListener(view -> {
-                final long recipeId = mRecipes.get(getAdapterPosition()).getId();
+                final UUID recipeId = mRecipes.get(getAdapterPosition()).getId();
                 // open Recipe Detail activity
                 Intent intent = new Intent(mParentActivity, RecipeDetailActivity.class);
                 intent.putExtra(RecipeDetailFragment.ARG_RECIPE_ID, recipeId);

@@ -6,9 +6,14 @@ import android.arch.persistence.room.ForeignKey;
 import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.Index;
 import android.arch.persistence.room.PrimaryKey;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
+import com.yeraygarcia.recipes.database.UUIDTypeConverter;
+
+import java.util.UUID;
 
 import static android.arch.persistence.room.ForeignKey.CASCADE;
 import static android.arch.persistence.room.ForeignKey.RESTRICT;
@@ -28,24 +33,28 @@ import static android.arch.persistence.room.ForeignKey.RESTRICT;
 )
 public class RecipeIngredient {
 
-    @PrimaryKey(autoGenerate = true)
-    private long id;
+    @PrimaryKey
+    @NonNull
+    @ColumnInfo(typeAffinity = ColumnInfo.BLOB)
+    private UUID id;
 
-    @ColumnInfo(name = "recipe_id")
+    @NonNull
+    @ColumnInfo(name = "recipe_id", typeAffinity = ColumnInfo.BLOB)
     @SerializedName("recipe_id")
-    private long recipeId;
+    private UUID recipeId;
 
-    @ColumnInfo(name = "ingredient_id")
+    @NonNull
+    @ColumnInfo(name = "ingredient_id", typeAffinity = ColumnInfo.BLOB)
     @SerializedName("ingredient_id")
-    private long ingredientId;
+    private UUID ingredientId;
 
     @Nullable
     private Double quantity;
 
     @Nullable
-    @ColumnInfo(name = "unit_id")
+    @ColumnInfo(name = "unit_id", typeAffinity = ColumnInfo.BLOB)
     @SerializedName("unit_id")
-    private Long unitId;
+    private UUID unitId;
 
     @ColumnInfo(name = "sort_order")
     @SerializedName("sort_order")
@@ -54,7 +63,8 @@ public class RecipeIngredient {
     // Constructors ////////////////////////////////////////////////////////////////////////////////
 
     @Ignore
-    public RecipeIngredient(long recipeId, long ingredientId, @Nullable Double quantity, @Nullable Long unitId, int sortOrder) {
+    public RecipeIngredient(@NonNull UUID recipeId, @NonNull UUID ingredientId, @Nullable Double quantity, @Nullable UUID unitId, int sortOrder) {
+        this.id = UUIDTypeConverter.newUUID();
         this.recipeId = recipeId;
         this.ingredientId = ingredientId;
         this.quantity = quantity;
@@ -62,7 +72,7 @@ public class RecipeIngredient {
         this.sortOrder = sortOrder;
     }
 
-    public RecipeIngredient(long id, long recipeId, long ingredientId, @Nullable Double quantity, @Nullable Long unitId, int sortOrder) {
+    public RecipeIngredient(@NonNull UUID id, @NonNull UUID recipeId, @NonNull UUID ingredientId, @Nullable Double quantity, @Nullable UUID unitId, int sortOrder) {
         this.id = id;
         this.recipeId = recipeId;
         this.ingredientId = ingredientId;
@@ -73,27 +83,30 @@ public class RecipeIngredient {
 
     // Getters and Setters /////////////////////////////////////////////////////////////////////////
 
-    public long getId() {
+    @NonNull
+    public UUID getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(@NonNull UUID id) {
         this.id = id;
     }
 
-    public long getRecipeId() {
+    @NonNull
+    public UUID getRecipeId() {
         return recipeId;
     }
 
-    public void setRecipeId(long recipeId) {
+    public void setRecipeId(@NonNull UUID recipeId) {
         this.recipeId = recipeId;
     }
 
-    public long getIngredientId() {
+    @NonNull
+    public UUID getIngredientId() {
         return ingredientId;
     }
 
-    public void setIngredientId(long ingredientId) {
+    public void setIngredientId(@NonNull UUID ingredientId) {
         this.ingredientId = ingredientId;
     }
 
@@ -107,11 +120,11 @@ public class RecipeIngredient {
     }
 
     @Nullable
-    public Long getUnitId() {
+    public UUID getUnitId() {
         return unitId;
     }
 
-    public void setUnitId(@Nullable Long unitId) {
+    public void setUnitId(@Nullable UUID unitId) {
         this.unitId = unitId;
     }
 
@@ -125,6 +138,6 @@ public class RecipeIngredient {
 
     @Override
     public String toString() {
-        return sortOrder + ". " + quantity + " (unit: " + unitId + ") (ingredient: " + ingredientId + ")";
+        return new Gson().toJson(this);
     }
 }

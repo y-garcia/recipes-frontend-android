@@ -16,7 +16,7 @@ import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
 import com.yeraygarcia.recipes.database.remote.ResourceData;
-import com.yeraygarcia.recipes.database.remote.RetrofitInstance;
+import com.yeraygarcia.recipes.database.remote.RetrofitClient;
 import com.yeraygarcia.recipes.database.remote.User;
 import com.yeraygarcia.recipes.database.remote.Webservice;
 import com.yeraygarcia.recipes.util.Debug;
@@ -32,7 +32,6 @@ public class SignInActivity extends AppCompatActivity {
     private static final int SIGNING_IN = 1;
     private static final int SIGNED_IN = 2;
     private static final int SIGNED_OUT = 3;
-    private GoogleSignInClient mGoogleSignInClient;
     private SignInButton mGoogleSignInButton;
     private ProgressBar mProgressBar;
     private TextView mInfo;
@@ -42,18 +41,9 @@ public class SignInActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_in);
 
-        setupGoogleSignInClient();
         setupGoogleSignInButton();
         setupProgressBar();
         setupInfoTextView();
-    }
-
-    private void setupGoogleSignInClient() {
-        mGoogleSignInClient = GoogleSignIn.getClient(this, new GoogleSignInOptions
-                .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.server_client_id))
-                .requestEmail()
-                .build());
     }
 
     private void setupGoogleSignInButton() {
@@ -95,18 +85,24 @@ public class SignInActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
+        Debug.d(this, "onStart(): getLastSignedInAccount()");
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
         if (account != null && !account.isExpired()) {
+            Debug.d(this, "onStart(): account != null && !account.isExpired()");
             updateUI(account);
         } else {
+            Debug.d(this, "onStart(): account == null || account.isExpired()");
             setStatus(SIGNING_IN);
-            mGoogleSignInClient.silentSignIn().addOnCompleteListener(this, this::handleSignInResult);
+            Debug.d(this, "onStart(): silentSignIn()");
+            RetrofitClient.get(this).getGoogleSignInClient()
+                    .silentSignIn().addOnCompleteListener(this, this::handleSignInResult);
         }
     }
 
     private void signIn() {
+        Debug.d(this, "signIn(): show sign-in dialog");
         setStatus(SIGNING_IN);
-        Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+        Intent signInIntent = RetrofitClient.get(this).getGoogleSignInClient().getSignInIntent();
         startActivityForResult(signInIntent, RC_SIGN_IN);
     }
 
@@ -116,12 +112,14 @@ public class SignInActivity extends AppCompatActivity {
 
         // Result returned from launching the Intent from GoogleSignInClient.getSignInIntent(...);
         if (requestCode == RC_SIGN_IN) {
+            Debug.d(this, "onActivityResult(): task = getSignedInAccountFromIntent()");
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
             handleSignInResult(task);
         }
     }
 
     private void handleSignInResult(Task<GoogleSignInAccount> completedTask) {
+        Debug.d(this, "handleSignInResult(task)");
         try {
             GoogleSignInAccount account = completedTask.getResult(ApiException.class);
             String idToken = account.getIdToken();
@@ -130,7 +128,7 @@ public class SignInActivity extends AppCompatActivity {
 
                 if (NetworkUtil.isOnline(this)) {
 
-                    Webservice webservice = RetrofitInstance.get().create(Webservice.class);
+                    Webservice webservice = RetrofitClient.get(SignInActivity.this).create(Webservice.class);
                     Call<ResourceData<User>> call = webservice.postToken(idToken);
 
                     call.enqueue(new Callback<ResourceData<User>>() {
@@ -176,7 +174,7 @@ public class SignInActivity extends AppCompatActivity {
         Debug.d(this, "updateUI(account, errorMessage)");
         if (account != null) {
             setStatus(SIGNED_IN);
-            RetrofitInstance.get().setIdToken(account.getIdToken());
+            RetrofitClient.get(this).setIdToken(account.getIdToken());
             Intent intent = new Intent(SignInActivity.this, MainActivity.class);
             startActivity(intent);
             finish();

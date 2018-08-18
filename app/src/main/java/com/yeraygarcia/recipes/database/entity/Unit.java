@@ -8,6 +8,9 @@ import android.arch.persistence.room.PrimaryKey;
 import android.support.annotation.NonNull;
 
 import com.google.gson.annotations.SerializedName;
+import com.yeraygarcia.recipes.database.UUIDTypeConverter;
+
+import java.util.UUID;
 
 @Entity(
         tableName = "unit",
@@ -18,8 +21,10 @@ import com.google.gson.annotations.SerializedName;
 )
 public class Unit {
 
-    @PrimaryKey(autoGenerate = true)
-    private long id;
+    @PrimaryKey
+    @NonNull
+    @ColumnInfo(typeAffinity = ColumnInfo.BLOB)
+    private UUID id;
 
     @NonNull
     @ColumnInfo(name = "name_singular")
@@ -35,11 +40,12 @@ public class Unit {
 
     @Ignore
     public Unit(@NonNull String nameSingular, @NonNull String namePlural) {
+        this.id = UUIDTypeConverter.newUUID();
         this.nameSingular = nameSingular;
         this.namePlural = namePlural;
     }
 
-    public Unit(long id, @NonNull String nameSingular, @NonNull String namePlural) {
+    public Unit(@NonNull UUID id, @NonNull String nameSingular, @NonNull String namePlural) {
         this.id = id;
         this.nameSingular = nameSingular;
         this.namePlural = namePlural;
@@ -47,11 +53,12 @@ public class Unit {
 
     // Getters and Setters /////////////////////////////////////////////////////////////////////////
 
-    public long getId() {
+    @NonNull
+    public UUID getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(@NonNull UUID id) {
         this.id = id;
     }
 

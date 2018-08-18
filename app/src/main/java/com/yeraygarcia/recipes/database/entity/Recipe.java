@@ -1,5 +1,6 @@
 package com.yeraygarcia.recipes.database.entity;
 
+import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.PrimaryKey;
@@ -7,15 +8,19 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 
 import com.yeraygarcia.recipes.R;
+import com.yeraygarcia.recipes.database.UUIDTypeConverter;
 
 import java.util.Locale;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Entity(tableName = "recipe")
 public class Recipe {
 
-    @PrimaryKey(autoGenerate = true)
-    private long id;
+    @PrimaryKey
+    @NonNull
+    @ColumnInfo(typeAffinity = ColumnInfo.BLOB)
+    private UUID id;
 
     @NonNull
     private String name;
@@ -31,13 +36,14 @@ public class Recipe {
 
     @Ignore
     public Recipe(@NonNull String name, @NonNull Integer portions, Integer duration, String url) {
+        this.id = UUIDTypeConverter.newUUID();
         this.name = name;
         this.portions = portions;
         this.duration = duration;
         this.url = url;
     }
 
-    public Recipe(long id, @NonNull String name, @NonNull Integer portions, Integer duration, String url) {
+    public Recipe(@NonNull UUID id, @NonNull String name, @NonNull Integer portions, Integer duration, String url) {
         this.id = id;
         this.name = name;
         this.portions = portions;
@@ -47,11 +53,12 @@ public class Recipe {
 
     // Getters and Setters /////////////////////////////////////////////////////////////////////////
 
-    public long getId() {
+    @NonNull
+    public UUID getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(@NonNull UUID id) {
         this.id = id;
     }
 

@@ -8,6 +8,10 @@ import android.arch.persistence.room.Index;
 import android.arch.persistence.room.PrimaryKey;
 import android.support.annotation.NonNull;
 
+import com.yeraygarcia.recipes.database.UUIDTypeConverter;
+
+import java.util.UUID;
+
 import static android.arch.persistence.room.ForeignKey.CASCADE;
 import static android.arch.persistence.room.ForeignKey.RESTRICT;
 
@@ -26,22 +30,24 @@ import static android.arch.persistence.room.ForeignKey.RESTRICT;
 )
 public class ShoppingListItem {
 
-    @PrimaryKey(autoGenerate = true)
-    private long id;
+    @PrimaryKey
+    @NonNull
+    @ColumnInfo(typeAffinity = ColumnInfo.BLOB)
+    private UUID id;
 
-    @ColumnInfo(name = "recipe_id")
-    private Long recipeId;
+    @ColumnInfo(name = "recipe_id", typeAffinity = ColumnInfo.BLOB)
+    private UUID recipeId;
 
-    @ColumnInfo(name = "ingredient_id")
-    private Long ingredientId;
+    @ColumnInfo(name = "ingredient_id", typeAffinity = ColumnInfo.BLOB)
+    private UUID ingredientId;
 
     @NonNull
     private String name;
 
     protected Double quantity;
 
-    @ColumnInfo(name = "unit_id")
-    private Long unitId;
+    @ColumnInfo(name = "unit_id", typeAffinity = ColumnInfo.BLOB)
+    private UUID unitId;
 
     @NonNull
     @ColumnInfo(name = "sort_order")
@@ -55,8 +61,8 @@ public class ShoppingListItem {
 
     // Constructors ////////////////////////////////////////////////////////////////////////////////
 
-    public ShoppingListItem(long id, Long recipeId, Long ingredientId, @NonNull String name, Double quantity, Long unitId, @NonNull Long sortOrder, @NonNull Boolean completed, @NonNull Boolean visible) {
-        this.id = id;
+    public ShoppingListItem(UUID id, UUID recipeId, UUID ingredientId, @NonNull String name, Double quantity, UUID unitId, @NonNull Long sortOrder, @NonNull Boolean completed, @NonNull Boolean visible) {
+        this.id = id == null ? UUIDTypeConverter.newUUID() : id;
         this.recipeId = recipeId;
         this.ingredientId = ingredientId;
         this.name = name;
@@ -68,7 +74,8 @@ public class ShoppingListItem {
     }
 
     @Ignore
-    public ShoppingListItem(Long recipeId, Long ingredientId, @NonNull String name, Double quantity, Long unitId, @NonNull Long sortOrder, @NonNull Boolean completed, @NonNull Boolean visible) {
+    public ShoppingListItem(UUID recipeId, UUID ingredientId, @NonNull String name, Double quantity, UUID unitId, @NonNull Long sortOrder, @NonNull Boolean completed, @NonNull Boolean visible) {
+        this.id = UUIDTypeConverter.newUUID();
         this.recipeId = recipeId;
         this.ingredientId = ingredientId;
         this.name = name;
@@ -81,6 +88,7 @@ public class ShoppingListItem {
 
     @Ignore
     public ShoppingListItem(@NonNull String name) {
+        this.id = UUIDTypeConverter.newUUID();
         this.name = name;
         this.sortOrder = 0L;
         this.completed = false;
@@ -88,7 +96,8 @@ public class ShoppingListItem {
     }
 
     @Ignore
-    public ShoppingListItem(@NonNull String name, Double quantity, Long unitId) {
+    public ShoppingListItem(@NonNull String name, Double quantity, UUID unitId) {
+        this.id = UUIDTypeConverter.newUUID();
         this.name = name;
         this.quantity = quantity;
         this.unitId = unitId;
@@ -99,27 +108,28 @@ public class ShoppingListItem {
 
     // Getters and Setters /////////////////////////////////////////////////////////////////////////
 
-    public long getId() {
+    @NonNull
+    public UUID getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(@NonNull UUID id) {
         this.id = id;
     }
 
-    public Long getRecipeId() {
+    public UUID getRecipeId() {
         return recipeId;
     }
 
-    public void setRecipeId(Long recipeId) {
+    public void setRecipeId(UUID recipeId) {
         this.recipeId = recipeId;
     }
 
-    public Long getIngredientId() {
+    public UUID getIngredientId() {
         return ingredientId;
     }
 
-    public void setIngredientId(Long ingredientId) {
+    public void setIngredientId(UUID ingredientId) {
         this.ingredientId = ingredientId;
     }
 
@@ -140,11 +150,11 @@ public class ShoppingListItem {
         this.quantity = quantity;
     }
 
-    public Long getUnitId() {
+    public UUID getUnitId() {
         return unitId;
     }
 
-    public void setUnitId(Long unitId) {
+    public void setUnitId(UUID unitId) {
         this.unitId = unitId;
     }
 

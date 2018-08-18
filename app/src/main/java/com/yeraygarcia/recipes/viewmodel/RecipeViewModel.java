@@ -7,7 +7,6 @@ import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.Transformations;
 import android.util.LongSparseArray;
 
-import com.yeraygarcia.recipes.database.entity.Ingredient;
 import com.yeraygarcia.recipes.database.entity.Recipe;
 import com.yeraygarcia.recipes.database.entity.ShoppingListItem;
 import com.yeraygarcia.recipes.database.entity.Tag;
@@ -21,6 +20,7 @@ import com.yeraygarcia.recipes.util.Debug;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -28,10 +28,10 @@ public class RecipeViewModel extends AndroidViewModel {
 
     private RecipeRepository mRepository;
 
-    private MutableLiveData<List<Long>> mTagFilter = new MutableLiveData<>();
+    private MutableLiveData<List<UUID>> mTagFilter = new MutableLiveData<>();
     private LiveData<Resource<List<Recipe>>> mRecipes = Transformations.switchMap(mTagFilter, tagIds -> mRepository.getRecipesByTagId(tagIds));
     private LiveData<List<Tag>> mTags;
-    private LiveData<List<Long>> mRecipeIdsInShoppingList;
+    private LiveData<List<UUID>> mRecipeIdsInShoppingList;
     private LiveData<List<Recipe>> mRecipesInShoppingList;
     private final LiveData<List<UiShoppingListItem>> mShoppingListItems;
     private LiveData<List<Unit>> mUnits;
@@ -42,7 +42,6 @@ public class RecipeViewModel extends AndroidViewModel {
     private LiveData<List<String>> mIngredientNames;
     private LiveData<List<String>> mUnitNames;
     private LiveData<UiRecipeIngredient> mRecipeIngredient;
-    private LiveData<List<Ingredient>> mIngredients;
 
     public RecipeViewModel(Application application) {
         super(application);
@@ -61,7 +60,6 @@ public class RecipeViewModel extends AndroidViewModel {
         mUnitsAndIngredientNames = mRepository.getUnitsAndIngredientNames();
         mIngredientNames = mRepository.getIngredientNames();
         mUnitNames = mRepository.getUnitNames();
-        mIngredients = mRepository.getIngredients();
     }
 
     public LiveData<Resource<List<Recipe>>> getRecipes() {
@@ -74,28 +72,29 @@ public class RecipeViewModel extends AndroidViewModel {
         return mTags;
     }
 
-    public MutableLiveData<List<Long>> getTagFilter() {
+    public MutableLiveData<List<UUID>> getTagFilter() {
         Debug.d(this, "getTagFilter()");
         return mTagFilter;
     }
 
-    public long[] getTagFilterAsArray() {
+    public ArrayList<String> getTagFilterAsArray() {
         Debug.d(this, "getTagFilterAsArray()");
-        List<Long> tagFilter = mTagFilter.getValue();
-        if (tagFilter == null) {
-            return new long[]{};
-        }
-        long[] result = new long[tagFilter.size()];
 
-        for (int i = 0; i < tagFilter.size(); i++) {
-            result[i] = tagFilter.get(i);
+        List<UUID> tagFilter = mTagFilter.getValue();
+        if (tagFilter == null) {
+            return new ArrayList<>();
+        }
+
+        ArrayList<String> result = new ArrayList<>(tagFilter.size());
+        for (UUID uuid : tagFilter) {
+            result.add(uuid.toString());
         }
         return result;
     }
 
     public void addTagToFilter(Tag tag) {
         Debug.d(this, "addTagToFilter(" + tag.getId() + ")");
-        List<Long> newTags = mTagFilter.getValue();
+        List<UUID> newTags = mTagFilter.getValue();
         if (newTags == null) {
             newTags = new ArrayList<>();
         }
@@ -106,7 +105,7 @@ public class RecipeViewModel extends AndroidViewModel {
 
     public void removeTagFromFilter(Tag tag) {
         Debug.d(this, "removeTagFromFilter(" + tag.getId() + ")");
-        List<Long> newTags = mTagFilter.getValue();
+        List<UUID> newTags = mTagFilter.getValue();
         if (newTags == null) {
             return;
         }
@@ -116,19 +115,21 @@ public class RecipeViewModel extends AndroidViewModel {
 
     public void setTagFilter(Tag tag) {
         Debug.d(this, "setTagFilter(tag)");
-        List<Long> tagFilterList = new ArrayList<>();
+        List<UUID> tagFilterList = new ArrayList<>();
         tagFilterList.add(tag.getId());
         mTagFilter.setValue(tagFilterList);
         mRepository.logTagUsage(tag.getId());
     }
 
-    public void setTagFilter(long[] tagFilter) {
+    public void setTagFilter(String[] tagFilter) {
         Debug.d(this, "setTagFilter(tagFilter)");
-        List<Long> tagFilterList = new ArrayList<>();
-        for (long tagId : tagFilter) {
-            tagFilterList.add(tagId);
+        if (tagFilter != null) {
+            List<UUID> uuids = new ArrayList<>(tagFilter.length);
+            for (String uuidString : tagFilter) {
+                uuids.add(UUID.fromString(uuidString));
+            }
+            mTagFilter.setValue(uuids);
         }
-        mTagFilter.setValue(tagFilterList);
     }
 
     public void updateTagUsage() {
@@ -153,7 +154,7 @@ public class RecipeViewModel extends AndroidViewModel {
         return mRecipesInShoppingList;
     }
 
-    public LiveData<List<Long>> getRecipeIdsInShoppingList() {
+    public LiveData<List<UUID>> getRecipeIdsInShoppingList() {
         return mRecipeIdsInShoppingList;
     }
 
@@ -174,17 +175,6 @@ public class RecipeViewModel extends AndroidViewModel {
         mRepository.removeFromShoppingList(shoppingListItem);
     }
 
-    public void saveDraft(UiShoppingListItem ingredient) {
-        Debug.d(this, "saveDraft(ingredient = " + ingredient.toString() + ")");
-        LongSparseArray<UiShoppingListItem> ingredientsDraft = mShoppingListItemsDraft.getValue();
-        if (ingredientsDraft == null) {
-            ingredientsDraft = new LongSparseArray<>();
-        }
-        ingredientsDraft.put(ingredient.getId(), ingredient);
-        mShoppingListItemsDraft.setValue(ingredientsDraft);
-        Debug.d(this, "mShoppingListItemsDraft = " + mShoppingListItemsDraft.getValue() + ")");
-    }
-
     public void persistDraft() {
         Debug.d(this, "persistDraft()");
         Debug.d(this, "mShoppingListItemsDraft = " + mShoppingListItemsDraft + ")");
@@ -201,6 +191,7 @@ public class RecipeViewModel extends AndroidViewModel {
     }
 
     public void deleteAll() {
+        Debug.d(this, "deleteAll()");
         mRepository.deleteAll();
     }
 
@@ -215,7 +206,7 @@ public class RecipeViewModel extends AndroidViewModel {
 
     private void forceRefresh() {
         // TODO this is a hack :-(
-        List<Long> tagFilterCopy = mTagFilter.getValue();
+        List<UUID> tagFilterCopy = mTagFilter.getValue();
         clearTagFilter();
         mTagFilter.setValue(tagFilterCopy);
     }
@@ -227,7 +218,7 @@ public class RecipeViewModel extends AndroidViewModel {
             String units = getUnitRegex();
             ShoppingListItem item;
             Double quantity;
-            Long unit;
+            UUID unit;
             String ingredient;
 
             Matcher matcher1 = Pattern.compile("([0-9]+(?:(?:.|,)[0-9]+)?) ?(" + units + ") (.+)$", Pattern.CASE_INSENSITIVE).matcher(newItem);
@@ -256,7 +247,7 @@ public class RecipeViewModel extends AndroidViewModel {
         }
     }
 
-    public Long getUnitIdByName(String name) {
+    public UUID getUnitIdByName(String name) {
         Debug.d(this, "getUnitIdByName(" + (name == null ? "null" : name) + ")");
         List<Unit> units = mUnits.getValue();
 
@@ -271,28 +262,6 @@ public class RecipeViewModel extends AndroidViewModel {
             if (unit.getNameSingular().toLowerCase().equals(name) || unit.getNamePlural().toLowerCase().equals(name)) {
                 Debug.d(this, debugMessage + "true");
                 return unit.getId();
-            }
-            Debug.d(this, debugMessage + "false");
-        }
-
-        return null;
-    }
-
-    public Long getIngredientIdByName(String name) {
-        Debug.d(this, "getIngredientIdByName(" + (name == null ? "null" : name) + ")");
-        List<Ingredient> ingredients = mIngredients.getValue();
-
-        if (ingredients == null || name == null || name.isEmpty()) {
-            return null;
-        }
-
-        name = name.toLowerCase();
-
-        for (Ingredient ingredient : ingredients) {
-            String debugMessage = name + " = " + ingredient.getName().toLowerCase() + " ? ";
-            if (ingredient.getName().toLowerCase().equals(name)) {
-                Debug.d(this, debugMessage + "true");
-                return ingredient.getId();
             }
             Debug.d(this, debugMessage + "false");
         }
@@ -330,14 +299,14 @@ public class RecipeViewModel extends AndroidViewModel {
         return mUnits;
     }
 
-    public LiveData<UiShoppingListItem> getShoppingListItem(long id) {
+    public LiveData<UiShoppingListItem> getShoppingListItem(UUID id) {
         if (mShoppingListItem == null || mShoppingListItem.getValue() != null && mShoppingListItem.getValue().getId() != id) {
             mShoppingListItem = mRepository.getShoppingListItemById(id);
         }
         return mShoppingListItem;
     }
 
-    public void updateShoppingListItem(Long id, String ingredient, Double quantity, Long unitId) {
+    public void updateShoppingListItem(UUID id, String ingredient, Double quantity, UUID unitId) {
         mRepository.updateShoppingListItem(id, ingredient, quantity, unitId);
     }
 
@@ -353,14 +322,14 @@ public class RecipeViewModel extends AndroidViewModel {
         return mUnitNames;
     }
 
-    public LiveData<UiRecipeIngredient> getIngredient(long id) {
+    public LiveData<UiRecipeIngredient> getIngredient(UUID id) {
         if (mRecipeIngredient == null || mRecipeIngredient.getValue() != null && mRecipeIngredient.getValue().getId() != id) {
             mRecipeIngredient = mRepository.getUiRecipeIngredient(id);
         }
         return mRecipeIngredient;
     }
 
-    public void updateRecipeIngredient(long id, String ingredientName, Double quantity, Long unitId) {
+    public void updateRecipeIngredient(UUID id, String ingredientName, Double quantity, UUID unitId) {
         mRepository.updateRecipeIngredient(id, ingredientName, quantity, unitId);
     }
 }

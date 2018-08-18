@@ -8,6 +8,9 @@ import android.arch.persistence.room.PrimaryKey;
 import android.support.annotation.NonNull;
 
 import com.google.gson.annotations.SerializedName;
+import com.yeraygarcia.recipes.database.UUIDTypeConverter;
+
+import java.util.UUID;
 
 @Entity(
         tableName = "tag",
@@ -17,12 +20,11 @@ import com.google.gson.annotations.SerializedName;
 )
 public class Tag {
 
-    @PrimaryKey(autoGenerate = true)
-    @SerializedName("id")
-    private long id;
+    @PrimaryKey
+    @NonNull
+    private UUID id;
 
     @NonNull
-    @SerializedName("name")
     private String name;
 
     @NonNull
@@ -39,12 +41,13 @@ public class Tag {
 
     @Ignore
     public Tag(@NonNull String name, @NonNull Long usageCount) {
+        this.id = UUIDTypeConverter.newUUID();
         this.name = name;
         this.usageCount = usageCount;
         this.lastUsed = System.currentTimeMillis() / 1000L;
     }
 
-    public Tag(long id, @NonNull String name, @NonNull Long usageCount) {
+    public Tag(@NonNull UUID id, @NonNull String name, @NonNull Long usageCount) {
         this.id = id;
         this.name = name;
         this.usageCount = usageCount;
@@ -53,11 +56,12 @@ public class Tag {
 
     // Getters and Setters /////////////////////////////////////////////////////////////////////////
 
-    public long getId() {
+    @NonNull
+    public UUID getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(@NonNull UUID id) {
         this.id = id;
     }
 
@@ -91,7 +95,7 @@ public class Tag {
     @Override
     public String toString() {
         return "\n[Tag: " + name +
-                ", id: " + id +
+                ", id: " + id.toString() +
                 ", usageCount: " + usageCount +
                 ", lastUsed: " + new java.util.Date(lastUsed * 1000) + "]";
     }

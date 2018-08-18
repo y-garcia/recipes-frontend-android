@@ -4,10 +4,11 @@ import android.arch.persistence.room.ColumnInfo;
 import android.support.annotation.NonNull;
 
 import java.util.Locale;
+import java.util.UUID;
 
 public class UiShoppingListItem {
 
-    private Long id;
+    private UUID id;
 
     private Double quantity;
 
@@ -42,11 +43,11 @@ public class UiShoppingListItem {
         this.aisle = aisle;
     }
 
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

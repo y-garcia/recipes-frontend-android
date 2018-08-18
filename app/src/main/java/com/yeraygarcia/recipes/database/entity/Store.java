@@ -1,10 +1,15 @@
 package com.yeraygarcia.recipes.database.entity;
 
+import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.Index;
 import android.arch.persistence.room.PrimaryKey;
 import android.support.annotation.NonNull;
+
+import com.yeraygarcia.recipes.database.UUIDTypeConverter;
+
+import java.util.UUID;
 
 @Entity(
         tableName = "store",
@@ -14,8 +19,10 @@ import android.support.annotation.NonNull;
 )
 public class Store {
 
-    @PrimaryKey(autoGenerate = true)
-    private long id;
+    @PrimaryKey
+    @NonNull
+    @ColumnInfo(typeAffinity = ColumnInfo.BLOB)
+    private UUID id;
 
     @NonNull
     private String name;
@@ -24,21 +31,23 @@ public class Store {
 
     @Ignore
     public Store(@NonNull String name) {
+        this.id = UUIDTypeConverter.newUUID();
         this.name = name;
     }
 
-    public Store(long id, @NonNull String name) {
+    public Store(@NonNull UUID id, @NonNull String name) {
         this.id = id;
         this.name = name;
     }
 
     // Getters and Setters /////////////////////////////////////////////////////////////////////////
 
-    public long getId() {
+    @NonNull
+    public UUID getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(@NonNull UUID id) {
         this.id = id;
     }
 

@@ -19,17 +19,18 @@ import com.yeraygarcia.recipes.util.Debug;
 import com.yeraygarcia.recipes.viewmodel.RecipeDetailViewModel;
 import com.yeraygarcia.recipes.viewmodel.RecipeDetailViewModelFactory;
 
+import java.util.UUID;
+
 public class EditRecipeFragment extends Fragment {
 
     public static final String ARG_RECIPE_ID = "argRecipeId";
     public static final String KEY_RECIPE_ID = "keyRecipeId";
-    public static final long DEFAULT_RECIPE_ID = -1;
+    public static final UUID DEFAULT_RECIPE_ID = UUID.randomUUID();
 
-    private long mRecipeId = DEFAULT_RECIPE_ID;
+    private UUID mRecipeId = DEFAULT_RECIPE_ID;
 
     private FragmentActivity mParentActivity;
     private CollapsingToolbarLayout mAppBarLayout;
-    private RecipeDetailViewModel mViewModel;
 
     private EditRecipeAdapter mEditRecipeAdapter;
 
@@ -40,10 +41,10 @@ public class EditRecipeFragment extends Fragment {
     public EditRecipeFragment() {
     }
 
-    public static EditRecipeFragment newInstance(long recipeId) {
+    public static EditRecipeFragment newInstance(UUID recipeId) {
         EditRecipeFragment fragment = new EditRecipeFragment();
         Bundle args = new Bundle();
-        args.putLong(ARG_RECIPE_ID, recipeId);
+        args.putString(ARG_RECIPE_ID, recipeId.toString());
         fragment.setArguments(args);
         return fragment;
     }
@@ -59,14 +60,14 @@ public class EditRecipeFragment extends Fragment {
 
             // get recipe id from savedInstanceState (if not empty)
             if (savedInstanceState != null && savedInstanceState.containsKey(KEY_RECIPE_ID)) {
-                mRecipeId = savedInstanceState.getLong(KEY_RECIPE_ID, DEFAULT_RECIPE_ID);
+                mRecipeId = (UUID) savedInstanceState.getSerializable(KEY_RECIPE_ID);
             }
 
             // get recipe id from intent (if savedInstanceState was empty)
             Intent intent = mParentActivity.getIntent();
             if (intent != null && intent.hasExtra(ARG_RECIPE_ID)) {
-                if (mRecipeId == DEFAULT_RECIPE_ID) {
-                    mRecipeId = intent.getLongExtra(ARG_RECIPE_ID, DEFAULT_RECIPE_ID);
+                if (mRecipeId.equals(DEFAULT_RECIPE_ID)) {
+                    mRecipeId = (UUID) intent.getSerializableExtra(ARG_RECIPE_ID);
                 }
             }
 
@@ -74,7 +75,7 @@ public class EditRecipeFragment extends Fragment {
 
             // get ViewModel from id, observe recipe and populate ui with it
             RecipeDetailViewModelFactory factory = new RecipeDetailViewModelFactory(repository, mRecipeId);
-            mViewModel = ViewModelProviders.of(this, factory).get(RecipeDetailViewModel.class);
+            RecipeDetailViewModel mViewModel = ViewModelProviders.of(this, factory).get(RecipeDetailViewModel.class);
 
             mEditRecipeAdapter = new EditRecipeAdapter(mParentActivity, mViewModel);
 
@@ -92,7 +93,7 @@ public class EditRecipeFragment extends Fragment {
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         Debug.d(this, "onSaveInstanceState(outState)");
-        outState.putLong(RecipeDetailFragment.KEY_RECIPE_ID, mRecipeId);
+        outState.putSerializable(RecipeDetailFragment.KEY_RECIPE_ID, mRecipeId);
         super.onSaveInstanceState(outState);
     }
 

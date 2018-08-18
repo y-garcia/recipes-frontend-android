@@ -9,6 +9,9 @@ import android.arch.persistence.room.PrimaryKey;
 import android.support.annotation.NonNull;
 
 import com.google.gson.annotations.SerializedName;
+import com.yeraygarcia.recipes.database.UUIDTypeConverter;
+
+import java.util.UUID;
 
 import static android.arch.persistence.room.ForeignKey.RESTRICT;
 
@@ -22,33 +25,37 @@ import static android.arch.persistence.room.ForeignKey.RESTRICT;
 )
 public class Ingredient {
 
-    private static final long DEFAULT_AISLE_ID = 1;
+    private static final UUID DEFAULT_AISLE_ID = UUID.fromString("7f8a3138-a072-11e8-9ac4-0a0027000012");
 
-    @PrimaryKey(autoGenerate = true)
-    private long id;
+    @PrimaryKey
+    @NonNull
+    @ColumnInfo(typeAffinity = ColumnInfo.BLOB)
+    private UUID id;
 
     @NonNull
     private String name;
 
-    @ColumnInfo(name = "aisle_id")
+    @ColumnInfo(name = "aisle_id", typeAffinity = ColumnInfo.BLOB)
     @SerializedName("aisle_id")
-    private long aisleId;
+    private UUID aisleId;
 
     // Constructors ////////////////////////////////////////////////////////////////////////////////
 
     @Ignore
     public Ingredient(@NonNull String name) {
+        this.id = UUIDTypeConverter.newUUID();
         this.name = name;
         this.aisleId = DEFAULT_AISLE_ID;
     }
 
     @Ignore
-    public Ingredient(@NonNull String name, long aisleId) {
+    public Ingredient(@NonNull String name, UUID aisleId) {
+        this.id = UUIDTypeConverter.newUUID();
         this.name = name;
         this.aisleId = aisleId;
     }
 
-    public Ingredient(long id, @NonNull String name, long aisleId) {
+    public Ingredient(@NonNull UUID id, @NonNull String name, UUID aisleId) {
         this.id = id;
         this.name = name;
         this.aisleId = aisleId;
@@ -56,11 +63,12 @@ public class Ingredient {
 
     // Getters and Setters /////////////////////////////////////////////////////////////////////////
 
-    public long getId() {
+    @NonNull
+    public UUID getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(@NonNull UUID id) {
         this.id = id;
     }
 
@@ -73,11 +81,11 @@ public class Ingredient {
         this.name = name;
     }
 
-    public long getAisleId() {
+    public UUID getAisleId() {
         return aisleId;
     }
 
-    public void setAisleId(long aisleId) {
+    public void setAisleId(UUID aisleId) {
         this.aisleId = aisleId;
     }
 }

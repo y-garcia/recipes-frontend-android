@@ -28,6 +28,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 
 import static com.yeraygarcia.recipes.EditItemDialogFragment.TAG_FRAGMENT_EDIT_ITEM_DIALOG;
 
@@ -134,13 +135,13 @@ public class EditRecipeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             itemIngredientName = itemView.findViewById(R.id.textview_ingredient_name);
 
             itemIngredientName.setOnClickListener(view -> {
-                Long shoppingListItemId = mIngredients.get(getIngredientPosition(getAdapterPosition())).getId();
+                UUID shoppingListItemId = mIngredients.get(getIngredientPosition(getAdapterPosition())).getId();
                 showEditDialog(shoppingListItemId);
             });
         }
     }
 
-    private void showEditDialog(Long shoppingListItemId) {
+    private void showEditDialog(UUID shoppingListItemId) {
         DialogFragment dialog = EditItemDialogFragment.newInstance(shoppingListItemId);
         dialog.show(mParentActivity.getSupportFragmentManager(), TAG_FRAGMENT_EDIT_ITEM_DIALOG);
     }

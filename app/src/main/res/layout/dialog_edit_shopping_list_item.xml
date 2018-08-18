@@ -31,7 +31,7 @@
         android:layout_marginTop="16dp"
         android:ems="10"
         android:hint="@string/hint_quantity"
-        android:inputType="number"
+        android:inputType="numberDecimal"
         android:maxLines="1"
         android:selectAllOnFocus="true"
         android:textAlignment="textStart"

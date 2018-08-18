@@ -90,7 +90,7 @@ public class Resource<T> {
         return "Resource{" +
                 "status=" + status +
                 ", message='" + message + '\'' +
-                ", data=" + data +
+                ", data=" + (data == null ? "null" : data.getClass().getSimpleName()) +
                 '}';
     }
 }

@@ -20,10 +20,9 @@ import android.widget.EditText;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
-import com.yeraygarcia.recipes.database.remote.RetrofitInstance;
+import com.yeraygarcia.recipes.database.remote.RetrofitClient;
 import com.yeraygarcia.recipes.util.Debug;
 import com.yeraygarcia.recipes.viewmodel.RecipeViewModel;
 
@@ -71,11 +70,56 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
+        Debug.d(this, "onStart(): getLastSignedInAccount()");
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
         if (account != null && !account.isExpired()) {
+            Debug.d(this, "onStart(): account != null && !account.isExpired()");
             updateUI(account);
         } else {
+            Debug.d(this, "onStart(): account == null || account.isExpired()");
             signIn();
+        }
+    }
+
+    private void signIn() {
+        Debug.d(this, "signIn(): show sign-in dialog");
+        RetrofitClient.get(this).getGoogleSignInClient()
+                .silentSignIn().addOnCompleteListener(this, this::handleSignInResult);
+    }
+
+    private void signOut() {
+        Debug.d(this, "signOut()");
+        RetrofitClient.get(this).getGoogleSignInClient().signOut().addOnCompleteListener(this, task -> {
+            mViewModel.deleteAll();
+            RetrofitClient.clear();
+            startActivity(new Intent(MainActivity.this, SignInActivity.class));
+            finish();
+        });
+    }
+
+    private void handleSignInResult(Task<GoogleSignInAccount> completedTask) {
+        Debug.d(this, "handleSignInResult(task)");
+        try {
+            GoogleSignInAccount account = completedTask.getResult(ApiException.class);
+            String idToken = account.getIdToken();
+
+            if (idToken != null) {
+                updateUI(account);
+            } else {
+                updateUI(null);
+            }
+        } catch (ApiException e) {
+            Debug.d(this, "signInResult:failed code=" + e.getStatusCode());
+            updateUI(null);
+        }
+    }
+
+    private void updateUI(GoogleSignInAccount account) {
+        Debug.d(this, "updateUI(account, errorMessage)");
+        if (account != null) {
+            RetrofitClient.get(this).setIdToken(account.getIdToken());
+        } else {
+            signOut();
         }
     }
 
@@ -119,6 +163,9 @@ public class MainActivity extends AppCompatActivity {
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
             View v = getCurrentFocus();
             if (v instanceof EditText) {
+                if (v.getId() == R.id.edittext_new_item) {
+                    v = (View) v.getParent();
+                }
                 Rect outRect = new Rect();
                 v.getGlobalVisibleRect(outRect);
                 if (!outRect.contains((int) event.getRawX(), (int) event.getRawY())) {
@@ -131,60 +178,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         return super.dispatchTouchEvent(event);
-    }
-
-    private void setupGoogleSignInClient() {
-        mGoogleSignInClient = GoogleSignIn.getClient(this, new GoogleSignInOptions
-                .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.server_client_id))
-                .requestEmail()
-                .build());
-    }
-
-    private void signIn() {
-        if (mGoogleSignInClient == null) {
-            setupGoogleSignInClient();
-        }
-
-        mGoogleSignInClient.silentSignIn().addOnCompleteListener(this, this::handleSignInResult);
-    }
-
-    private void signOut() {
-        if (mGoogleSignInClient == null) {
-            setupGoogleSignInClient();
-        }
-
-        mGoogleSignInClient.signOut().addOnCompleteListener(this, task -> {
-            mViewModel.deleteAll();
-            RetrofitInstance.clear();
-            startActivity(new Intent(MainActivity.this, SignInActivity.class));
-            finish();
-        });
-    }
-
-    private void handleSignInResult(Task<GoogleSignInAccount> completedTask) {
-        try {
-            GoogleSignInAccount account = completedTask.getResult(ApiException.class);
-            String idToken = account.getIdToken();
-
-            if (idToken != null) {
-                updateUI(account);
-            } else {
-                updateUI(null);
-            }
-        } catch (ApiException e) {
-            Debug.d(this, "signInResult:failed code=" + e.getStatusCode());
-            updateUI(null);
-        }
-    }
-
-    private void updateUI(GoogleSignInAccount account) {
-        Debug.d(this, "updateUI(account, errorMessage)");
-        if (account != null) {
-            RetrofitInstance.get().setIdToken(account.getIdToken());
-        } else {
-            signOut();
-        }
     }
 
     private int getFragmentIdFromArguments(Bundle savedInstanceState, Intent intent) {

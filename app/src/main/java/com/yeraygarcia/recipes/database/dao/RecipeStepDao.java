@@ -8,6 +8,7 @@ import com.yeraygarcia.recipes.database.entity.RecipeStep;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Dao
 public abstract class RecipeStepDao extends BaseDao<RecipeStep> {
@@ -19,10 +20,10 @@ public abstract class RecipeStepDao extends BaseDao<RecipeStep> {
     public abstract LiveData<List<RecipeStep>> findAll();
 
     @Query("DELETE FROM recipe_step WHERE id NOT IN (:ids)")
-    abstract void deleteIfIdNotIn(List<Long> ids);
+    abstract void deleteIfIdNotIn(List<UUID> ids);
 
     public void deleteIfNotIn(List<RecipeStep> entities) {
-        List<Long> ids = new ArrayList<>();
+        List<UUID> ids = new ArrayList<>();
         for (RecipeStep entity : entities) {
             ids.add(entity.getId());
         }

@@ -1,17 +1,20 @@
 package com.yeraygarcia.recipes.database.remote;
 
+import android.content.Context;
+
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.yeraygarcia.recipes.util.Debug;
 
 import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class RetrofitInstance {
+public class RetrofitClient {
 
-    //private static final String BASE_URL = "http://192.168.178.61/recipes-api/src/";
-    private static final String BASE_URL = "https://yeraygarcia.com/recipes/src/";
+    private static final String BASE_URL = "http://192.168.178.61/recipes-api/src/api/";
+    //private static final String BASE_URL = "https://yeraygarcia.com/recipes/src/";
 
-    private static RetrofitInstance mRetrofitInstance;
+    private static RetrofitClient mRetrofitClient;
 
     private final GsonConverterFactory mGsonConverter;
     private final LiveDataCallAdapterFactory mLiveDataCallAdapter;
@@ -19,31 +22,37 @@ public class RetrofitInstance {
     private final OkHttpClient mOkHttpClient;
     private Retrofit mRetrofit;
 
-    private RetrofitInstance() {
+    private RetrofitClient(Context context) {
         mGsonConverter = GsonConverterFactory.create();
         mLiveDataCallAdapter = new LiveDataCallAdapterFactory();
-        mInterceptor = new ServiceInterceptor();
-        mOkHttpClient = new OkHttpClient.Builder().addInterceptor(mInterceptor).build();
+        mInterceptor = new ServiceInterceptor(context);
+        mOkHttpClient = new OkHttpClient.Builder()
+                .addInterceptor(mInterceptor)
+                .authenticator(mInterceptor)
+                .build();
     }
 
-    public static RetrofitInstance get() {
-        if (mRetrofitInstance == null) {
-            mRetrofitInstance = new RetrofitInstance();
+    public static RetrofitClient get(Context context) {
+        Debug.d("RetrofitClient", "get(context)");
+        if (mRetrofitClient == null) {
+            Debug.d("RetrofitClient", "mRetrofitClient == null");
+            mRetrofitClient = new RetrofitClient(context);
         }
-        return mRetrofitInstance;
+        return mRetrofitClient;
     }
 
     public static void clear() {
-        mRetrofitInstance = null;
+        Debug.d("RetrofitClient", "clear()");
+        mRetrofitClient = null;
     }
 
     /**
      * Gets an instance of Retrofit object and creates a service from it
      */
     public <T> T create(Class<T> service) {
-        Debug.d("RetrofitInstance", "get()");
+        Debug.d("RetrofitClient", "create(" + service.getSimpleName() + ")");
         if (mRetrofit == null) {
-            Debug.d("RetrofitInstance", "mRetrofit == null");
+            Debug.d("RetrofitClient", "mRetrofit == null");
 
             mRetrofit = new Retrofit.Builder()
                     .baseUrl(BASE_URL)
@@ -60,7 +69,7 @@ public class RetrofitInstance {
         mInterceptor.setIdToken(idToken);
     }
 
-    public String getIdToken() {
-        return mInterceptor.getIdToken();
+    public GoogleSignInClient getGoogleSignInClient() {
+        return mInterceptor.getGoogleSignInClient();
     }
 }

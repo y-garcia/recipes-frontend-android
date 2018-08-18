@@ -8,6 +8,7 @@ import com.yeraygarcia.recipes.database.entity.Unit;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Dao
 public abstract class UnitDao extends BaseDao<Unit> {
@@ -22,10 +23,10 @@ public abstract class UnitDao extends BaseDao<Unit> {
     public abstract LiveData<List<String>> getUnitNames();
 
     @Query("DELETE FROM unit WHERE id NOT IN (:ids)")
-    abstract void deleteIfIdNotIn(List<Long> ids);
+    abstract void deleteIfIdNotIn(List<UUID> ids);
 
     public void deleteIfNotIn(List<Unit> entities) {
-        List<Long> ids = new ArrayList<>();
+        List<UUID> ids = new ArrayList<>();
         for (Unit entity : entities) {
             ids.add(entity.getId());
         }

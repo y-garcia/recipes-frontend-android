@@ -6,11 +6,13 @@ import android.support.annotation.NonNull;
 
 import com.yeraygarcia.recipes.database.repository.RecipeDetailRepository;
 
+import java.util.UUID;
+
 public class RecipeDetailViewModelFactory extends ViewModelProvider.NewInstanceFactory {
     private final RecipeDetailRepository mRepository;
-    private final long mTaskId;
+    private final UUID mTaskId;
 
-    public RecipeDetailViewModelFactory(RecipeDetailRepository repository, long taskId) {
+    public RecipeDetailViewModelFactory(RecipeDetailRepository repository, UUID taskId) {
         mRepository = repository;
         mTaskId = taskId;
     }

@@ -19,15 +19,15 @@ import android.widget.Toast;
 import com.yeraygarcia.recipes.viewmodel.RecipeViewModel;
 
 import java.util.ArrayList;
+import java.util.UUID;
 
 public class EditItemDialogFragment extends DialogFragment {
 
     public static final String TAG_FRAGMENT_EDIT_ITEM_DIALOG = "tagEditItemDialogFragment";
 
     private static final String ARG_ITEM_ID = "argItemId";
-    private static final long DEFAULT_ITEM_ID = -1;
 
-    private long mItemId;
+    private UUID mItemId;
     private RecipeViewModel mViewModel;
     private int mPortions;
 
@@ -35,10 +35,10 @@ public class EditItemDialogFragment extends DialogFragment {
 
     }
 
-    public static EditItemDialogFragment newInstance(long shoppingListItemId) {
+    public static EditItemDialogFragment newInstance(UUID shoppingListItemId) {
         EditItemDialogFragment fragment = new EditItemDialogFragment();
         Bundle args = new Bundle();
-        args.putLong(ARG_ITEM_ID, shoppingListItemId);
+        args.putString(ARG_ITEM_ID, shoppingListItemId.toString());
         fragment.setArguments(args);
         return fragment;
     }
@@ -122,7 +122,7 @@ public class EditItemDialogFragment extends DialogFragment {
                 String quantityText = quantityEditText.getText().toString().trim();
                 if (!quantityText.isEmpty()) {
                     try {
-                        quantity = Double.valueOf(quantityText);
+                        quantity = Double.valueOf(quantityText.replace(",", "."));
                         if (mPortions != 0) {
                             quantity /= (double) mPortions;
                         }
@@ -132,7 +132,7 @@ public class EditItemDialogFragment extends DialogFragment {
                     }
                 }
 
-                Long unitId = null;
+                UUID unitId = null;
                 String unitName = unitEditText.getText().toString().trim();
                 if (!unitName.isEmpty()) {
                     unitId = mViewModel.getUnitIdByName(unitName);
@@ -154,11 +154,11 @@ public class EditItemDialogFragment extends DialogFragment {
         return alertDialog;
     }
 
-    private long getItemIdFromArgs() {
-        long id = DEFAULT_ITEM_ID;
+    private UUID getItemIdFromArgs() {
+        UUID id = UUID.randomUUID();
 
         if (getArguments() != null) {
-            id = getArguments().getLong(ARG_ITEM_ID, DEFAULT_ITEM_ID);
+            id = UUID.fromString(getArguments().getString(ARG_ITEM_ID));
         }
 
         return id;

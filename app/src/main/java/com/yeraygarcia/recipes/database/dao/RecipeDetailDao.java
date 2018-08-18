@@ -8,6 +8,7 @@ import android.arch.persistence.room.Transaction;
 import com.yeraygarcia.recipes.database.entity.custom.UiRecipe;
 
 import java.util.List;
+import java.util.UUID;
 
 @Dao
 public abstract class RecipeDetailDao {
@@ -21,6 +22,6 @@ public abstract class RecipeDetailDao {
 
     @Transaction
     @Query("SELECT * FROM recipe WHERE id = :id")
-    public abstract LiveData<UiRecipe> findById(long id);
+    public abstract LiveData<UiRecipe> findById(UUID id);
 
 }

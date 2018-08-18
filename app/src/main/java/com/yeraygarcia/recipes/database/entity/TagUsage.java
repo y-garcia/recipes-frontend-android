@@ -8,6 +8,10 @@ import android.arch.persistence.room.Index;
 import android.arch.persistence.room.PrimaryKey;
 import android.support.annotation.NonNull;
 
+import com.yeraygarcia.recipes.database.UUIDTypeConverter;
+
+import java.util.UUID;
+
 import static android.arch.persistence.room.ForeignKey.CASCADE;
 
 @Entity(
@@ -21,25 +25,28 @@ import static android.arch.persistence.room.ForeignKey.CASCADE;
 )
 public class TagUsage {
 
-    @PrimaryKey(autoGenerate = true)
-    private long id;
+    @PrimaryKey
+    @NonNull
+    @ColumnInfo(typeAffinity = ColumnInfo.BLOB)
+    private UUID id;
 
     @NonNull
     private Long created;
 
     @NonNull
-    @ColumnInfo(name = "tag_id")
-    private Long tagId;
+    @ColumnInfo(name = "tag_id", typeAffinity = ColumnInfo.BLOB)
+    private UUID tagId;
 
     // Constructors ////////////////////////////////////////////////////////////////////////////////
 
     @Ignore
-    public TagUsage(@NonNull Long tagId) {
+    public TagUsage(@NonNull UUID tagId) {
+        this.id = UUIDTypeConverter.newUUID();
         this.created = System.currentTimeMillis() / 1000L;
         this.tagId = tagId;
     }
 
-    public TagUsage(long id, @NonNull Long tagId) {
+    public TagUsage(@NonNull UUID id, @NonNull UUID tagId) {
         this.id = id;
         this.created = System.currentTimeMillis() / 1000L;
         this.tagId = tagId;
@@ -47,11 +54,12 @@ public class TagUsage {
 
     // Getters and Setters /////////////////////////////////////////////////////////////////////////
 
-    public long getId() {
+    @NonNull
+    public UUID getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(@NonNull UUID id) {
         this.id = id;
     }
 
@@ -65,11 +73,11 @@ public class TagUsage {
     }
 
     @NonNull
-    public Long getTagId() {
+    public UUID getTagId() {
         return tagId;
     }
 
-    public void setTagId(@NonNull Long tagId) {
+    public void setTagId(@NonNull UUID tagId) {
         this.tagId = tagId;
     }
 }

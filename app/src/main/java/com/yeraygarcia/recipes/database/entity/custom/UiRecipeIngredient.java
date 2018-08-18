@@ -3,10 +3,11 @@ package com.yeraygarcia.recipes.database.entity.custom;
 import android.arch.persistence.room.ColumnInfo;
 
 import java.util.Locale;
+import java.util.UUID;
 
 public class UiRecipeIngredient {
 
-    private Long id;
+    private UUID id;
 
     private Integer portions;
 
@@ -20,11 +21,11 @@ public class UiRecipeIngredient {
 
     private String name;
 
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

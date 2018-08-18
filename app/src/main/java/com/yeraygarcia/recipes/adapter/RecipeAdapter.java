@@ -26,11 +26,12 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 
 public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipesViewHolder> implements Filterable {
 
     private List<Recipe> mRecipes;
-    private List<Long> mRecipeIdsInShoppingList = new ArrayList<>();
+    private List<UUID> mRecipeIdsInShoppingList = new ArrayList<>();
 
     private RecipeFilter mFilter;
 
@@ -120,7 +121,7 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipesVie
             itemNameContainer = itemView.findViewById(R.id.linearlayout_recipe_name);
 
             itemNameContainer.setOnClickListener(view -> {
-                final long recipeId = mRecipes.get(getAdapterPosition()).getId();
+                final UUID recipeId = mRecipes.get(getAdapterPosition()).getId();
                 // open Recipe Detail activity
                 Intent intent = new Intent(mContext, RecipeDetailActivity.class);
                 intent.putExtra(RecipeDetailFragment.ARG_RECIPE_ID, recipeId);
@@ -223,7 +224,7 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipesVie
         notifyDataSetChanged();
     }
 
-    public void setRecipeIdsInShoppingList(List<Long> recipeIds) {
+    public void setRecipeIdsInShoppingList(List<UUID> recipeIds) {
         mRecipeIdsInShoppingList = recipeIds;
         notifyDataSetChanged();
     }

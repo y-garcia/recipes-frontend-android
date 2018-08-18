@@ -16,6 +16,7 @@ import com.yeraygarcia.recipes.viewmodel.RecipeViewModel;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class TagAdapter extends RecyclerView.Adapter<TagAdapter.TagViewHolder> {
 
@@ -24,7 +25,7 @@ public class TagAdapter extends RecyclerView.Adapter<TagAdapter.TagViewHolder> {
     private LayoutInflater mInflater;
     private RecipeViewModel mViewModel;
 
-    private List<Long> mSelectedTagIds = new ArrayList<>();
+    private List<UUID> mSelectedTagIds = new ArrayList<>();
 
     // Constructors
 
@@ -106,7 +107,7 @@ public class TagAdapter extends RecyclerView.Adapter<TagAdapter.TagViewHolder> {
         notifyDataSetChanged();
     }
 
-    public void setTagFilter(List<Long> tagIds) {
+    public void setTagFilter(List<UUID> tagIds) {
         Debug.d(this, "setTagFilter(tagIds(" + tagIds.size() + "))");
         mSelectedTagIds = tagIds;
         notifyDataSetChanged();

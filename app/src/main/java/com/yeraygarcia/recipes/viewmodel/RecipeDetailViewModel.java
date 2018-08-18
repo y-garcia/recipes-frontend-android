@@ -10,6 +10,7 @@ import com.yeraygarcia.recipes.database.repository.RecipeDetailRepository;
 import com.yeraygarcia.recipes.util.Debug;
 
 import java.util.List;
+import java.util.UUID;
 
 public class RecipeDetailViewModel extends ViewModel {
 
@@ -20,7 +21,7 @@ public class RecipeDetailViewModel extends ViewModel {
 
 //    private MutableLiveData<LongSparseArray<UiRecipeIngredient>> mRecipeIngredientsDraft = new MutableLiveData<>();
 
-    RecipeDetailViewModel(RecipeDetailRepository repository, long recipeId) {
+    RecipeDetailViewModel(RecipeDetailRepository repository, UUID recipeId) {
         mRecipeDetailRepository = repository;
         mRecipeDetail = mRecipeDetailRepository.getRecipeById(recipeId);
         mRecipeIngredients = mRecipeDetailRepository.getIngredientsByRecipeId(recipeId);
@@ -45,11 +46,11 @@ public class RecipeDetailViewModel extends ViewModel {
         return mInShoppingList;
     }
 
-    public void removeFromShoppingList(long recipeId) {
+    public void removeFromShoppingList(UUID recipeId) {
         mRecipeDetailRepository.removeFromShoppingList(recipeId);
     }
 
-    public void addToShoppingList(long recipeId) {
+    public void addToShoppingList(UUID recipeId) {
         mRecipeDetailRepository.addToShoppingList(recipeId);
     }
 
