@@ -16,9 +16,6 @@ public abstract class RecipeStepDao extends BaseDao<RecipeStep> {
     @Query("DELETE FROM recipe_step")
     public abstract void deleteAll();
 
-    @Query("SELECT * FROM recipe_step")
-    public abstract LiveData<List<RecipeStep>> findAll();
-
     @Query("DELETE FROM recipe_step WHERE id NOT IN (:ids)")
     abstract void deleteIfIdNotIn(List<UUID> ids);
 
@@ -29,4 +26,16 @@ public abstract class RecipeStepDao extends BaseDao<RecipeStep> {
         }
         deleteIfIdNotIn(ids);
     }
+
+    @Query("SELECT * FROM recipe_step")
+    public abstract LiveData<List<RecipeStep>> findAll();
+
+    @Query("SELECT * FROM recipe_step WHERE recipe_id = :recipeId")
+    public abstract LiveData<List<RecipeStep>> findByRecipeId(UUID recipeId);
+
+    @Query("SELECT * FROM recipe_step WHERE id = :id")
+    public abstract LiveData<RecipeStep> findById(UUID id);
+
+    @Query("SELECT * FROM recipe_step WHERE id = :id")
+    public abstract RecipeStep findByIdRaw(UUID id);
 }

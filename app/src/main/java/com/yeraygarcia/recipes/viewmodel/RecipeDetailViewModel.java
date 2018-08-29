@@ -3,33 +3,38 @@ package com.yeraygarcia.recipes.viewmodel;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.ViewModel;
 
+import com.yeraygarcia.recipes.OnWebResponseListener;
 import com.yeraygarcia.recipes.database.entity.Recipe;
-import com.yeraygarcia.recipes.database.entity.custom.UiRecipe;
+import com.yeraygarcia.recipes.database.entity.RecipeStep;
 import com.yeraygarcia.recipes.database.entity.custom.UiRecipeIngredient;
 import com.yeraygarcia.recipes.database.repository.RecipeDetailRepository;
 import com.yeraygarcia.recipes.util.Debug;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.UUID;
 
 public class RecipeDetailViewModel extends ViewModel {
 
-    private final RecipeDetailRepository mRecipeDetailRepository;
-    private LiveData<UiRecipe> mRecipeDetail;
+    private final RecipeDetailRepository mRepository;
+    private LiveData<Recipe> mRecipeDetail;
     private LiveData<List<UiRecipeIngredient>> mRecipeIngredients;
+    private LiveData<List<RecipeStep>> mRecipeSteps;
     private LiveData<Boolean> mInShoppingList;
-
-//    private MutableLiveData<LongSparseArray<UiRecipeIngredient>> mRecipeIngredientsDraft = new MutableLiveData<>();
+    private Recipe mRecipeDraft;
+    private LiveData<RecipeStep> mRecipeStep;
 
     RecipeDetailViewModel(RecipeDetailRepository repository, UUID recipeId) {
-        mRecipeDetailRepository = repository;
-        mRecipeDetail = mRecipeDetailRepository.getRecipeById(recipeId);
-        mRecipeIngredients = mRecipeDetailRepository.getIngredientsByRecipeId(recipeId);
-        mInShoppingList = mRecipeDetailRepository.isInShoppingList(recipeId);
-//        mRecipeIngredientsDraft.setValue(new LongSparseArray<>());
+        mRepository = repository;
+        mRecipeDetail = mRepository.getRecipeById(recipeId);
+        mRecipeIngredients = mRepository.getIngredientsByRecipeId(recipeId);
+        mRecipeSteps = mRepository.getStepsByRecipeId(recipeId);
+        mInShoppingList = mRepository.isInShoppingList(recipeId);
     }
 
-    public LiveData<UiRecipe> getRecipeDetail() {
+    public LiveData<Recipe> getRecipe() {
         return mRecipeDetail;
     }
 
@@ -37,9 +42,13 @@ public class RecipeDetailViewModel extends ViewModel {
         return mRecipeIngredients;
     }
 
+    public LiveData<List<RecipeStep>> getRecipeSteps() {
+        return mRecipeSteps;
+    }
+
     public void update(Recipe recipe) {
         Debug.d(this, "update(recipe)");
-        mRecipeDetailRepository.update(recipe);
+        mRepository.update(recipe);
     }
 
     public LiveData<Boolean> isInShoppingList() {
@@ -47,45 +56,69 @@ public class RecipeDetailViewModel extends ViewModel {
     }
 
     public void removeFromShoppingList(UUID recipeId) {
-        mRecipeDetailRepository.removeFromShoppingList(recipeId);
+        mRepository.removeFromShoppingList(recipeId);
     }
 
     public void addToShoppingList(UUID recipeId) {
-        mRecipeDetailRepository.addToShoppingList(recipeId);
+        mRepository.addToShoppingList(recipeId);
     }
 
     public void update(UiRecipeIngredient ingredient) {
         Debug.d(this, "update(ingredient)");
-        mRecipeDetailRepository.update(ingredient);
+        mRepository.update(ingredient);
     }
 
-//    public void saveDraft(UiRecipeIngredient ingredient) {
-//        Debug.d(this, "saveDraft(ingredient = " + ingredient.toString() + ")");
-//        LongSparseArray<UiRecipeIngredient> ingredientsDraft = mRecipeIngredientsDraft.getValue();
-//        if (ingredientsDraft == null) {
-//            ingredientsDraft = new LongSparseArray<>();
-//        }
-//        ingredientsDraft.put(ingredient.getId(), ingredient);
-//        mRecipeIngredientsDraft.setValue(ingredientsDraft);
-//        Debug.d(this, "mRecipeIngredientsDraft = " + mRecipeIngredientsDraft.getValue() + ")");
-//    }
+    public void setRecipeDraft(Recipe recipeDraft) {
+        mRecipeDraft = recipeDraft;
+    }
 
-//    public void persistDraft() {
-//        Debug.d(this, "persistDraft()");
-//        Debug.d(this, "mRecipeIngredientsDraft = " + mRecipeIngredientsDraft + ")");
-//
-//        LongSparseArray<UiRecipeIngredient> ingredientsDraft = mRecipeIngredientsDraft.getValue();
-//        if (ingredientsDraft == null) {
-//            ingredientsDraft = new LongSparseArray<>();
-//        }
-//        UiRecipeIngredient[] ingredients = new UiRecipeIngredient[ingredientsDraft.size()];
-//        for (int i = 0; i < ingredientsDraft.size(); i++) {
-//            ingredients[i] = ingredientsDraft.valueAt(i);
-//        }
-//        mRecipeDetailRepository.update(ingredients);
-//    }
+    public Recipe getRecipeDraft(Recipe defaultValue) {
+        return mRecipeDraft == null ? defaultValue : mRecipeDraft;
+    }
 
-//    public LongSparseArray<UiRecipeIngredient> getRecipeIngredientsDraft() {
-//        return mRecipeIngredientsDraft.getValue();
-//    }
+    private void initDraft(Recipe defaultDraft) {
+        if (mRecipeDraft == null) {
+            mRecipeDraft = defaultDraft;
+        }
+    }
+
+    public void saveDurationToDraft(@NotNull CharSequence duration, @Nullable Recipe defaultDraft) {
+        initDraft(defaultDraft);
+
+        if (mRecipeDraft != null) {
+            Integer newDuration;
+            try {
+                newDuration = Integer.valueOf(duration.toString()) * 60;
+            } catch (NumberFormatException e) {
+                newDuration = null;
+            }
+            mRecipeDraft.setDuration(newDuration);
+        }
+    }
+
+    public void saveSourceToDraft(@NotNull CharSequence source, @Nullable Recipe defaultDraft) {
+        initDraft(defaultDraft);
+
+        if (mRecipeDraft != null) {
+            mRecipeDraft.setUrl(source.toString().trim());
+        }
+    }
+
+    public void persistDraft() {
+        Debug.d(this, "persistDraft()");
+        if (mRecipeDraft != null) {
+            mRepository.persistDraft(mRecipeDraft, this);
+        }
+    }
+
+    public LiveData<RecipeStep> getRecipeStep(UUID id) {
+        if (mRecipeStep == null || mRecipeStep.getValue() != null && mRecipeStep.getValue().getId() != id) {
+            mRecipeStep = mRepository.getRecipeStep(id);
+        }
+        return mRecipeStep;
+    }
+
+    public void updateRecipeStep(RecipeStep recipeStep, OnWebResponseListener listener) {
+        mRepository.updateRecipeStep(recipeStep, listener);
+    }
 }

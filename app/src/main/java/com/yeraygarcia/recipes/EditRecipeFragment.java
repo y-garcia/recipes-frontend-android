@@ -33,6 +33,7 @@ public class EditRecipeFragment extends Fragment {
     private CollapsingToolbarLayout mAppBarLayout;
 
     private EditRecipeAdapter mEditRecipeAdapter;
+    private RecipeDetailViewModel mViewModel;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -75,17 +76,18 @@ public class EditRecipeFragment extends Fragment {
 
             // get ViewModel from id, observe recipe and populate ui with it
             RecipeDetailViewModelFactory factory = new RecipeDetailViewModelFactory(repository, mRecipeId);
-            RecipeDetailViewModel mViewModel = ViewModelProviders.of(this, factory).get(RecipeDetailViewModel.class);
+            mViewModel = ViewModelProviders.of(this, factory).get(RecipeDetailViewModel.class);
 
             mEditRecipeAdapter = new EditRecipeAdapter(mParentActivity, mViewModel);
 
-            mViewModel.getRecipeDetail().observe(this, uiRecipe -> {
-                if (uiRecipe == null) {
+            mViewModel.getRecipe().observe(this, recipe -> {
+                if (recipe == null) {
                     return;
                 }
-                mAppBarLayout.setTitle(uiRecipe.getRecipe().getName());
-                mEditRecipeAdapter.setRecipe(uiRecipe);
+                mAppBarLayout.setTitle(recipe.getName());
+                mEditRecipeAdapter.setRecipe(recipe);
             });
+            mViewModel.getRecipeSteps().observe(this, mEditRecipeAdapter::setSteps);
             mViewModel.getRecipeIngredients().observe(this, mEditRecipeAdapter::setIngredients);
         }
     }
@@ -101,7 +103,7 @@ public class EditRecipeFragment extends Fragment {
     public void onPause() {
         super.onPause();
         Debug.d(this, "onPause()");
-//        mViewModel.persistDraft();
+        mViewModel.persistDraft();
     }
 
     @Override

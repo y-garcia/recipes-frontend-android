@@ -16,8 +16,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.yeraygarcia.recipes.R;
+import com.yeraygarcia.recipes.database.entity.Recipe;
 import com.yeraygarcia.recipes.database.entity.RecipeStep;
-import com.yeraygarcia.recipes.database.entity.custom.UiRecipe;
 import com.yeraygarcia.recipes.database.entity.custom.UiRecipeIngredient;
 import com.yeraygarcia.recipes.util.Debug;
 import com.yeraygarcia.recipes.viewmodel.RecipeDetailViewModel;
@@ -39,7 +39,7 @@ public class RecipeDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     private RecipeDetailViewModel mViewModel;
     private LayoutInflater mInflater;
 
-    private UiRecipe mUiRecipe;
+    private Recipe mRecipe;
     private List<UiRecipeIngredient> mIngredients;
     private List<RecipeStep> mSteps;
 
@@ -71,15 +71,15 @@ public class RecipeDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             itemServings = itemView.findViewById(R.id.textview_servings);
 
             itemDecrease.setOnClickListener(v -> {
-                if (mUiRecipe.getRecipe().getPortions() > 1) {
-                    mUiRecipe.getRecipe().decreasePortions();
-                    mViewModel.update(mUiRecipe.getRecipe());
+                if (mRecipe.getPortions() > 1) {
+                    mRecipe.decreasePortions();
+                    mViewModel.update(mRecipe);
                 }
             });
 
             itemIncrease.setOnClickListener(v -> {
-                mUiRecipe.getRecipe().increasePortions();
-                mViewModel.update(mUiRecipe.getRecipe());
+                mRecipe.increasePortions();
+                mViewModel.update(mRecipe);
             });
         }
 
@@ -233,11 +233,11 @@ public class RecipeDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         switch (holder.getItemViewType()) {
 
             case VIEWTYPE_INGREDIENTS_HEADER:
-                if (mUiRecipe != null) {
-                    String portions = String.format(Locale.getDefault(), "%d", mUiRecipe.getRecipe().getPortions());
+                if (mRecipe != null) {
+                    String portions = String.format(Locale.getDefault(), "%d", mRecipe.getPortions());
                     ((IngredientsHeaderViewHolder) holder).itemServings.setText(portions);
 
-                    int decreaseVisibility = mUiRecipe.getRecipe().getPortions() > 1 ? View.VISIBLE : View.GONE;
+                    int decreaseVisibility = mRecipe.getPortions() > 1 ? View.VISIBLE : View.GONE;
                     ((IngredientsHeaderViewHolder) holder).itemDecrease.setVisibility(decreaseVisibility);
                 }
                 break;
@@ -247,10 +247,10 @@ public class RecipeDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 break;
 
             case VIEWTYPE_DURATION_SOURCE:
-                if (mUiRecipe != null) {
+                if (mRecipe != null) {
                     formatDurationSourceView((DurationSourceViewHolder) holder,
-                            mUiRecipe.getRecipe().getFormattedDuration(mContext),
-                            mUiRecipe.getRecipe().getUrl());
+                            mRecipe.getFormattedDuration(mContext),
+                            mRecipe.getUrl());
                 }
                 break;
 
@@ -287,7 +287,7 @@ public class RecipeDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     @Override
     public int getItemCount() {
         int size = 0;
-        if (mUiRecipe != null) {
+        if (mRecipe != null) {
             size += 3;
         }
         if (mIngredients != null) {
@@ -322,10 +322,15 @@ public class RecipeDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         this.mSelectedStep = position;
     }
 
-    public void setRecipe(UiRecipe recipe) {
+    public void setRecipe(Recipe recipe) {
         Debug.d(this, "setRecipe(recipe)");
-        mUiRecipe = recipe;
-        mSteps = recipe.getSteps();
+        mRecipe = recipe;
+        notifyDataSetChanged();
+    }
+
+    public void setSteps(List<RecipeStep> steps) {
+        Debug.d(this, "setSteps(steps(" + steps.size() + "))");
+        mSteps = steps;
         notifyDataSetChanged();
     }
 

@@ -82,11 +82,24 @@ public class UiRecipeIngredient {
     }
 
     public String getFormattedUnit() {
-        if (quantity != null && quantity == 1) {
+        if (quantity != null && quantity * portions == 1) {
             return unitName;
         } else {
             return unitNamePlural;
         }
+    }
+
+    public String getFormattedQuantityAndUnit() {
+        StringBuilder quantityAndUnit = new StringBuilder();
+
+        if (quantity != null) {
+            quantityAndUnit.append(getFormattedQuantity());
+        }
+        if (quantity != null && unitName != null && unitNamePlural != null) {
+            quantityAndUnit.append(" ").append(getFormattedUnit());
+        }
+
+        return quantityAndUnit.toString();
     }
 
     @Override

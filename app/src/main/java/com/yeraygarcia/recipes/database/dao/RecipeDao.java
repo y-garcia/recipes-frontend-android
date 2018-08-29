@@ -19,6 +19,12 @@ public abstract class RecipeDao extends BaseDao<Recipe> {
     @Query("SELECT * FROM recipe ORDER BY name ASC")
     public abstract LiveData<List<Recipe>> findAll();
 
+    @Query("SELECT * FROM recipe WHERE id = :id")
+    public abstract LiveData<Recipe> findById(UUID id);
+
+    @Query("SELECT * FROM recipe WHERE id = :id")
+    public abstract Recipe findRawById(UUID id);
+
     @Query("SELECT count(1) = 0 AS is_empty FROM recipe")
     public abstract boolean isEmpty();
 

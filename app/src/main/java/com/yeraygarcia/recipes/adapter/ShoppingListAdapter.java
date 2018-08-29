@@ -13,7 +13,7 @@ import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.yeraygarcia.recipes.EditShoppingListItemDialogFragment;
+import com.yeraygarcia.recipes.EditShoppingListItemDialog;
 import com.yeraygarcia.recipes.R;
 import com.yeraygarcia.recipes.database.entity.custom.UiShoppingListItem;
 import com.yeraygarcia.recipes.util.Debug;
@@ -22,7 +22,7 @@ import com.yeraygarcia.recipes.viewmodel.RecipeViewModel;
 import java.util.List;
 import java.util.UUID;
 
-import static com.yeraygarcia.recipes.EditShoppingListItemDialogFragment.TAG_FRAGMENT_EDIT_DIALOG;
+import static com.yeraygarcia.recipes.EditShoppingListItemDialog.TAG_FRAGMENT_EDIT_DIALOG;
 
 public class ShoppingListAdapter extends RecyclerView.Adapter<ShoppingListAdapter.ShoppingListViewHolder> {
 
@@ -74,7 +74,7 @@ public class ShoppingListAdapter extends RecyclerView.Adapter<ShoppingListAdapte
     }
 
     private void showEditDialog(UUID shoppingListItemId) {
-        DialogFragment dialog = EditShoppingListItemDialogFragment.newInstance(shoppingListItemId);
+        DialogFragment dialog = EditShoppingListItemDialog.newInstance(shoppingListItemId);
         dialog.show(mParentActivity.getSupportFragmentManager(), TAG_FRAGMENT_EDIT_DIALOG);
     }
 

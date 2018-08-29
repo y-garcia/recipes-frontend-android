@@ -3,42 +3,41 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="@drawable/selector_list_item">
+    android:layout_height="wrap_content">
 
     <TextView
-        android:id="@+id/textview_step_number"
+        android:id="@+id/textViewStepNumber"
         android:layout_width="50dp"
         android:layout_height="0dp"
         android:gravity="top"
-        android:paddingBottom="8dp"
+        android:paddingBottom="12dp"
         android:paddingEnd="0dp"
         android:paddingStart="16dp"
-        android:paddingTop="8dp"
+        android:paddingTop="12dp"
         android:textAppearance="@style/TextAppearance.AppCompat"
         android:textSize="16sp"
         android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="@+id/textview_step_description"
+        app:layout_constraintBottom_toBottomOf="@+id/editTextStepDescription"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/textview_step_description"
+        app:layout_constraintTop_toTopOf="@+id/editTextStepDescription"
         tools:text="10" />
 
-    <TextView
-        android:id="@+id/textview_step_description"
+    <EditText
+        android:id="@+id/editTextStepDescription"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_weight="1"
+        android:hint="@string/hint_step"
         android:gravity="center_vertical"
-        android:paddingBottom="8dp"
-        android:paddingEnd="16dp"
-        android:paddingStart="0dp"
-        android:paddingTop="8dp"
-        android:textAppearance="@style/TextAppearance.AppCompat"
-        android:textIsSelectable="true"
-        android:textSize="16sp"
+        android:inputType="text"
+        android:padding="12dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/textview_step_number"
+        app:layout_constraintStart_toEndOf="@+id/textViewStepNumber"
         app:layout_constraintTop_toTopOf="parent"
-        tools:text="Alle Zutaten in die Pfanne und anbraten" />
+        tools:text="Blätterteig ausrollen und mit Frischkäse beschmieren. Gleichmäßig die Speckwürfel darauf verteilen. Den Blätterteig wieder einrollen und die Rolle in Scheiben schneiden." />
 
 </android.support.constraint.ConstraintLayout>

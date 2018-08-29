@@ -2,11 +2,10 @@ package com.yeraygarcia.recipes.util;
 
 import android.content.Context;
 import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 
 public class NetworkUtil {
 
-    private NetworkUtil(){
+    private NetworkUtil() {
         // prevent instantiation
     }
 

@@ -39,7 +39,6 @@
     <string name="no_shopping_list_items">No items in the shopping list</string>
 
     <string name="action_open">OPEN</string>
-    <string name="hint_ingredient">250 g Butter</string>
 
     <string name="edit_button">Edit</string>
     <string name="refresh_button">Refresh</string>
@@ -54,13 +53,25 @@
     <string name="sign_in_error_empty_response">Server response body was empty</string>
     <string name="sign_in_error_fail">Sign-In failed</string>
     <string name="sign_in_error_empty_token">Token was empty</string>
+
+    <string name="hint_ingredient">Milk</string>
     <string name="hint_quantity">1200</string>
     <string name="hint_unit">ml</string>
+
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
+
     <string name="ingredient_not_empty">The ingredient name cannot be empty.</string>
     <string name="quantity_valid_number">Quantity must be a valid number.</string>
     <string name="unit_does_not_exist">Please use a unit from the list.</string>
     <string name="edit_ingredient">Edit ingredient</string>
     <string name="ingredient_does_not_exist">Ingredient not found. A new one will be created.</string>
+
+    <string name="hint_duration">30</string>
+    <string name="minutes">min</string>
+    <string name="hint_source">Book, person, link</string>
+    <string name="hint_shopping_list_item">250g Butter</string>
+    <string name="step_empty_error">Please enter a step description</string>
+    <string name="an_error_occurred">An error occurred:</string>
+    <string name="hint_step">Cut the onions.</string>
 </resources>

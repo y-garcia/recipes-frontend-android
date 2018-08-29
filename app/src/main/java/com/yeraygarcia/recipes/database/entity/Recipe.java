@@ -25,8 +25,7 @@ public class Recipe {
     @NonNull
     private String name;
 
-    @NonNull
-    private Integer portions;
+    private int portions;
 
     private Integer duration;
 
@@ -35,7 +34,7 @@ public class Recipe {
     // Constructors ////////////////////////////////////////////////////////////////////////////////
 
     @Ignore
-    public Recipe(@NonNull String name, @NonNull Integer portions, Integer duration, String url) {
+    public Recipe(@NonNull String name, int portions, Integer duration, String url) {
         this.id = UUIDTypeConverter.newUUID();
         this.name = name;
         this.portions = portions;
@@ -43,7 +42,7 @@ public class Recipe {
         this.url = url;
     }
 
-    public Recipe(@NonNull UUID id, @NonNull String name, @NonNull Integer portions, Integer duration, String url) {
+    public Recipe(@NonNull UUID id, @NonNull String name, int portions, Integer duration, String url) {
         this.id = id;
         this.name = name;
         this.portions = portions;
@@ -71,8 +70,7 @@ public class Recipe {
         this.name = name;
     }
 
-    @NonNull
-    public Integer getPortions() {
+    public int getPortions() {
         return portions;
     }
 
@@ -84,7 +82,7 @@ public class Recipe {
         return duration;
     }
 
-    public Long getDurationInMinutes() {
+    public long getDurationInMinutes() {
         if (getDuration() == null) {
             return 0L;
         }

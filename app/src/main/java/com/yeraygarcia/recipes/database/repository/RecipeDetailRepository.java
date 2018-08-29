@@ -2,83 +2,165 @@ package com.yeraygarcia.recipes.database.repository;
 
 import android.app.Application;
 import android.arch.lifecycle.LiveData;
+import android.content.Context;
 import android.os.AsyncTask;
+import android.support.annotation.NonNull;
 
+import com.yeraygarcia.recipes.OnWebResponseListener;
 import com.yeraygarcia.recipes.database.AppDatabase;
-import com.yeraygarcia.recipes.database.dao.RecipeDao;
-import com.yeraygarcia.recipes.database.dao.RecipeDetailDao;
 import com.yeraygarcia.recipes.database.dao.RecipeIngredientDao;
 import com.yeraygarcia.recipes.database.dao.ShoppingListDao;
 import com.yeraygarcia.recipes.database.entity.Recipe;
 import com.yeraygarcia.recipes.database.entity.RecipeIngredient;
+import com.yeraygarcia.recipes.database.entity.RecipeStep;
 import com.yeraygarcia.recipes.database.entity.ShoppingListItem;
-import com.yeraygarcia.recipes.database.entity.custom.UiRecipe;
 import com.yeraygarcia.recipes.database.entity.custom.UiRecipeIngredient;
+import com.yeraygarcia.recipes.database.remote.Request;
+import com.yeraygarcia.recipes.database.remote.ResourceData;
+import com.yeraygarcia.recipes.database.remote.RetrofitClient;
+import com.yeraygarcia.recipes.database.remote.Webservice;
 import com.yeraygarcia.recipes.util.Debug;
+import com.yeraygarcia.recipes.viewmodel.RecipeDetailViewModel;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.UUID;
 
+import retrofit2.Call;
+
 public class RecipeDetailRepository {
 
-    private RecipeDao mRecipeDao;
-    private RecipeDetailDao mRecipeDetailDao;
-    private RecipeIngredientDao mRecipeIngredientDao;
-    private ShoppingListDao mShoppingListDao;
+    private Context mContext;
+    private AppDatabase mDb;
+    private Webservice mWebservice;
 
     public RecipeDetailRepository(Application application) {
-        AppDatabase db = AppDatabase.getDatabase(application);
-        mRecipeDao = db.getRecipeDao();
-        mRecipeDetailDao = db.getRecipeDetailDao();
-        mRecipeIngredientDao = db.getRecipeIngredientDao();
-        mShoppingListDao = db.getShoppingListDao();
+        mContext = application;
+        mDb = AppDatabase.getDatabase(application);
+        mWebservice = RetrofitClient.get(mContext).create(Webservice.class);
     }
 
-    public LiveData<List<UiRecipe>> getRecipes() {
-        return mRecipeDetailDao.findAll();
-    }
-
-    public LiveData<UiRecipe> getRecipeById(UUID id) {
-        return mRecipeDetailDao.findById(id);
+    public LiveData<Recipe> getRecipeById(UUID id) {
+        return mDb.getRecipeDao().findById(id);
     }
 
     public LiveData<List<UiRecipeIngredient>> getIngredientsByRecipeId(UUID recipeId) {
-        return mRecipeIngredientDao.findByRecipeId(recipeId);
+        return mDb.getRecipeIngredientDao().findByRecipeId(recipeId);
+    }
+
+    public LiveData<List<RecipeStep>> getStepsByRecipeId(UUID recipeId) {
+        return mDb.getRecipeStepDao().findByRecipeId(recipeId);
     }
 
     public void update(Recipe recipe) {
-        new UpdateRecipeAsyncTask(mRecipeDao).execute(recipe);
+        new Request<Recipe>(mContext) {
+            @Override
+            public Recipe getEntityBeforeUpdate(Recipe newEntity) {
+                return mDb.getRecipeDao().findRawById(newEntity.getId());
+            }
+
+            @Override
+            public void updateLocalDatabase(Recipe entity) {
+                mDb.getRecipeDao().update(entity);
+            }
+
+            @NotNull
+            @Override
+            public Call<ResourceData<Recipe>> sendRequestToServer(Recipe newEntity) {
+                return mWebservice.updateRecipe(newEntity);
+            }
+
+            @Override
+            public void onSuccess(Recipe result) {
+                // do nothing
+            }
+
+            @Override
+            public void onError(@NonNull String errorCode, @NonNull String errorMessage) {
+                // do nothing
+            }
+        }.send(recipe);
+    }
+
+    public void persistDraft(Recipe recipe, RecipeDetailViewModel recipeDetailViewModel) {
+        new Request<Recipe>(mContext) {
+            @Override
+            public Recipe getEntityBeforeUpdate(Recipe newEntity) {
+                return mDb.getRecipeDao().findRawById(newEntity.getId());
+            }
+
+            @Override
+            public void updateLocalDatabase(Recipe entity) {
+                mDb.getRecipeDao().update(entity);
+            }
+
+            @NotNull
+            @Override
+            public Call<ResourceData<Recipe>> sendRequestToServer(Recipe newEntity) {
+                return mWebservice.updateRecipe(newEntity);
+            }
+
+            @Override
+            public void onSuccess(Recipe result) {
+                recipeDetailViewModel.setRecipeDraft(null);
+            }
+
+            @Override
+            public void onError(@NonNull String errorCode, @NonNull String errorMessage) {
+                // do nothing
+            }
+        }.send(recipe);
     }
 
     public LiveData<Boolean> isInShoppingList(UUID recipeId) {
-        return mShoppingListDao.isInShoppingList(recipeId);
+        return mDb.getShoppingListDao().isInShoppingList(recipeId);
     }
 
     public void removeFromShoppingList(UUID recipeId) {
-        new RemoveFromShoppingListAsyncTask(mShoppingListDao).execute(recipeId);
+        new RemoveFromShoppingListAsyncTask(mDb.getShoppingListDao()).execute(recipeId);
     }
 
     public void addToShoppingList(UUID recipeId) {
-        new AddToShoppingListAsyncTask(mShoppingListDao, mRecipeIngredientDao).execute(recipeId);
+        new AddToShoppingListAsyncTask(mDb.getShoppingListDao(), mDb.getRecipeIngredientDao()).execute(recipeId);
     }
 
     public void update(UiRecipeIngredient... ingredients) {
-        new UpdateIngredientAsyncTask(mRecipeIngredientDao).execute(ingredients);
+        new UpdateIngredientAsyncTask(mDb.getRecipeIngredientDao()).execute(ingredients);
     }
 
-    private static class UpdateRecipeAsyncTask extends AsyncTask<Recipe, Void, Void> {
+    public LiveData<RecipeStep> getRecipeStep(UUID id) {
+        return mDb.getRecipeStepDao().findById(id);
+    }
 
-        private RecipeDao mAsyncRecipeDao;
+    public void updateRecipeStep(RecipeStep recipeStep, OnWebResponseListener listener) {
+        new Request<RecipeStep>(mContext) {
+            @Override
+            public RecipeStep getEntityBeforeUpdate(RecipeStep newEntity) {
+                return mDb.getRecipeStepDao().findByIdRaw(newEntity.getId());
+            }
 
-        UpdateRecipeAsyncTask(RecipeDao dao) {
-            mAsyncRecipeDao = dao;
-        }
+            @Override
+            public void updateLocalDatabase(RecipeStep entity) {
+                mDb.getRecipeStepDao().update(entity);
+            }
 
-        @Override
-        protected Void doInBackground(final Recipe... params) {
-            mAsyncRecipeDao.update(params[0]);
-            return null;
-        }
+            @NotNull
+            @Override
+            public Call<ResourceData<RecipeStep>> sendRequestToServer(RecipeStep newEntity) {
+                return mWebservice.updateRecipeStep(newEntity);
+            }
+
+            @Override
+            public void onSuccess(RecipeStep responseEntity) {
+                listener.onSuccess();
+            }
+
+            @Override
+            public void onError(@NonNull String errorCode, @NonNull String errorMessage) {
+                listener.onError(errorCode, errorMessage);
+            }
+        }.send(recipeStep);
     }
 
     private static class RemoveFromShoppingListAsyncTask extends AsyncTask<UUID, Void, Void> {

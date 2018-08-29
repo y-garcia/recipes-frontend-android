@@ -10,11 +10,10 @@ import android.widget.TextView;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
-import com.google.android.gms.auth.api.signin.GoogleSignInClient;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
+import com.google.gson.Gson;
 import com.yeraygarcia.recipes.database.remote.ResourceData;
 import com.yeraygarcia.recipes.database.remote.RetrofitClient;
 import com.yeraygarcia.recipes.database.remote.User;
@@ -134,10 +133,10 @@ public class SignInActivity extends AppCompatActivity {
                     call.enqueue(new Callback<ResourceData<User>>() {
                         @Override
                         public void onResponse(@NonNull Call<ResourceData<User>> call, @NonNull Response<ResourceData<User>> response) {
-                            Debug.d(this, "call successful");
+                            Debug.d(this, new Gson().toJson(response));
                             if (response.isSuccessful()) {
                                 ResourceData<User> body = response.body();
-                                if (body != null && body.getResult() != null & body.getResult().getToken() != null) {
+                                if (body != null && body.getResult() != null & body.getResult().getUsername() != null) {
                                     updateUI(account);
                                 } else {
                                     updateUI(null, getString(R.string.sign_in_error_empty_response));

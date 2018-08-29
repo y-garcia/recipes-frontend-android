@@ -13,7 +13,6 @@ import com.yeraygarcia.recipes.database.dao.AisleDao;
 import com.yeraygarcia.recipes.database.dao.IngredientDao;
 import com.yeraygarcia.recipes.database.dao.LastUpdateDao;
 import com.yeraygarcia.recipes.database.dao.RecipeDao;
-import com.yeraygarcia.recipes.database.dao.RecipeDetailDao;
 import com.yeraygarcia.recipes.database.dao.RecipeIngredientDao;
 import com.yeraygarcia.recipes.database.dao.RecipeStepDao;
 import com.yeraygarcia.recipes.database.dao.RecipeTagDao;
@@ -89,8 +88,6 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract RecipeIngredientDao getRecipeIngredientDao();
 
     public abstract RecipeStepDao getRecipeStepDao();
-
-    public abstract RecipeDetailDao getRecipeDetailDao();
 
     public abstract RecipeTagDao getRecipeTagDao();
 

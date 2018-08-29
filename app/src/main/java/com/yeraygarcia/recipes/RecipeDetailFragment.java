@@ -94,13 +94,14 @@ public class RecipeDetailFragment extends Fragment {
             }
 
             // observe recipe and populate ui with it
-            viewModel.getRecipeDetail().observe(this, uiRecipe -> {
-                if (uiRecipe == null) {
+            viewModel.getRecipe().observe(this, recipe -> {
+                if (recipe == null) {
                     return;
                 }
-                mAppBarLayout.setTitle(uiRecipe.getRecipe().getName());
-                mRecipeDetailAdapter.setRecipe(uiRecipe);
+                mAppBarLayout.setTitle(recipe.getName());
+                mRecipeDetailAdapter.setRecipe(recipe);
             });
+            viewModel.getRecipeSteps().observe(this, mRecipeDetailAdapter::setSteps);
             viewModel.getRecipeIngredients().observe(this, mRecipeDetailAdapter::setIngredients);
         }
     }

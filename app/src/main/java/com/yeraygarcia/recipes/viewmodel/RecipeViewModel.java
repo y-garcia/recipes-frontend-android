@@ -8,6 +8,7 @@ import android.arch.lifecycle.Transformations;
 import android.util.LongSparseArray;
 
 import com.yeraygarcia.recipes.database.entity.Recipe;
+import com.yeraygarcia.recipes.database.entity.RecipeStep;
 import com.yeraygarcia.recipes.database.entity.ShoppingListItem;
 import com.yeraygarcia.recipes.database.entity.Tag;
 import com.yeraygarcia.recipes.database.entity.Unit;
