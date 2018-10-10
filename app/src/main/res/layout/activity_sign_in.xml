@@ -7,7 +7,7 @@
     tools:context=".SignInActivity">
 
     <TextView
-        android:id="@+id/textview_sign_in_welcome"
+        android:id="@+id/textViewSignInWelcome"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
@@ -24,7 +24,7 @@
         app:layout_constraintVertical_bias="0.22000003" />
 
     <TextView
-        android:id="@+id/textview_sign_in_subtitle"
+        android:id="@+id/textViewSignInSubtitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
@@ -33,10 +33,10 @@
         android:text="@string/sign_in_subtitle"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textview_sign_in_welcome" />
+        app:layout_constraintTop_toBottomOf="@+id/textViewSignInWelcome" />
 
     <ProgressBar
-        android:id="@+id/progressbar_signing_in"
+        android:id="@+id/progressBarSignIn"
         style="?android:attr/progressBarStyle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -45,15 +45,15 @@
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
         android:visibility="invisible"
-        app:layout_constraintBottom_toTopOf="@+id/google_sign_in_button"
+        app:layout_constraintBottom_toTopOf="@+id/googleSignInButton"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textview_sign_in_subtitle"
+        app:layout_constraintTop_toBottomOf="@+id/textViewSignInSubtitle"
         app:layout_constraintVertical_bias="0.3"
         tools:visibility="visible" />
 
     <TextView
-        android:id="@+id/textview_sign_in_info"
+        android:id="@+id/textViewSignInInfo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
@@ -63,11 +63,11 @@
         android:focusableInTouchMode="true"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/progressbar_signing_in"
+        app:layout_constraintTop_toBottomOf="@+id/progressBarSignIn"
         tools:text="Signing in..." />
 
     <com.google.android.gms.common.SignInButton
-        android:id="@+id/google_sign_in_button"
+        android:id="@+id/googleSignInButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"

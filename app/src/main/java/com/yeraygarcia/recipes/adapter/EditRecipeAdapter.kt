@@ -15,7 +15,7 @@ import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import com.yeraygarcia.recipes.EditIngredientDialog
-import com.yeraygarcia.recipes.EditIngredientDialog.TAG_DIALOG_EDIT_INGREDIENT
+import com.yeraygarcia.recipes.EditIngredientDialog.Companion.TAG_DIALOG_EDIT_INGREDIENT
 import com.yeraygarcia.recipes.EditStepDialog
 import com.yeraygarcia.recipes.R
 import com.yeraygarcia.recipes.database.entity.Recipe
@@ -32,8 +32,8 @@ import kotlinx.android.synthetic.main.view_servings.view.*
 import java.util.*
 
 
-class EditRecipeAdapter(val parent: FragmentActivity, val viewModel: RecipeDetailViewModel)
-    : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class EditRecipeAdapter(val parent: FragmentActivity, val viewModel: RecipeDetailViewModel) :
+    RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private val viewTypeDuration = 1
     private val viewTypeSource = 2
@@ -54,7 +54,7 @@ class EditRecipeAdapter(val parent: FragmentActivity, val viewModel: RecipeDetai
 
     var ingredients: List<UiRecipeIngredient> = emptyList()
         set(value) {
-            Debug.d(this, "setIngredients(ingredients(" + value.size + "))")
+            Debug.d(this, "setIngredients(ingredients(${value.size}))")
             field = value
             calculateItemCount()
             notifyDataSetChanged()
@@ -62,7 +62,7 @@ class EditRecipeAdapter(val parent: FragmentActivity, val viewModel: RecipeDetai
 
     var steps: List<RecipeStep> = emptyList()
         set(value) {
-            Debug.d(this, "setSteps(steps(" + value.size + "))")
+            Debug.d(this, "setSteps(steps(${value.size}))")
             field = value
             calculateItemCount()
             notifyDataSetChanged()
@@ -111,21 +111,26 @@ class EditRecipeAdapter(val parent: FragmentActivity, val viewModel: RecipeDetai
         }
     }
 
-    internal inner class IngredientsHeaderViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    internal inner class IngredientsHeaderViewHolder(itemView: View) :
+        RecyclerView.ViewHolder(itemView) {
 
         val itemDecrease: ImageView = itemView.imageview_decrease_servings
-        private val itemIncrease: ImageView = itemView.imageview_increase_servings
         val itemServings: TextView = itemView.textview_servings
+        private val itemIncrease: ImageView = itemView.imageview_increase_servings
 
         init {
             itemDecrease.setOnClickListener {
-                recipe?.decreasePortions()
-                viewModel.update(recipe)
+                recipe?.let { recipe ->
+                    recipe.decreasePortions()
+                    viewModel.update(recipe)
+                }
             }
 
             itemIncrease.setOnClickListener {
-                recipe?.increasePortions()
-                viewModel.update(recipe)
+                recipe?.let { recipe ->
+                    recipe.increasePortions()
+                    viewModel.update(recipe)
+                }
             }
         }
     }
@@ -202,10 +207,8 @@ class EditRecipeAdapter(val parent: FragmentActivity, val viewModel: RecipeDetai
     }
 
     private fun calculateItemCount() {
-        itemCount = maxOf(ingredients.size, 1) + maxOf(steps.size, 1)
-        if (recipe != null) {
-            itemCount += 4
-        }
+        itemCount = (if (recipe != null) 4 else 0) + maxOf(ingredients.size, 1) +
+                maxOf(steps.size, 1)
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
@@ -222,8 +225,8 @@ class EditRecipeAdapter(val parent: FragmentActivity, val viewModel: RecipeDetai
 
             viewTypeStepsHeader -> (holder as HeaderViewHolder).itemTitle.setText(R.string.header_steps)
 
-            viewTypeDuration -> if (recipe != null) {
-                val recipe = viewModel.getRecipeDraft(recipe)
+            viewTypeDuration -> recipe?.let {
+                val recipe = viewModel.recipeDraft ?: it
                 val duration = formatDuration(recipe.durationInMinutes)
                 (holder as DurationViewHolder).itemDuration.setText(duration)
             }
@@ -234,7 +237,8 @@ class EditRecipeAdapter(val parent: FragmentActivity, val viewModel: RecipeDetai
                 val viewHolder = holder as IngredientsViewHolder
                 if (ingredients.isNotEmpty()) {
                     val ingredient = ingredients[getIngredientPosition(position)]
-                    viewHolder.itemIngredientName.text = makeBold(ingredient.formattedQuantityAndUnit, ingredient.toString())
+                    viewHolder.itemIngredientName.text =
+                            makeBold(ingredient.formattedQuantityAndUnit, ingredient.toString())
                 } else {
                     Debug.d(this, "no ingredients")
                     // Covers the case of data not being ready yet.
@@ -274,12 +278,12 @@ class EditRecipeAdapter(val parent: FragmentActivity, val viewModel: RecipeDetai
 
     private fun showEditIngredientDialog(ingredientId: UUID) {
         EditIngredientDialog.newInstance(ingredientId)
-                .show(parent.supportFragmentManager, TAG_DIALOG_EDIT_INGREDIENT)
+            .show(parent.supportFragmentManager, TAG_DIALOG_EDIT_INGREDIENT)
     }
 
     private fun showEditStepDialog(stepId: UUID) {
         EditStepDialog.newInstance(stepId)
-                .show(parent.supportFragmentManager, TAG_DIALOG_EDIT_INGREDIENT)
+            .show(parent.supportFragmentManager, TAG_DIALOG_EDIT_INGREDIENT)
     }
 
     private fun formatSortOrder(sortOrder: Int): String {

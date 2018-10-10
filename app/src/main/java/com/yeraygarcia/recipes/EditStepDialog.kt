@@ -22,17 +22,6 @@ interface OnWebResponseListener {
 class EditStepDialog : DialogFragment() {
     private var recipeStep: RecipeStep? = null
 
-    companion object {
-
-        const val argStepId = "argStepId"
-
-        fun newInstance(stepId: UUID): EditStepDialog {
-            return EditStepDialog().apply {
-                arguments = Bundle().apply { putSerializable(argStepId, stepId) }
-            }
-        }
-    }
-
     @SuppressLint("InflateParams")
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val activity = requireActivity()
@@ -48,17 +37,17 @@ class EditStepDialog : DialogFragment() {
 
         // create dialog
         val alertDialog = AlertDialog.Builder(activity)
-                .setView(dialogLayout)
-                .setPositiveButton(R.string.save, null) // the listener is defined further down
-                .setNegativeButton(R.string.cancel, null)
-                .create()
+            .setView(dialogLayout)
+            .setPositiveButton(R.string.save, null) // the listener is defined further down
+            .setNegativeButton(R.string.cancel, null)
+            .create()
 
         if (alertDialog.window != null) {
             // always show the keyboard
             alertDialog.window!!.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
         }
 
-        alertDialog.setOnShowListener { dialogInterface ->
+        alertDialog.setOnShowListener { _ ->
 
             // focus the quantity field by default
             dialogLayout.editTextStepDescription.requestFocus()
@@ -72,22 +61,39 @@ class EditStepDialog : DialogFragment() {
                 if (newDescription.isEmpty()) {
                     Toast.makeText(context, R.string.step_empty_error, Toast.LENGTH_LONG).show()
                 } else {
-                    recipeStep?.description = newDescription
-                    viewModel.updateRecipeStep(recipeStep, object : OnWebResponseListener {
+                    recipeStep?.let { recipeStep ->
+                        recipeStep.description = newDescription
+                        viewModel.updateRecipeStep(recipeStep, object : OnWebResponseListener {
 
-                        override fun onSuccess() {
-                            alertDialog.dismiss()
-                        }
+                            override fun onSuccess() {
+                                alertDialog.dismiss()
+                            }
 
-                        override fun onError(errorCode: String, errorMessage: String) {
-                            Toast.makeText(context, context?.getString(R.string.an_error_occurred) + "\n" + errorMessage, Toast.LENGTH_LONG).show()
-                        }
+                            override fun onError(errorCode: String, errorMessage: String) {
+                                Toast.makeText(
+                                    context,
+                                    "${context?.getString(R.string.an_error_occurred)}\n$errorMessage",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
 
-                    })
+                        })
+                    }
                 }
             }
         }
 
         return alertDialog
+    }
+
+    companion object {
+
+        const val argStepId = "argStepId"
+
+        fun newInstance(stepId: UUID): EditStepDialog {
+            return EditStepDialog().apply {
+                arguments = Bundle().apply { putSerializable(argStepId, stepId) }
+            }
+        }
     }
 }

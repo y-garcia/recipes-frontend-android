@@ -34,18 +34,27 @@ abstract class Request<Entity>(val context: Context) {
 
                 call.enqueue(object : Callback<ResourceData<Entity>> {
 
-                    override fun onResponse(call: Call<ResourceData<Entity>>, response: Response<ResourceData<Entity>>) {
+                    override fun onResponse(
+                        call: Call<ResourceData<Entity>>,
+                        response: Response<ResourceData<Entity>>
+                    ) {
 
-                        Debug.d(tag, "We got a response from the server: ${Gson().toJson(response)}")
+                        Debug.d(
+                            tag,
+                            "We got a response from the server: ${Gson().toJson(response)}"
+                        )
 
                         if (response.isSuccessful) {
 
-                            Debug.d(tag, "Response was successful: " + response.code())
+                            Debug.d(tag, "Response was successful: ${response.code()}")
                             val body = response.body()
 
-                            if (body != null && body.result != null) {
-                                Debug.d(tag, "Body contains payload. Execute onSuccess with payload.")
-                                onSuccess(body.result)
+                            if (body?.result != null) {
+                                Debug.d(
+                                    tag,
+                                    "Body contains payload. Execute onSuccess with payload."
+                                )
+                                onSuccess(body.result!!)
 
                             } else {
                                 Debug.d(tag, "Body is empty. Execute onSuccess with entity.")
@@ -55,11 +64,14 @@ abstract class Request<Entity>(val context: Context) {
                         } else {
                             val errorBody = response.errorBody()?.string()
 
-                            Debug.d(tag, "Response was not successful: ${response.code()} - $errorBody")
+                            Debug.d(
+                                tag,
+                                "Response was not successful: ${response.code()} - $errorBody"
+                            )
 
                             try {
                                 val error = Gson().fromJson(errorBody, ResourceData::class.java)
-                                onError(error.code, error.message)
+                                onError(error.code ?: "0", error.message ?: "Unknown error")
                             } catch (e: Exception) {
                                 onError(response.code().toString(), response.message())
                             }

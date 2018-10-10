@@ -9,7 +9,7 @@
     android:showDividers="middle">
 
     <android.support.v7.widget.RecyclerView
-        android:id="@+id/recyclerview_recipe_list"
+        android:id="@+id/recyclerViewRecipeList"
         android:name="com.yeraygarcia.recetas.RecipeListFragment"
         android:layout_width="@dimen/item_width"
         android:layout_height="match_parent"

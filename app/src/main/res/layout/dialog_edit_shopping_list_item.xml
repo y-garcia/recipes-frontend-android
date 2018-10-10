@@ -6,12 +6,12 @@
     android:layout_height="match_parent">
 
     <AutoCompleteTextView
-        android:id="@+id/edittext_ingredient_name"
+        android:id="@+id/editTextIngredientName"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
         android:completionThreshold="1"
         android:ems="10"
         android:hint="@string/hint_ingredient"
@@ -24,7 +24,7 @@
         tools:text="Milch" />
 
     <EditText
-        android:id="@+id/edittext_ingredient_quantity"
+        android:id="@+id/editTextIngredientQuantity"
         android:layout_width="85dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
@@ -36,23 +36,23 @@
         android:selectAllOnFocus="true"
         android:textAlignment="textStart"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/edittext_ingredient_name"
+        app:layout_constraintTop_toBottomOf="@+id/editTextIngredientName"
         tools:text="1200" />
 
     <AutoCompleteTextView
-        android:id="@+id/autocompletetextview_ingredient_unit"
+        android:id="@+id/autoCompleteTextViewIngredientUnit"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
         android:completionThreshold="1"
         android:hint="@string/hint_unit"
         android:maxLines="1"
         android:selectAllOnFocus="true"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/edittext_ingredient_quantity"
-        app:layout_constraintTop_toBottomOf="@+id/edittext_ingredient_name"
+        app:layout_constraintStart_toEndOf="@+id/editTextIngredientQuantity"
+        app:layout_constraintTop_toBottomOf="@+id/editTextIngredientName"
         tools:text="ml" />
 
 </android.support.constraint.ConstraintLayout>
