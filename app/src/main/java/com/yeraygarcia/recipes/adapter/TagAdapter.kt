@@ -9,9 +9,9 @@ import android.view.ViewGroup
 import android.widget.TextView
 import com.yeraygarcia.recipes.R
 import com.yeraygarcia.recipes.database.entity.Tag
-import com.yeraygarcia.recipes.util.Debug
 import com.yeraygarcia.recipes.viewmodel.RecipeViewModel
 import kotlinx.android.synthetic.main.item_tag_chip.view.*
+import timber.log.Timber
 import java.util.*
 
 class TagAdapter(parent: FragmentActivity) : RecyclerView.Adapter<TagAdapter.TagViewHolder>() {
@@ -27,7 +27,7 @@ class TagAdapter(parent: FragmentActivity) : RecyclerView.Adapter<TagAdapter.Tag
     var selectedTagIds: List<UUID> = ArrayList()
         set(value) {
             field = value
-            Debug.d(this, "setSelectedTagIds(tagIds(${value.size}))")
+            Timber.d("setSelectedTagIds(tagIds(${value.size}))")
             notifyDataSetChanged()
         }
 

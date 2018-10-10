@@ -26,7 +26,7 @@ abstract class RecipeIngredientDao : BaseDao<RecipeIngredient>() {
     abstract fun findByRecipeId(recipeId: UUID): LiveData<List<UiRecipeIngredient>>
 
     @Query(
-        "SELECT NULL as id, ri.recipe_id, ri.ingredient_id, i.name, ri.unit_id, " +
+        "SELECT ri.id, ri.recipe_id, ri.ingredient_id, i.name, ri.unit_id, " +
                 "r.portions * ri.quantity AS quantity, ri.sort_order, 0 AS completed, 1 AS visible " +
                 "FROM recipe_ingredient ri " +
                 "INNER JOIN recipe r ON ri.recipe_id = r.id " +

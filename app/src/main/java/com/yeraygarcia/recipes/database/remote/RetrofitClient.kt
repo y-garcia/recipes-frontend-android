@@ -2,10 +2,10 @@ package com.yeraygarcia.recipes.database.remote
 
 import android.content.Context
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
-import com.yeraygarcia.recipes.util.Debug
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import timber.log.Timber
 
 class RetrofitClient private constructor(context: Context) {
 
@@ -33,12 +33,12 @@ class RetrofitClient private constructor(context: Context) {
      * Gets an instance of Retrofit object and creates a service from it
      */
     fun <T> create(service: Class<T>): T {
-        Debug.d("RetrofitClient", "create(" + service.simpleName + ")")
+        Timber.d("create(${service.simpleName})")
         return retrofit.create(service)
     }
 
     fun setIdToken(idToken: String?) {
-        Debug.d(this, "Setting token: $idToken")
+        Timber.d("Setting token: $idToken")
         interceptor.idToken = idToken
     }
 
@@ -47,16 +47,16 @@ class RetrofitClient private constructor(context: Context) {
         private var retrofitClient: RetrofitClient? = null
 
         fun get(context: Context): RetrofitClient {
-            Debug.d("RetrofitClient", "get(context)")
+            Timber.d("get(context)")
             if (retrofitClient == null) {
-                Debug.d("RetrofitClient", "retrofitClient == null -> Initializing...")
+                Timber.d("retrofitClient == null -> Initializing...")
                 retrofitClient = RetrofitClient(context)
             }
             return retrofitClient as RetrofitClient
         }
 
         fun clear() {
-            Debug.d("RetrofitClient", "clear()")
+            Timber.d("clear()")
             retrofitClient = null
         }
     }

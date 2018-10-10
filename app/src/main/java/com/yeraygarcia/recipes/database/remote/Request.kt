@@ -5,15 +5,14 @@ import android.support.annotation.MainThread
 import android.support.annotation.WorkerThread
 import com.google.gson.Gson
 import com.yeraygarcia.recipes.AppExecutors
-import com.yeraygarcia.recipes.util.Debug
 import com.yeraygarcia.recipes.util.NetworkUtil
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import timber.log.Timber
 
 abstract class Request<Entity>(val context: Context) {
 
-    private val tag = "Request"
     private val appExecutors = AppExecutors()
 
     private fun canFetch(): Boolean {
@@ -27,8 +26,8 @@ abstract class Request<Entity>(val context: Context) {
 
                 updateLocalDatabase(entity)
 
-                Debug.d(tag, "Sending request to server.")
-                Debug.d(tag, Gson().toJson(entity))
+                Timber.d("Sending request to server.")
+                Timber.d(Gson().toJson(entity))
 
                 val call = sendRequestToServer(entity)
 
@@ -39,35 +38,26 @@ abstract class Request<Entity>(val context: Context) {
                         response: Response<ResourceData<Entity>>
                     ) {
 
-                        Debug.d(
-                            tag,
-                            "We got a response from the server: ${Gson().toJson(response)}"
-                        )
+                        Timber.d("We got a response from the server: ${Gson().toJson(response)}")
 
                         if (response.isSuccessful) {
 
-                            Debug.d(tag, "Response was successful: ${response.code()}")
+                            Timber.d("Response was successful: ${response.code()}")
                             val body = response.body()
 
                             if (body?.result != null) {
-                                Debug.d(
-                                    tag,
-                                    "Body contains payload. Execute onSuccess with payload."
-                                )
+                                Timber.d("Body contains payload. Execute onSuccess with payload.")
                                 onSuccess(body.result!!)
 
                             } else {
-                                Debug.d(tag, "Body is empty. Execute onSuccess with entity.")
+                                Timber.d("Body is empty. Execute onSuccess with entity.")
                                 onSuccess(entity)
                             }
 
                         } else {
                             val errorBody = response.errorBody()?.string()
 
-                            Debug.d(
-                                tag,
-                                "Response was not successful: ${response.code()} - $errorBody"
-                            )
+                            Timber.d("Response was not successful: ${response.code()} - $errorBody")
 
                             try {
                                 val error = Gson().fromJson(errorBody, ResourceData::class.java)
@@ -82,7 +72,7 @@ abstract class Request<Entity>(val context: Context) {
 
                     override fun onFailure(call: Call<ResourceData<Entity>>, t: Throwable) {
 
-                        Debug.d(tag, "Call failed: ${t.message}")
+                        Timber.d("Call failed: ${t.message}")
 
                         onError(errorMessage = t.message.toString())
 

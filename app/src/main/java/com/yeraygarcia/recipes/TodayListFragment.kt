@@ -10,10 +10,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.yeraygarcia.recipes.adapter.TodayAdapter
-import com.yeraygarcia.recipes.util.Debug
 import com.yeraygarcia.recipes.util.ShortDivider
 import com.yeraygarcia.recipes.viewmodel.RecipeViewModel
 import kotlinx.android.synthetic.main.fragment_today_list.view.*
+import timber.log.Timber
 
 class TodayListFragment : Fragment() {
 
@@ -23,7 +23,7 @@ class TodayListFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
 
-        Debug.d(this, "onCreateView(inflater, container, savedInstanceState)")
+        Timber.d("onCreateView(inflater, container, savedInstanceState)")
         val rootView = inflater.inflate(R.layout.fragment_today_list, container, false)
 
         activity?.let { activity ->

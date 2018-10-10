@@ -17,10 +17,10 @@ import com.yeraygarcia.recipes.adapter.RecipeAdapter
 import com.yeraygarcia.recipes.adapter.TagAdapter
 import com.yeraygarcia.recipes.database.remote.RetrofitClient
 import com.yeraygarcia.recipes.database.remote.Status
-import com.yeraygarcia.recipes.util.Debug
 import com.yeraygarcia.recipes.util.ShortDivider
 import com.yeraygarcia.recipes.viewmodel.RecipeViewModel
 import kotlinx.android.synthetic.main.fragment_recipe_list.view.*
+import timber.log.Timber
 
 class RecipeListFragment : Fragment() {
 
@@ -34,7 +34,7 @@ class RecipeListFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
 
-        Debug.d(this, "onCreateView(inflater, container, savedInstanceState)")
+        Timber.d("onCreateView(inflater, container, savedInstanceState)")
         val rootView = inflater.inflate(R.layout.fragment_recipe_list, container, false)
 
         rootView.fabAddRecipe.setOnClickListener { view ->
@@ -50,7 +50,7 @@ class RecipeListFragment : Fragment() {
 
             swipeRefreshLayout = rootView.swipeRefreshLayout.apply {
                 setOnRefreshListener {
-                    Debug.d(this, "onRefresh called from SwipeRefreshLayout")
+                    Timber.d("onRefresh called from SwipeRefreshLayout")
                     refreshData()
                 }
             }
@@ -76,12 +76,12 @@ class RecipeListFragment : Fragment() {
                 }
             }
             viewModel.recipes.observe(this, Observer { resource ->
-                Debug.d(this, "getRecipes().observe($resource)")
+                Timber.d("getRecipes().observe($resource)")
                 when (resource?.status) {
                     Status.LOADING -> swipeRefreshLayout.isRefreshing = true
                     Status.SUCCESS -> swipeRefreshLayout.isRefreshing = false
                     Status.ERROR -> {
-                        Debug.d(this, resource.toString())
+                        Timber.d(resource.toString())
                         Toast.makeText(context, resource.message, Toast.LENGTH_LONG).show()
                         swipeRefreshLayout.isRefreshing = false
                     }
@@ -89,14 +89,14 @@ class RecipeListFragment : Fragment() {
                 recipeAdapter.recipes = resource?.data ?: emptyList()
             })
             viewModel.tags.observe(this, Observer {
-                Debug.d(this, "getTags().observe(tags)")
+                Timber.d("getTags().observe(tags)")
                 tagAdapter.tags = it ?: emptyList()
             })
             viewModel.tagFilter.observe(this, Observer {
-                tagAdapter.selectedTagIds = it ?: emptyList()
+                tagAdapter.selectedTagIds = it ?: mutableListOf()
             })
             viewModel.recipeIdsInShoppingList.observe(this, Observer {
-                recipeAdapter.recipeIdsInShoppingList = it ?: emptyList()
+                recipeAdapter.recipeIdsInShoppingList = it ?: mutableListOf()
             })
 
         }
@@ -114,12 +114,12 @@ class RecipeListFragment : Fragment() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        Debug.d(this, "onSaveInstanceState(outState)")
+        Timber.d("onSaveInstanceState(outState)")
         outState.putStringArrayList(EXTRA_TAG_FILTER, viewModel.tagFilterAsArray)
     }
 
     override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
-        Debug.d(this, "onCreateOptionsMenu(menu, inflated)")
+        Timber.d("onCreateOptionsMenu(menu, inflated)")
         inflater?.inflate(R.menu.options_menu_recipe_list, menu)
         super.onCreateOptionsMenu(menu, inflater)
 

@@ -14,9 +14,9 @@ import com.yeraygarcia.recipes.EditShoppingListItemDialog
 import com.yeraygarcia.recipes.EditShoppingListItemDialog.Companion.TAG_FRAGMENT_EDIT_DIALOG
 import com.yeraygarcia.recipes.R
 import com.yeraygarcia.recipes.database.entity.custom.UiShoppingListItem
-import com.yeraygarcia.recipes.util.Debug
 import com.yeraygarcia.recipes.viewmodel.RecipeViewModel
 import kotlinx.android.synthetic.main.item_shopping_list_item.view.*
+import timber.log.Timber
 import java.util.UUID
 import kotlin.collections.ArrayList
 
@@ -27,7 +27,7 @@ class ShoppingListAdapter(
 
     var shoppingListItems: List<UiShoppingListItem> = ArrayList()
         set(shoppingListItems) {
-            Debug.d(this, "setShoppingListItems(shoppingListItems -> ${shoppingListItems.size})")
+            Timber.d("setShoppingListItems(shoppingListItems -> ${shoppingListItems.size})")
             field = shoppingListItems
             notifyDataSetChanged()
         }
@@ -76,7 +76,7 @@ class ShoppingListAdapter(
                 formatCompletedView(this, currentItem.completed)
             }
         } else {
-            Debug.d(this, "no items")
+            Timber.d("no items")
             holder.apply {
                 itemQuantity.text = ""
                 itemUnit.text = ""

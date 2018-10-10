@@ -12,11 +12,11 @@ import android.view.View
 import android.view.ViewGroup
 import com.yeraygarcia.recipes.adapter.RecipeDetailAdapter
 import com.yeraygarcia.recipes.database.repository.RecipeDetailRepository
-import com.yeraygarcia.recipes.util.Debug
 import com.yeraygarcia.recipes.viewmodel.RecipeDetailViewModel
 import com.yeraygarcia.recipes.viewmodel.RecipeDetailViewModelFactory
 import kotlinx.android.synthetic.main.activity_recipe_detail.*
 import kotlinx.android.synthetic.main.fragment_recipe_detail.view.*
+import timber.log.Timber
 import java.util.*
 
 /**
@@ -30,7 +30,7 @@ class RecipeDetailFragment : Fragment() {
     private lateinit var recipeDetailAdapter: RecipeDetailAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        Debug.d(this, "onCreate(savedInstanceState)")
+        Timber.d("onCreate(savedInstanceState)")
         super.onCreate(savedInstanceState)
 
         setHasOptionsMenu(true)
@@ -57,9 +57,9 @@ class RecipeDetailFragment : Fragment() {
             }
 
             // observe recipe and populate ui with it
-            viewModel.recipe.observe(this, Observer { recipe ->
-                toolbarLayout?.title = recipe?.name
-                recipeDetailAdapter.setRecipe(recipe)
+            viewModel.recipe.observe(this, Observer {
+                activity.toolbarLayout.title = it?.name
+                recipeDetailAdapter.setRecipe(it)
             })
             viewModel.recipeSteps.observe(this, Observer {
                 recipeDetailAdapter.setSteps(it ?: emptyList())
@@ -77,7 +77,7 @@ class RecipeDetailFragment : Fragment() {
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        Debug.d(this, "onSaveInstanceState(outState)")
+        Timber.d("onSaveInstanceState(outState)")
         outState.apply {
             putSerializable(KEY_RECIPE_ID, recipeId)
             putInt(KEY_SELECTED_INGREDIENT, recipeDetailAdapter.selectedIngredient)
@@ -91,7 +91,7 @@ class RecipeDetailFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        Debug.d(this, "onCreateView(inflater, container, savedInstanceState)")
+        Timber.d("onCreateView(inflater, container, savedInstanceState)")
         val rootView = inflater.inflate(R.layout.fragment_recipe_detail, container, false)
 
         rootView.recyclerViewRecipeDetails.apply {

@@ -14,7 +14,7 @@ import com.yeraygarcia.recipes.database.entity.custom.UiRecipeIngredient
 import com.yeraygarcia.recipes.database.entity.custom.UiShoppingListItem
 import com.yeraygarcia.recipes.database.remote.Resource
 import com.yeraygarcia.recipes.database.repository.RecipeRepository
-import com.yeraygarcia.recipes.util.Debug
+import timber.log.Timber
 import java.util.*
 import java.util.regex.Pattern
 
@@ -40,25 +40,25 @@ class RecipeViewModel(application: Application) : AndroidViewModel(application) 
 
     val recipes: LiveData<Resource<List<Recipe>>>
         get() {
-            Debug.d(this, "getRecipes()")
+            Timber.d("getRecipes()")
             return mRecipes
         }
 
     val tags: LiveData<List<Tag>>
         get() {
-            Debug.d(this, "getTags()")
+            Timber.d("getTags()")
             return mTags
         }
 
     val tagFilter: MutableLiveData<List<UUID>>
         get() {
-            Debug.d(this, "getTagFilter()")
+            Timber.d("getTagFilter()")
             return mTagFilter
         }
 
     val tagFilterAsArray: ArrayList<String>
         get() {
-            Debug.d(this, "getTagFilterAsArray()")
+            Timber.d("getTagFilterAsArray()")
 
             val tagFilter = mTagFilter.value ?: return ArrayList()
 
@@ -89,7 +89,7 @@ class RecipeViewModel(application: Application) : AndroidViewModel(application) 
         }
 
     init {
-        Debug.d(this, "RecipeViewModel(application)")
+        Timber.d("RecipeViewModel(application)")
 
         mTags = repository.tags
         mTagFilter.value = ArrayList()
@@ -105,7 +105,7 @@ class RecipeViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun addTagToFilter(tag: Tag) {
-        Debug.d(this, "addTagToFilter(" + tag.id + ")")
+        Timber.d("addTagToFilter(${tag.id})")
         val newTags = mTagFilter.value as MutableList<UUID>? ?: ArrayList()
         newTags.add(tag.id)
         mTagFilter.value = newTags
@@ -113,14 +113,14 @@ class RecipeViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun removeTagFromFilter(tag: Tag) {
-        Debug.d(this, "removeTagFromFilter(" + tag.id + ")")
+        Timber.d("removeTagFromFilter(${tag.id})")
         val newTags = mTagFilter.value as MutableList<UUID>? ?: ArrayList()
         newTags.remove(tag.id)
         mTagFilter.value = newTags
     }
 
     fun setTagFilter(tag: Tag) {
-        Debug.d(this, "setSelectedTagIds(tag)")
+        Timber.d("setSelectedTagIds(tag)")
         val tagFilterList = ArrayList<UUID>()
         tagFilterList.add(tag.id)
         mTagFilter.value = tagFilterList
@@ -128,7 +128,7 @@ class RecipeViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun setTagFilter(tagFilter: Array<String>?) {
-        Debug.d(this, "setSelectedTagIds(tagFilter)")
+        Timber.d("setSelectedTagIds(tagFilter)")
         if (tagFilter != null) {
             val uuids = ArrayList<UUID>(tagFilter.size)
             for (uuidString in tagFilter) {
@@ -139,7 +139,7 @@ class RecipeViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun updateTagUsage() {
-        Debug.d(this, "updateTagUsage()")
+        Timber.d("updateTagUsage()")
         repository.updateTagUsage()
     }
 
@@ -166,7 +166,7 @@ class RecipeViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun deleteAll() {
-        Debug.d(this, "deleteAll()")
+        Timber.d("deleteAll()")
         repository.deleteAll()
     }
 
@@ -176,7 +176,7 @@ class RecipeViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     private fun clearTagFilter() {
-        mTagFilter.value = emptyList()
+        mTagFilter.value = mutableListOf()
     }
 
     private fun forceRefresh() {
@@ -223,7 +223,7 @@ class RecipeViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun getUnitIdByName(unitName: String?): UUID? {
-        Debug.d(this, "getUnitIdByName(" + (unitName ?: "null") + ")")
+        Timber.d("getUnitIdByName(${unitName ?: "null"})")
         val units = this.units.value
 
         if (units == null || unitName == null || unitName.isEmpty()) {
@@ -236,10 +236,10 @@ class RecipeViewModel(application: Application) : AndroidViewModel(application) 
             val debugMessage =
                 lowerCaseName + " = " + unit.nameSingular.toLowerCase() + " or " + unit.namePlural.toLowerCase() + " ? "
             if (unit.nameSingular.toLowerCase() == lowerCaseName || unit.namePlural.toLowerCase() == lowerCaseName) {
-                Debug.d(this, debugMessage + "true")
+                Timber.d("${debugMessage}true")
                 return unit.id
             }
-            Debug.d(this, debugMessage + "false")
+            Timber.d("${debugMessage}false")
         }
 
         return null

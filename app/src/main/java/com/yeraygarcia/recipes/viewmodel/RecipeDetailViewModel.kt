@@ -6,7 +6,7 @@ import com.yeraygarcia.recipes.OnWebResponseListener
 import com.yeraygarcia.recipes.database.entity.Recipe
 import com.yeraygarcia.recipes.database.entity.RecipeStep
 import com.yeraygarcia.recipes.database.repository.RecipeDetailRepository
-import com.yeraygarcia.recipes.util.Debug
+import timber.log.Timber
 import java.util.*
 
 class RecipeDetailViewModel(private val repository: RecipeDetailRepository, recipeId: UUID) :
@@ -20,7 +20,7 @@ class RecipeDetailViewModel(private val repository: RecipeDetailRepository, reci
     private lateinit var recipeStep: LiveData<RecipeStep>
 
     fun update(recipe: Recipe) {
-        Debug.d(this, "update(recipe)")
+        Timber.d("update(recipe)")
         repository.update(recipe)
     }
 
@@ -49,7 +49,7 @@ class RecipeDetailViewModel(private val repository: RecipeDetailRepository, reci
     }
 
     fun persistDraft() {
-        Debug.d(this, "persistDraft()")
+        Timber.d("persistDraft()")
         recipeDraft?.let {
             repository.persistDraft(it, this)
         }

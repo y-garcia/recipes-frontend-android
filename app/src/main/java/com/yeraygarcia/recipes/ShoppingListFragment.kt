@@ -11,11 +11,11 @@ import android.support.v7.widget.helper.ItemTouchHelper
 import android.view.*
 import android.widget.ArrayAdapter
 import com.yeraygarcia.recipes.adapter.ShoppingListAdapter
-import com.yeraygarcia.recipes.util.Debug
 import com.yeraygarcia.recipes.util.ShortDivider
 import com.yeraygarcia.recipes.util.SpaceTokenizer
 import com.yeraygarcia.recipes.viewmodel.RecipeViewModel
 import kotlinx.android.synthetic.main.fragment_shopping_list.view.*
+import timber.log.Timber
 
 class ShoppingListFragment : Fragment() {
 
@@ -26,19 +26,19 @@ class ShoppingListFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        Debug.d(this, "onCreateView(inflater, container, savedInstanceState)")
+        Timber.d("onCreateView(inflater, container, savedInstanceState)")
         val rootView = inflater.inflate(R.layout.fragment_shopping_list, container, false)
 
         setHasOptionsMenu(true)
 
-        activity?.let { parent ->
+        activity?.let { activity ->
 
             viewModel = ViewModelProviders.of(this).get(RecipeViewModel::class.java)
 
             val newItemAdapter = ArrayAdapter(
-                parent,
+                activity,
                 android.R.layout.simple_dropdown_item_1line,
-                emptyList<String>()
+                mutableListOf<String>()
             )
             val newItemEditText = rootView.editTextNewItem.apply {
                 setAdapter(newItemAdapter)
@@ -51,17 +51,16 @@ class ShoppingListFragment : Fragment() {
                 newItemEditText.setText("")
             }
 
-            val shoppingListAdapter = ShoppingListAdapter(parent, viewModel)
+            val shoppingListAdapter = ShoppingListAdapter(activity, viewModel)
             val shoppingListRecyclerView = rootView.recyclerViewShoppingList.apply {
-                layoutManager = LinearLayoutManager(parent)
-                addItemDecoration(ShortDivider(parent, DividerItemDecoration.VERTICAL, 16))
+                layoutManager = LinearLayoutManager(activity)
+                addItemDecoration(ShortDivider(activity, DividerItemDecoration.VERTICAL, 16))
                 adapter = shoppingListAdapter
             }
 
-            viewModel.shoppingListItems.observe(
-                this,
-                Observer { shoppingListAdapter.shoppingListItems = it ?: emptyList() }
-            )
+            viewModel.shoppingListItems.observe(this, Observer {
+                shoppingListAdapter.shoppingListItems = it ?: emptyList()
+            })
             viewModel.units.observe(this, Observer {
                 /* RecipeViewModel.getUnits() needs to be observed in order to fill RecipeViewModel.mUnits
                  * which is used in RecipeViewModel.getUnitIdByName()
@@ -70,7 +69,7 @@ class ShoppingListFragment : Fragment() {
             })
             viewModel.unitsAndIngredientNames.observe(this, Observer {
                 newItemAdapter.clear()
-                newItemAdapter.addAll(it ?: emptyList())
+                newItemAdapter.addAll(it ?: mutableListOf())
             })
 
             // recognize when a user swipes an item
@@ -96,11 +95,11 @@ class ShoppingListFragment : Fragment() {
 
     override fun onPause() {
         super.onPause()
-        Debug.d(this, "onPause()")
+        Timber.d("onPause()")
     }
 
     override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
-        Debug.d(this, "onCreateOptionsMenu(menu, inflated)")
+        Timber.d("onCreateOptionsMenu(menu, inflated)")
         inflater?.inflate(R.menu.options_menu_shopping_list, menu)
         super.onCreateOptionsMenu(menu, inflater)
     }

@@ -6,6 +6,7 @@ import android.content.Context
 import com.yeraygarcia.recipes.AppExecutors
 import com.yeraygarcia.recipes.OnWebResponseListener
 import com.yeraygarcia.recipes.database.AppDatabase
+import com.yeraygarcia.recipes.database.UUIDTypeConverter
 import com.yeraygarcia.recipes.database.entity.Recipe
 import com.yeraygarcia.recipes.database.entity.RecipeStep
 import com.yeraygarcia.recipes.database.entity.custom.UiRecipeIngredient
@@ -13,9 +14,9 @@ import com.yeraygarcia.recipes.database.remote.Request
 import com.yeraygarcia.recipes.database.remote.ResourceData
 import com.yeraygarcia.recipes.database.remote.RetrofitClient
 import com.yeraygarcia.recipes.database.remote.Webservice
-import com.yeraygarcia.recipes.util.Debug
 import com.yeraygarcia.recipes.viewmodel.RecipeDetailViewModel
 import retrofit2.Call
+import timber.log.Timber
 import java.util.*
 
 class RecipeDetailRepository(application: Application) {
@@ -95,8 +96,9 @@ class RecipeDetailRepository(application: Application) {
 
     fun addToShoppingList(recipeId: UUID) {
         appExecutors.diskIO().execute {
-            Debug.d(this, "Adding recipe with id '$recipeId' to shopping list")
+            Timber.d("Adding recipe with id '$recipeId' to shopping list")
             val shoppingListItems = db.recipeIngredientDao.findShoppingListItemByRecipeId(recipeId)
+            shoppingListItems.forEach { it.id = UUIDTypeConverter.newUUID() }
             db.shoppingListDao.deleteByRecipeId(recipeId)
             db.shoppingListDao.insert(shoppingListItems)
         }

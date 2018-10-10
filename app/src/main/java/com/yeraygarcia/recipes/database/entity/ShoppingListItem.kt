@@ -31,6 +31,7 @@ import java.util.*
     ]
 )
 data class ShoppingListItem(
+
     @PrimaryKey
     @ColumnInfo(typeAffinity = ColumnInfo.BLOB)
     var id: UUID = UUIDTypeConverter.newUUID(),

@@ -18,9 +18,9 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.tasks.Task
 import com.yeraygarcia.recipes.database.remote.RetrofitClient
-import com.yeraygarcia.recipes.util.Debug
 import com.yeraygarcia.recipes.viewmodel.RecipeViewModel
 import kotlinx.android.synthetic.main.activity_main.*
+import timber.log.Timber
 
 class MainActivity : AppCompatActivity() {
 
@@ -32,7 +32,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        Debug.d(this, "onCreate(savedInstaceState)")
+        Timber.d("onCreate(savedInstaceState)")
 
         setSupportActionBar(toolbar)
 
@@ -48,26 +48,26 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        Debug.d(this, "onStart(): getLastSignedInAccount()")
+        Timber.d("onStart(): getLastSignedInAccount()")
         val account = GoogleSignIn.getLastSignedInAccount(this)
         if (account?.isExpired == false) {
-            Debug.d(this, "onStart(): account != null && !account.isExpired()")
+            Timber.d("onStart(): account != null && !account.isExpired()")
             updateUI(account)
         } else {
-            Debug.d(this, "onStart(): account == null || account.isExpired()")
+            Timber.d("onStart(): account == null || account.isExpired()")
             signIn()
         }
     }
 
     private fun signIn() {
-        Debug.d(this, "signIn(): show sign-in dialog")
+        Timber.d("signIn(): show sign-in dialog")
         RetrofitClient.get(this).googleSignInClient.silentSignIn().addOnCompleteListener(this) {
             this.handleSignInResult(it)
         }
     }
 
     private fun signOut() {
-        Debug.d(this, "signOut()")
+        Timber.d("signOut()")
         RetrofitClient.get(this).googleSignInClient.signOut().addOnCompleteListener(this) {
             viewModel.deleteAll()
             RetrofitClient.clear()
@@ -77,7 +77,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun handleSignInResult(completedTask: Task<GoogleSignInAccount>) {
-        Debug.d(this, "handleSignInResult(task)")
+        Timber.d("handleSignInResult(task)")
         try {
             val account = completedTask.getResult(ApiException::class.java)
             if (account?.idToken != null) {
@@ -86,14 +86,14 @@ class MainActivity : AppCompatActivity() {
                 updateUI(null)
             }
         } catch (e: ApiException) {
-            Debug.d(this, "signInResult:failed code=" + e.statusCode)
+            Timber.d("signInResult:failed code=${e.statusCode}")
             updateUI(null)
         }
 
     }
 
     private fun updateUI(account: GoogleSignInAccount?) {
-        Debug.d(this, "updateUI(account, errorMessage)")
+        Timber.d("updateUI(account, errorMessage)")
         if (account != null) {
             RetrofitClient.get(this).setIdToken(account.idToken)
         } else {
@@ -102,7 +102,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onNewIntent(intent: Intent) {
-        Debug.d(this, "onNewIntent(intent)")
+        Timber.d("onNewIntent(intent)")
         super.onNewIntent(intent)
 
         currentFragmentId = getFragmentIdFromIntent(intent)
@@ -110,9 +110,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        Debug.d(this, "onSaveInstanceState(outState)")
+        Timber.d("onSaveInstanceState(outState)")
         super.onSaveInstanceState(outState)
-        Debug.d(this, "savedInstanceState.$KEY_FRAGMENT_ID = $currentFragmentId")
+        Timber.d("savedInstanceState.$KEY_FRAGMENT_ID = $currentFragmentId")
         outState.putInt(KEY_FRAGMENT_ID, currentFragmentId)
     }
 

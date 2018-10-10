@@ -21,7 +21,6 @@ import com.yeraygarcia.recipes.R
 import com.yeraygarcia.recipes.database.entity.Recipe
 import com.yeraygarcia.recipes.database.entity.RecipeStep
 import com.yeraygarcia.recipes.database.entity.custom.UiRecipeIngredient
-import com.yeraygarcia.recipes.util.Debug
 import com.yeraygarcia.recipes.viewmodel.RecipeDetailViewModel
 import kotlinx.android.synthetic.main.item_edit_duration.view.*
 import kotlinx.android.synthetic.main.item_edit_ingredient.view.*
@@ -29,6 +28,7 @@ import kotlinx.android.synthetic.main.item_edit_source.view.*
 import kotlinx.android.synthetic.main.item_edit_step.view.*
 import kotlinx.android.synthetic.main.item_header_generic.view.*
 import kotlinx.android.synthetic.main.view_servings.view.*
+import timber.log.Timber
 import java.util.*
 
 
@@ -46,7 +46,7 @@ class EditRecipeAdapter(val parent: FragmentActivity, val viewModel: RecipeDetai
 
     var recipe: Recipe? = null
         set(value) {
-            Debug.d(this, "setRecipe(recipe)")
+            Timber.d("setRecipe(recipe)")
             field = value
             calculateItemCount()
             notifyDataSetChanged()
@@ -54,7 +54,7 @@ class EditRecipeAdapter(val parent: FragmentActivity, val viewModel: RecipeDetai
 
     var ingredients: List<UiRecipeIngredient> = emptyList()
         set(value) {
-            Debug.d(this, "setIngredients(ingredients(${value.size}))")
+            Timber.d("setIngredients(ingredients(${value.size}))")
             field = value
             calculateItemCount()
             notifyDataSetChanged()
@@ -62,7 +62,7 @@ class EditRecipeAdapter(val parent: FragmentActivity, val viewModel: RecipeDetai
 
     var steps: List<RecipeStep> = emptyList()
         set(value) {
-            Debug.d(this, "setSteps(steps(${value.size}))")
+            Timber.d("setSteps(steps(${value.size}))")
             field = value
             calculateItemCount()
             notifyDataSetChanged()
@@ -240,7 +240,7 @@ class EditRecipeAdapter(val parent: FragmentActivity, val viewModel: RecipeDetai
                     viewHolder.itemIngredientName.text =
                             makeBold(ingredient.formattedQuantityAndUnit, ingredient.toString())
                 } else {
-                    Debug.d(this, "no ingredients")
+                    Timber.d("no ingredients")
                     // Covers the case of data not being ready yet.
                     viewHolder.itemIngredientName.setText(R.string.no_ingredients)
                 }

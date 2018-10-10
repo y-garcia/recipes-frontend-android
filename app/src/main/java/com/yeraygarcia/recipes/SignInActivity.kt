@@ -14,12 +14,12 @@ import com.yeraygarcia.recipes.database.remote.ResourceData
 import com.yeraygarcia.recipes.database.remote.RetrofitClient
 import com.yeraygarcia.recipes.database.remote.User
 import com.yeraygarcia.recipes.database.remote.Webservice
-import com.yeraygarcia.recipes.util.Debug
 import com.yeraygarcia.recipes.util.NetworkUtil
 import kotlinx.android.synthetic.main.activity_sign_in.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import timber.log.Timber
 
 class SignInActivity : AppCompatActivity() {
 
@@ -62,16 +62,16 @@ class SignInActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        Debug.d(this, "onStart(): getLastSignedInAccount()")
+        Timber.d("onStart(): getLastSignedInAccount()")
 
         val account = GoogleSignIn.getLastSignedInAccount(this)
         if (account?.isExpired == false) {
-            Debug.d(this, "onStart(): account != null && !account.isExpired()")
+            Timber.d("onStart(): account != null && !account.isExpired()")
             updateUI(account)
         } else {
-            Debug.d(this, "onStart(): account == null || account.isExpired()")
+            Timber.d("onStart(): account == null || account.isExpired()")
             setStatus(SIGNING_IN)
-            Debug.d(this, "onStart(): silentSignIn()")
+            Timber.d("onStart(): silentSignIn()")
             RetrofitClient.get(this).googleSignInClient.silentSignIn().addOnCompleteListener(this) {
                 this.handleSignInResult(it)
             }
@@ -79,7 +79,7 @@ class SignInActivity : AppCompatActivity() {
     }
 
     private fun signIn() {
-        Debug.d(this, "signIn(): show sign-in dialog")
+        Timber.d("signIn(): show sign-in dialog")
         setStatus(SIGNING_IN)
         val signInIntent = RetrofitClient.get(this).googleSignInClient.signInIntent
         startActivityForResult(signInIntent, RC_SIGN_IN)
@@ -90,14 +90,14 @@ class SignInActivity : AppCompatActivity() {
 
         // Result returned from launching the Intent from GoogleSignInClient.getSignInIntent(...);
         if (requestCode == RC_SIGN_IN) {
-            Debug.d(this, "onActivityResult(): task = getSignedInAccountFromIntent()")
+            Timber.d("onActivityResult(): task = getSignedInAccountFromIntent()")
             val task = GoogleSignIn.getSignedInAccountFromIntent(data)
             handleSignInResult(task)
         }
     }
 
     private fun handleSignInResult(completedTask: Task<GoogleSignInAccount>) {
-        Debug.d(this, "handleSignInResult(task)")
+        Timber.d("handleSignInResult(task)")
         try {
             val account = completedTask.getResult(ApiException::class.java)
             val idToken = account?.idToken
@@ -114,7 +114,7 @@ class SignInActivity : AppCompatActivity() {
                             call: Call<ResourceData<User>>,
                             response: Response<ResourceData<User>>
                         ) {
-                            Debug.d(this, Gson().toJson(response))
+                            Timber.d(Gson().toJson(response))
                             if (response.isSuccessful) {
                                 if (response.body()?.result?.username != null) {
                                     updateUI(account)
@@ -127,7 +127,7 @@ class SignInActivity : AppCompatActivity() {
                         }
 
                         override fun onFailure(call: Call<ResourceData<User>>, t: Throwable) {
-                            Debug.d(this, t.message)
+                            Timber.d(t)
                             updateUI(null, t.message)
                         }
                     })
@@ -139,14 +139,14 @@ class SignInActivity : AppCompatActivity() {
                 updateUI(null, getString(R.string.sign_in_error_empty_token))
             }
         } catch (e: ApiException) {
-            Debug.d(this, "signInResult:failed code=" + e.statusCode)
+            Timber.d("signInResult:failed code=${e.statusCode}")
             updateUI(null)
         }
 
     }
 
     private fun updateUI(account: GoogleSignInAccount?, errorMessage: String? = null) {
-        Debug.d(this, "updateUI(account, errorMessage)")
+        Timber.d("updateUI(account, errorMessage)")
         if (account != null) {
             setStatus(SIGNED_IN)
             RetrofitClient.get(this).setIdToken(account.idToken)

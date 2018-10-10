@@ -17,13 +17,13 @@ import com.yeraygarcia.recipes.R
 import com.yeraygarcia.recipes.database.entity.Recipe
 import com.yeraygarcia.recipes.database.entity.RecipeStep
 import com.yeraygarcia.recipes.database.entity.custom.UiRecipeIngredient
-import com.yeraygarcia.recipes.util.Debug
 import com.yeraygarcia.recipes.viewmodel.RecipeDetailViewModel
 import kotlinx.android.synthetic.main.item_duration_source.view.*
 import kotlinx.android.synthetic.main.item_header_generic.view.*
 import kotlinx.android.synthetic.main.item_ingredient.view.*
 import kotlinx.android.synthetic.main.item_step.view.*
 import kotlinx.android.synthetic.main.view_servings.view.*
+import timber.log.Timber
 import java.net.MalformedURLException
 import java.net.URL
 import java.util.*
@@ -207,7 +207,7 @@ class RecipeDetailAdapter(
                     itemUnit.text = currentIngredient.formattedUnit
                     itemIngredientName.text = currentIngredient.name
                 } else {
-                    Debug.d(this, "no ingredients")
+                    Timber.d("no ingredients")
                     itemIngredientName.setText(R.string.no_ingredients)
                 }
             }
@@ -231,19 +231,19 @@ class RecipeDetailAdapter(
     }
 
     fun setRecipe(recipe: Recipe?) {
-        Debug.d(this, "setRecipe(recipe)")
+        Timber.d("setRecipe(recipe)")
         this.recipe = recipe
         notifyDataSetChanged()
     }
 
     fun setSteps(steps: List<RecipeStep>) {
-        Debug.d(this, "setSteps(steps(${steps.size}))")
+        Timber.d("setSteps(steps(${steps.size}))")
         this.steps = steps
         notifyDataSetChanged()
     }
 
     fun setIngredients(ingredients: List<UiRecipeIngredient>) {
-        Debug.d(this, "setIngredients(ingredients(${ingredients.size}))")
+        Timber.d("setIngredients(ingredients(${ingredients.size}))")
         this.ingredients = ingredients
         notifyDataSetChanged()
     }

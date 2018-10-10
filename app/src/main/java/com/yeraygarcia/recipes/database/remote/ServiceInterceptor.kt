@@ -6,9 +6,9 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.tasks.Tasks
 import com.yeraygarcia.recipes.R
-import com.yeraygarcia.recipes.util.Debug
 import okhttp3.*
 import okhttp3.Request
+import timber.log.Timber
 import java.io.IOException
 import java.util.concurrent.ExecutionException
 
@@ -24,11 +24,11 @@ class ServiceInterceptor internal constructor(context: Context) : Interceptor, A
 
     @Throws(IOException::class)
     override fun intercept(chain: Interceptor.Chain): Response {
-        Debug.d(this, "intercept(chain)")
+        Timber.d("intercept(chain)")
         var request = chain.request()
 
         if (request.header("No-Authentication") == null && idToken != null) {
-            Debug.d(this, "Appending token to header")
+            Timber.d("Appending token to header")
             request = request.newBuilder()
                 .addHeader("Authorization", "Bearer $idToken")
                 .build()
@@ -38,24 +38,24 @@ class ServiceInterceptor internal constructor(context: Context) : Interceptor, A
     }
 
     override fun authenticate(route: Route, response: Response): Request? {
-        Debug.d(this, "authenticate(route, response)")
+        Timber.d("authenticate(route, response)")
 
         try {
-            Debug.d(this, "silentSignIn()")
+            Timber.d("silentSignIn()")
             val task = googleSignInClient.silentSignIn()
             val account = Tasks.await(task)
             account?.apply {
-                Debug.d("ServiceInterceptor", "account != null")
-                Debug.d("Token", idToken)
+                Timber.d("account != null")
+                Timber.d("Token = $idToken")
                 return response.request().newBuilder()
                     .addHeader("Authorization", "Bearer $idToken")
                     .build()
             }
-            Debug.d(this, "account == null")
+            Timber.d("account == null")
         } catch (e: InterruptedException) {
-            Debug.d(this, e.message)
+            Timber.d(e)
         } catch (e: ExecutionException) {
-            Debug.d(this, e.message)
+            Timber.d(e)
         }
 
         return null

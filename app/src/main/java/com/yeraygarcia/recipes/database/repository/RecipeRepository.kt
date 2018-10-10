@@ -6,17 +6,18 @@ import android.content.Context
 import com.google.gson.Gson
 import com.yeraygarcia.recipes.AppExecutors
 import com.yeraygarcia.recipes.database.AppDatabase
+import com.yeraygarcia.recipes.database.UUIDTypeConverter
 import com.yeraygarcia.recipes.database.entity.*
 import com.yeraygarcia.recipes.database.entity.Unit
 import com.yeraygarcia.recipes.database.entity.custom.All
 import com.yeraygarcia.recipes.database.entity.custom.UiRecipeIngredient
 import com.yeraygarcia.recipes.database.entity.custom.UiShoppingListItem
 import com.yeraygarcia.recipes.database.remote.*
-import com.yeraygarcia.recipes.util.Debug
 import com.yeraygarcia.recipes.util.NetworkUtil
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import timber.log.Timber
 import java.util.*
 import javax.inject.Singleton
 
@@ -37,35 +38,29 @@ class RecipeRepository(application: Application) {
     val recipes: LiveData<Resource<List<Recipe>>>
         get() = object : NetworkBoundResource<List<Recipe>, ResourceData<All>>(appExecutors) {
             override fun loadFromDb(): LiveData<List<Recipe>> {
-                Debug.d("RecipeRespository.NetworkBoundResource", "getRecipes().loadFromDb()")
+                Timber.d("getRecipes().loadFromDb()")
                 return db.recipeDao.findAll()
             }
 
             override fun shouldFetch(data: List<Recipe>?): Boolean {
-                Debug.d(
-                    "RecipeRespository.NetworkBoundResource",
-                    "getRecipes().shouldFetch(" + (if (data == null) "null" else "[" + data.size + "]") + ")"
-                )
+                Timber.d("getRecipes().shouldFetch(${data?.size ?: "null"})")
                 return (data == null || data.isEmpty() || cacheIsDirty) && canFetch()
             }
 
             override fun createCall(): LiveData<ApiResponse<ResourceData<All>>> {
-                Debug.d("RecipeRespository.NetworkBoundResource", "getRecipes().createCall()")
+                Timber.d("getRecipes().createCall()")
                 return webservice.getAll()
             }
 
             override fun saveCallResult(callResult: ResourceData<All>) {
-                Debug.d(
-                    "RecipeRespository.NetworkBoundResource",
-                    "getRecipes().saveCallResult(callResult)"
-                )
+                Timber.d("getRecipes().saveCallResult(callResult)")
                 updateAllFromResource(callResult)
             }
         }.asLiveData()
 
     val tags: LiveData<List<Tag>>
         get() {
-            Debug.d(this, "getTags()")
+            Timber.d("getTags()")
             return db.tagDao.findAll()
         }
 
@@ -121,40 +116,28 @@ class RecipeRepository(application: Application) {
     }
 
     fun getRecipesByTagId(tagIds: List<UUID>): LiveData<Resource<List<Recipe>>> {
-        Debug.d(this, "getRecipesByTagId($tagIds)")
+        Timber.d("getRecipesByTagId($tagIds)")
 
         return if (tagIds.isEmpty()) {
             recipes
         } else object : NetworkBoundResource<List<Recipe>, ResourceData<All>>(appExecutors) {
             override fun loadFromDb(): LiveData<List<Recipe>> {
-                Debug.d(
-                    "RecipeRespository.NetworkBoundResource",
-                    "getRecipesByTagId($tagIds).loadFromDb()"
-                )
+                Timber.d("getRecipesByTagId($tagIds).loadFromDb()")
                 return db.recipeTagDao.findRecipesByAllTagIds(tagIds, tagIds.size)
             }
 
             override fun shouldFetch(data: List<Recipe>?): Boolean {
-                Debug.d(
-                    "RecipeRespository.NetworkBoundResource",
-                    "getRecipesByTagId(" + tagIds + ").shouldFetch(" + (if (data == null) "null" else "[" + data.size + "]") + ")"
-                )
+                Timber.d("getRecipesByTagId($tagIds).shouldFetch(${data?.size ?: "null"})")
                 return cacheIsDirty && canFetch()
             }
 
             override fun createCall(): LiveData<ApiResponse<ResourceData<All>>> {
-                Debug.d(
-                    "RecipeRespository.NetworkBoundResource",
-                    "getRecipesByTagId($tagIds).createCall()"
-                )
+                Timber.d("getRecipesByTagId($tagIds).createCall()")
                 return webservice.getAll()
             }
 
             override fun saveCallResult(callResult: ResourceData<All>) {
-                Debug.d(
-                    "RecipeRespository.NetworkBoundResource",
-                    "getRecipesByTagId($tagIds).saveCallResult(callResult)"
-                )
+                Timber.d("getRecipesByTagId($tagIds).saveCallResult(callResult)")
                 updateAllFromResource(callResult)
             }
         }.asLiveData()
@@ -178,9 +161,10 @@ class RecipeRepository(application: Application) {
     }
 
     fun addToShoppingList(recipe: Recipe) {
-        Debug.d(this, "Adding '" + recipe.name + "' to shopping list")
+        Timber.d("Adding '${recipe.name}' to shopping list")
         appExecutors.diskIO().execute {
             val shoppingListItems = db.recipeIngredientDao.findShoppingListItemByRecipeId(recipe.id)
+            shoppingListItems.forEach { it.id = UUIDTypeConverter.newUUID() }
             db.shoppingListDao.deleteByRecipeId(recipe.id)
             db.shoppingListDao.insert(shoppingListItems)
         }
@@ -197,22 +181,23 @@ class RecipeRepository(application: Application) {
     }
 
     fun updatePortionsInShoppingList(recipe: Recipe) {
-        Debug.d(this, "Updating portions for '" + recipe.name + "' in shopping list")
+        Timber.d("Updating portions for '${recipe.name}' in shopping list")
         appExecutors.diskIO().execute {
             val recipeId = recipe.id
             val shoppingListItems = db.recipeIngredientDao.findShoppingListItemByRecipeId(recipeId)
+            shoppingListItems.forEach { it.id = UUIDTypeConverter.newUUID() }
             db.shoppingListDao.deleteByRecipeId(recipeId)
             db.shoppingListDao.insert(shoppingListItems)
         }
     }
 
     fun update(uiShoppingListItem: UiShoppingListItem) {
-        Debug.d(this, "Updating shopping list item")
+        Timber.d("Updating shopping list item")
         appExecutors.diskIO().execute {
             val shoppingListItem = db.shoppingListDao.findByIdRaw(uiShoppingListItem.id)
             if (shoppingListItem != null) {
                 shoppingListItem.completed = uiShoppingListItem.completed
-                Debug.d(this, shoppingListItem.toString())
+                Timber.d(shoppingListItem.toString())
                 db.shoppingListDao.update(shoppingListItem)
             }
         }
@@ -264,7 +249,7 @@ class RecipeRepository(application: Application) {
     }
 
     fun updateRecipeIngredient(id: UUID, ingredientName: String, quantity: Double?, unitId: UUID?) {
-        Debug.d(this, "updateRecipeIngredient(id, ingredientName, quantity, unitId)")
+        Timber.d("updateRecipeIngredient(id, ingredientName, quantity, unitId)")
         if (canFetch()) {
             appExecutors.networkIO().execute {
                 var ingredientId: UUID? = db.ingredientDao.getIngredientIdByName(ingredientName)
@@ -282,39 +267,27 @@ class RecipeRepository(application: Application) {
 
                 db.recipeIngredientDao.update(newRecipeIngredient)
 
-                Debug.d(this@RecipeRepository, "Sending request to server.")
-                Debug.d(this@RecipeRepository, newRecipeIngredient.toString())
+                Timber.d("Sending request to server.")
+                Timber.d(newRecipeIngredient.toString())
                 val call = webservice.updateRecipeIngredient(newRecipeIngredient)
                 call.enqueue(object : Callback<ResourceData<RecipeIngredient>> {
                     override fun onResponse(
                         call: Call<ResourceData<RecipeIngredient>>,
                         response: Response<ResourceData<RecipeIngredient>>
                     ) {
-                        Debug.d(
-                            this@RecipeRepository,
-                            "We got a response from the server: " + Gson().toJson(response)
-                        )
+                        Timber.d("We got a response from the server: ${Gson().toJson(response)}")
                         if (response.isSuccessful) {
-                            Debug.d(
-                                this@RecipeRepository,
-                                "Response was successful: " + response.code()
-                            )
+                            Timber.d("Response was successful: ${response.code()}")
                             val body = response.body()
                             if (body?.result != null) {
-                                Debug.d(
-                                    this@RecipeRepository,
-                                    "Body contains payload. Update database."
-                                )
+                                Timber.d("Body contains payload. Update database.")
                             } else {
-                                Debug.d(this@RecipeRepository, "Body was empty. Abort.")
+                                Timber.d("Body was empty. Abort.")
                                 appExecutors.diskIO()
                                     .execute { db.recipeIngredientDao.update(oldRecipeIngredient) }
                             }
                         } else {
-                            Debug.d(
-                                this@RecipeRepository,
-                                "Response was not successful: " + response.code() + " - " + response.errorBody()
-                            )
+                            Timber.d("Response was not successful: ${response.code()} - ${response.errorBody()}")
                             appExecutors.diskIO()
                                 .execute { db.recipeIngredientDao.update(oldRecipeIngredient) }
                         }
@@ -324,7 +297,7 @@ class RecipeRepository(application: Application) {
                         call: Call<ResourceData<RecipeIngredient>>,
                         t: Throwable
                     ) {
-                        Debug.d(this@RecipeRepository, "Call failed: " + t.message)
+                        Timber.d("Call failed: ${t.message}")
                         appExecutors.diskIO()
                             .execute { db.recipeIngredientDao.update(oldRecipeIngredient) }
                     }
