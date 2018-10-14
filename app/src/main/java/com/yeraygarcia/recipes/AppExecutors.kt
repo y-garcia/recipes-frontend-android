@@ -46,16 +46,16 @@ open class AppExecutors(
         MainThreadExecutor()
     )
 
-    fun diskIO(): Executor {
-        return diskIO
+    fun diskIO(command: () -> Unit) {
+        diskIO.execute(command)
     }
 
-    fun networkIO(): Executor {
-        return networkIO
+    fun networkIO(command: () -> Unit) {
+        return networkIO.execute(command)
     }
 
-    fun mainThread(): Executor {
-        return mainThread
+    fun mainThread(command: () -> Unit) {
+        return mainThread.execute(command)
     }
 
     private class MainThreadExecutor : Executor {

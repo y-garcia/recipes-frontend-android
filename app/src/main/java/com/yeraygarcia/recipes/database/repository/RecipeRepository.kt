@@ -3,20 +3,15 @@ package com.yeraygarcia.recipes.database.repository
 import android.app.Application
 import android.arch.lifecycle.LiveData
 import android.content.Context
-import com.google.gson.Gson
 import com.yeraygarcia.recipes.AppExecutors
 import com.yeraygarcia.recipes.database.AppDatabase
 import com.yeraygarcia.recipes.database.UUIDTypeConverter
 import com.yeraygarcia.recipes.database.entity.*
 import com.yeraygarcia.recipes.database.entity.Unit
 import com.yeraygarcia.recipes.database.entity.custom.All
-import com.yeraygarcia.recipes.database.entity.custom.UiRecipeIngredient
 import com.yeraygarcia.recipes.database.entity.custom.UiShoppingListItem
 import com.yeraygarcia.recipes.database.remote.*
 import com.yeraygarcia.recipes.util.NetworkUtil
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import timber.log.Timber
 import java.util.*
 import javax.inject.Singleton
@@ -145,16 +140,16 @@ class RecipeRepository(application: Application) {
     }
 
     fun update(recipe: Recipe) {
-        appExecutors.diskIO().execute { db.recipeDao.update(recipe) }
+        appExecutors.diskIO { db.recipeDao.update(recipe) }
     }
 
     fun logTagUsage(tagId: UUID) {
         val tagUsage = TagUsage(tagId = tagId)
-        appExecutors.diskIO().execute { db.tagUsageDao.insert(tagUsage) }
+        appExecutors.diskIO { db.tagUsageDao.insert(tagUsage) }
     }
 
     fun updateTagUsage() {
-        appExecutors.diskIO().execute {
+        appExecutors.diskIO {
             val tags = db.tagUsageDao.tagsWithUpdatedUsage
             db.tagDao.update(tags)
         }
@@ -162,7 +157,7 @@ class RecipeRepository(application: Application) {
 
     fun addToShoppingList(recipe: Recipe) {
         Timber.d("Adding '${recipe.name}' to shopping list")
-        appExecutors.diskIO().execute {
+        appExecutors.diskIO {
             val shoppingListItems = db.recipeIngredientDao.findShoppingListItemByRecipeId(recipe.id)
             shoppingListItems.forEach { it.id = UUIDTypeConverter.newUUID() }
             db.shoppingListDao.deleteByRecipeId(recipe.id)
@@ -171,18 +166,18 @@ class RecipeRepository(application: Application) {
     }
 
     fun removeFromShoppingList(recipe: Recipe) {
-        appExecutors.diskIO().execute { db.shoppingListDao.deleteByRecipeId(recipe.id) }
+        appExecutors.diskIO { db.shoppingListDao.deleteByRecipeId(recipe.id) }
     }
 
     fun removeFromShoppingList(shoppingListItem: UiShoppingListItem) {
-        appExecutors.diskIO().execute {
+        appExecutors.diskIO {
             db.shoppingListDao.deleteById(shoppingListItem.id)
         }
     }
 
     fun updatePortionsInShoppingList(recipe: Recipe) {
         Timber.d("Updating portions for '${recipe.name}' in shopping list")
-        appExecutors.diskIO().execute {
+        appExecutors.diskIO {
             val recipeId = recipe.id
             val shoppingListItems = db.recipeIngredientDao.findShoppingListItemByRecipeId(recipeId)
             shoppingListItems.forEach { it.id = UUIDTypeConverter.newUUID() }
@@ -193,7 +188,7 @@ class RecipeRepository(application: Application) {
 
     fun update(uiShoppingListItem: UiShoppingListItem) {
         Timber.d("Updating shopping list item")
-        appExecutors.diskIO().execute {
+        appExecutors.diskIO {
             val shoppingListItem = db.shoppingListDao.findByIdRaw(uiShoppingListItem.id)
             if (shoppingListItem != null) {
                 shoppingListItem.completed = uiShoppingListItem.completed
@@ -204,7 +199,7 @@ class RecipeRepository(application: Application) {
     }
 
     fun deleteAll() {
-        appExecutors.diskIO().execute {
+        appExecutors.diskIO {
             db.tagUsageDao.deleteAll()
             db.recipeTagDao.deleteAll()
             db.recipeStepDao.deleteAll()
@@ -218,11 +213,11 @@ class RecipeRepository(application: Application) {
     }
 
     fun addToShoppingList(item: ShoppingListItem) {
-        appExecutors.diskIO().execute { db.shoppingListDao.insert(item) }
+        appExecutors.diskIO { db.shoppingListDao.insert(item) }
     }
 
     fun clearCompletedFromShoppingList() {
-        appExecutors.diskIO().execute {
+        appExecutors.diskIO {
             db.shoppingListDao.hideCompletedRecipeItems()
             db.shoppingListDao.deleteCompletedOrphanItems()
         }
@@ -233,75 +228,13 @@ class RecipeRepository(application: Application) {
     }
 
     fun updateShoppingListItem(id: UUID, ingredient: String, quantity: Double?, unitId: UUID?) {
-        appExecutors.diskIO().execute {
+        appExecutors.diskIO {
             val shoppingListItem = db.shoppingListDao.findByIdRaw(id)
             shoppingListItem?.let {
                 it.name = ingredient
                 it.quantity = quantity
                 it.unitId = unitId
                 db.shoppingListDao.update(it)
-            }
-        }
-    }
-
-    fun getUiRecipeIngredient(id: UUID): LiveData<UiRecipeIngredient> {
-        return db.recipeIngredientDao.findById(id)
-    }
-
-    fun updateRecipeIngredient(id: UUID, ingredientName: String, quantity: Double?, unitId: UUID?) {
-        Timber.d("updateRecipeIngredient(id, ingredientName, quantity, unitId)")
-        if (canFetch()) {
-            appExecutors.networkIO().execute {
-                var ingredientId: UUID? = db.ingredientDao.getIngredientIdByName(ingredientName)
-                if (ingredientId == null) {
-                    val ingredient = Ingredient(name = ingredientName)
-                    ingredientId = ingredient.id
-                    db.ingredientDao.insert(ingredient)
-                }
-                val oldRecipeIngredient = db.recipeIngredientDao.findByIdRaw(id)
-                val newRecipeIngredient = db.recipeIngredientDao.findByIdRaw(id)
-
-                newRecipeIngredient.ingredientId = ingredientId
-                newRecipeIngredient.quantity = quantity
-                newRecipeIngredient.unitId = unitId
-
-                db.recipeIngredientDao.update(newRecipeIngredient)
-
-                Timber.d("Sending request to server.")
-                Timber.d(newRecipeIngredient.toString())
-                val call = webservice.updateRecipeIngredient(newRecipeIngredient)
-                call.enqueue(object : Callback<ResourceData<RecipeIngredient>> {
-                    override fun onResponse(
-                        call: Call<ResourceData<RecipeIngredient>>,
-                        response: Response<ResourceData<RecipeIngredient>>
-                    ) {
-                        Timber.d("We got a response from the server: ${Gson().toJson(response)}")
-                        if (response.isSuccessful) {
-                            Timber.d("Response was successful: ${response.code()}")
-                            val body = response.body()
-                            if (body?.result != null) {
-                                Timber.d("Body contains payload. Update database.")
-                            } else {
-                                Timber.d("Body was empty. Abort.")
-                                appExecutors.diskIO()
-                                    .execute { db.recipeIngredientDao.update(oldRecipeIngredient) }
-                            }
-                        } else {
-                            Timber.d("Response was not successful: ${response.code()} - ${response.errorBody()}")
-                            appExecutors.diskIO()
-                                .execute { db.recipeIngredientDao.update(oldRecipeIngredient) }
-                        }
-                    }
-
-                    override fun onFailure(
-                        call: Call<ResourceData<RecipeIngredient>>,
-                        t: Throwable
-                    ) {
-                        Timber.d("Call failed: ${t.message}")
-                        appExecutors.diskIO()
-                            .execute { db.recipeIngredientDao.update(oldRecipeIngredient) }
-                    }
-                })
             }
         }
     }

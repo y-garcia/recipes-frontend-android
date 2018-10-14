@@ -14,10 +14,10 @@ import kotlinx.android.synthetic.main.item_tag_chip.view.*
 import timber.log.Timber
 import java.util.*
 
-class TagAdapter(parent: FragmentActivity) : RecyclerView.Adapter<TagAdapter.TagViewHolder>() {
+class TagAdapter(activity: FragmentActivity) : RecyclerView.Adapter<TagAdapter.TagViewHolder>() {
 
-    private val inflater = LayoutInflater.from(parent)
-    private val viewModel = ViewModelProviders.of(parent).get(RecipeViewModel::class.java)
+    private val inflater = LayoutInflater.from(activity)
+    private val viewModel = ViewModelProviders.of(activity).get(RecipeViewModel::class.java)
 
     var tags: List<Tag> = ArrayList()
         set(value) {

@@ -21,10 +21,6 @@ data class Recipe(
     val durationInMinutes: Long
         get() = TimeUnit.SECONDS.toMinutes(duration?.toLong() ?: 0)
 
-    override fun toString(): String {
-        return "\n[Recipe: $name, Portions: $portions, Duration: $durationInMinutes minutes, Source: $url]"
-    }
-
     fun increasePortions() {
         portions += 1
     }

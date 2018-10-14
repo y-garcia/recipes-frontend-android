@@ -12,14 +12,14 @@ import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.EditText
 import android.widget.Toast
-import com.yeraygarcia.recipes.viewmodel.RecipeViewModel
+import com.yeraygarcia.recipes.viewmodel.RecipeDetailViewModel
 import kotlinx.android.synthetic.main.dialog_edit_shopping_list_item.view.*
 import java.util.*
 
 class EditIngredientDialog : DialogFragment() {
 
     private lateinit var ingredientId: UUID
-    private lateinit var viewModel: RecipeViewModel
+    private lateinit var viewModel: RecipeDetailViewModel
     private var portions: Int = 0
 
     @SuppressLint("InflateParams")
@@ -48,7 +48,7 @@ class EditIngredientDialog : DialogFragment() {
         unitEditText.setAdapter(unitAdapter)
 
         // setup view model
-        viewModel = ViewModelProviders.of(activity).get(RecipeViewModel::class.java)
+        viewModel = ViewModelProviders.of(activity).get(RecipeDetailViewModel::class.java)
         viewModel.getIngredient(ingredientId).observe(activity, Observer { ingredient ->
             ingredient?.let {
                 ingredientEditText.setText(it.name)

@@ -32,17 +32,10 @@ import timber.log.Timber
 import java.util.*
 
 
-class EditRecipeAdapter(val parent: FragmentActivity, val viewModel: RecipeDetailViewModel) :
+class EditRecipeAdapter(val activity: FragmentActivity, val viewModel: RecipeDetailViewModel) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-    private val viewTypeDuration = 1
-    private val viewTypeSource = 2
-    private val viewTypeIngredientHeader = 3
-    private val viewTypeStepsHeader = 4
-    private val viewTypeIngredient = 5
-    private val viewTypeStep = 6
-
-    private val inflater = LayoutInflater.from(parent)
+    private val inflater = LayoutInflater.from(activity)
 
     var recipe: Recipe? = null
         set(value) {
@@ -83,28 +76,20 @@ class EditRecipeAdapter(val parent: FragmentActivity, val viewModel: RecipeDetai
 
     internal inner class DurationViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
-        val itemDuration: EditText = itemView.edittext_duration
-
-        init {
-            itemDuration.onChange { viewModel.saveDurationToDraft(it, recipe) }
+        val itemDuration: EditText = itemView.edittext_duration.apply {
+            onChange { viewModel.saveDurationToDraft(it, recipe) }
         }
     }
 
     internal inner class SourceViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-
-        val itemSource: EditText = itemView.edittext_source
-
-        init {
-            itemSource.onChange { viewModel.saveSourceToDraft(it, recipe) }
+        val itemSource: EditText = itemView.edittext_source.apply {
+            onChange { viewModel.saveSourceToDraft(it, recipe) }
         }
     }
 
     internal inner class IngredientsViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-
-        val itemIngredientName: TextView = itemView.textview_ingredient_name
-
-        init {
-            itemIngredientName.setOnClickListener {
+        val itemIngredientName: TextView = itemView.textview_ingredient_name.apply {
+            setOnClickListener {
                 val ingredient = ingredients[getIngredientPosition(adapterPosition)]
                 showEditIngredientDialog(ingredient.id)
             }
@@ -113,20 +98,17 @@ class EditRecipeAdapter(val parent: FragmentActivity, val viewModel: RecipeDetai
 
     internal inner class IngredientsHeaderViewHolder(itemView: View) :
         RecyclerView.ViewHolder(itemView) {
-
-        val itemDecrease: ImageView = itemView.imageview_decrease_servings
         val itemServings: TextView = itemView.textview_servings
-        private val itemIncrease: ImageView = itemView.imageview_increase_servings
-
-        init {
-            itemDecrease.setOnClickListener {
+        val itemDecrease: ImageView = itemView.imageview_decrease_servings.apply {
+            setOnClickListener {
                 recipe?.let { recipe ->
                     recipe.decreasePortions()
                     viewModel.update(recipe)
                 }
             }
-
-            itemIncrease.setOnClickListener {
+        }
+        val itemIncrease: ImageView = itemView.imageview_increase_servings.apply {
+            setOnClickListener {
                 recipe?.let { recipe ->
                     recipe.increasePortions()
                     viewModel.update(recipe)
@@ -141,13 +123,8 @@ class EditRecipeAdapter(val parent: FragmentActivity, val viewModel: RecipeDetai
 
     internal inner class StepsViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val itemStepNumber: TextView = itemView.textview_step_number
-        val itemStepDescription: TextView = itemView.textview_step_description
-
-        init {
-            itemStepDescription.setOnClickListener {
-                val step = steps[getStepPosition(adapterPosition)]
-                showEditStepDialog(step.id)
-            }
+        val itemStepDescription: TextView = itemView.textview_step_description.apply {
+            setOnClickListener { showEditStepDialog(getStepAt(adapterPosition).id) }
         }
     }
 
@@ -156,46 +133,41 @@ class EditRecipeAdapter(val parent: FragmentActivity, val viewModel: RecipeDetai
         val ingredientsCount = maxOf(ingredients.size, 1)
 
         return when {
-            position == 0 -> viewTypeDuration
-            position == 1 -> viewTypeSource
-            position == 2 -> viewTypeIngredientHeader
-            position < ingredientsCount + 3 -> viewTypeIngredient
-            position == ingredientsCount + 3 -> viewTypeStepsHeader
-            else -> viewTypeStep
+            position == 0 -> VIEW_TYPE_DURATION
+            position == 1 -> VIEW_TYPE_SOURCE
+            position == 2 -> VIEW_TYPE_INGREDIENTS_HEADER
+            position < ingredientsCount + 3 -> VIEW_TYPE_INGREDIENT
+            position == ingredientsCount + 3 -> VIEW_TYPE_STEPS_HEADER
+            else -> VIEW_TYPE_STEP
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return when (viewType) {
-            viewTypeIngredientHeader -> {
-                val view = inflater.inflate(R.layout.item_header_ingredients, parent, false)
-                IngredientsHeaderViewHolder(view)
-            }
+            VIEW_TYPE_INGREDIENTS_HEADER -> IngredientsHeaderViewHolder(
+                inflater.inflate(R.layout.item_header_ingredients, parent, false)
+            )
 
-            viewTypeStepsHeader -> {
-                val view = inflater.inflate(R.layout.item_header_generic, parent, false)
-                HeaderViewHolder(view)
-            }
+            VIEW_TYPE_STEPS_HEADER -> HeaderViewHolder(
+                inflater.inflate(R.layout.item_header_generic, parent, false)
+            )
 
-            viewTypeDuration -> {
-                val view = inflater.inflate(R.layout.item_edit_duration, parent, false)
-                DurationViewHolder(view)
-            }
 
-            viewTypeSource -> {
-                val view = inflater.inflate(R.layout.item_edit_source, parent, false)
-                SourceViewHolder(view)
-            }
+            VIEW_TYPE_DURATION -> DurationViewHolder(
+                inflater.inflate(R.layout.item_edit_duration, parent, false)
+            )
 
-            viewTypeIngredient -> {
-                val view = inflater.inflate(R.layout.item_edit_ingredient, parent, false)
-                IngredientsViewHolder(view)
-            }
+            VIEW_TYPE_SOURCE -> SourceViewHolder(
+                inflater.inflate(R.layout.item_edit_source, parent, false)
+            )
 
-            else -> {
-                val view = inflater.inflate(R.layout.item_edit_step, parent, false)
-                StepsViewHolder(view)
-            }
+            VIEW_TYPE_INGREDIENT -> IngredientsViewHolder(
+                inflater.inflate(R.layout.item_edit_ingredient, parent, false)
+            )
+
+            else -> StepsViewHolder(
+                inflater.inflate(R.layout.item_edit_step, parent, false)
+            )
         }
     }
 
@@ -207,7 +179,8 @@ class EditRecipeAdapter(val parent: FragmentActivity, val viewModel: RecipeDetai
     }
 
     private fun calculateItemCount() {
-        itemCount = (if (recipe != null) 4 else 0) + maxOf(ingredients.size, 1) +
+        itemCount = (if (recipe != null) 4 else 0) +
+                maxOf(ingredients.size, 1) +
                 maxOf(steps.size, 1)
     }
 
@@ -215,46 +188,44 @@ class EditRecipeAdapter(val parent: FragmentActivity, val viewModel: RecipeDetai
 
         when (holder.itemViewType) {
 
-            viewTypeIngredientHeader -> if (recipe != null) {
-                val portions = String.format(Locale.getDefault(), "%d", recipe?.portions)
-                (holder as IngredientsHeaderViewHolder).itemServings.text = portions
-
-                val decreaseVisibility = if (recipe?.portions!! > 1) View.VISIBLE else View.GONE
-                holder.itemDecrease.visibility = decreaseVisibility
+            VIEW_TYPE_INGREDIENTS_HEADER -> (holder as IngredientsHeaderViewHolder).apply {
+                recipe?.apply {
+                    itemServings.text = String.format(Locale.getDefault(), "%d", portions)
+                    itemDecrease.visibility = if (portions > 1) View.VISIBLE else View.GONE
+                }
             }
 
-            viewTypeStepsHeader -> (holder as HeaderViewHolder).itemTitle.setText(R.string.header_steps)
+            VIEW_TYPE_STEPS_HEADER -> (holder as HeaderViewHolder).itemTitle.setText(R.string.header_steps)
 
-            viewTypeDuration -> recipe?.let {
+            VIEW_TYPE_DURATION -> recipe?.let { it ->
                 val recipe = viewModel.recipeDraft ?: it
                 val duration = formatDuration(recipe.durationInMinutes)
                 (holder as DurationViewHolder).itemDuration.setText(duration)
             }
 
-            viewTypeSource -> (holder as SourceViewHolder).itemSource.setText(recipe?.url)
+            VIEW_TYPE_SOURCE -> (holder as SourceViewHolder).itemSource.setText(recipe?.url)
 
-            viewTypeIngredient -> {
-                val viewHolder = holder as IngredientsViewHolder
+            VIEW_TYPE_INGREDIENT -> (holder as IngredientsViewHolder).apply {
                 if (ingredients.isNotEmpty()) {
-                    val ingredient = ingredients[getIngredientPosition(position)]
-                    viewHolder.itemIngredientName.text =
-                            makeBold(ingredient.formattedQuantityAndUnit, ingredient.toString())
+                    getIngredientAt(position).apply {
+                        itemIngredientName.text = makeBold(formattedQuantityAndUnit, toString())
+                    }
                 } else {
-                    Timber.d("no ingredients")
+                    Timber.d("No ingredients")
                     // Covers the case of data not being ready yet.
-                    viewHolder.itemIngredientName.setText(R.string.no_ingredients)
+                    itemIngredientName.setText(R.string.no_ingredients)
                 }
             }
 
-            else -> {
-                val viewHolder = holder as StepsViewHolder
+            else -> (holder as StepsViewHolder).apply {
                 if (steps.isNotEmpty()) {
-                    val currentStep = steps[getStepPosition(position)]
-                    viewHolder.itemStepNumber.text = formatSortOrder(currentStep.sortOrder)
-                    viewHolder.itemStepDescription.text = currentStep.description
+                    getStepAt(position).apply {
+                        itemStepNumber.text = formatSortOrder(sortOrder)
+                        itemStepDescription.text = description
+                    }
                 } else {
                     // Covers the case of data not being ready yet.
-                    viewHolder.itemStepDescription.setText(R.string.no_steps)
+                    itemStepDescription.setText(R.string.no_steps)
                 }
             }
         }
@@ -273,17 +244,25 @@ class EditRecipeAdapter(val parent: FragmentActivity, val viewModel: RecipeDetai
     }
 
     private fun getStepPosition(position: Int): Int {
-        return maxOf(position - ingredients.size - 4, 0)
+        return maxOf(position - maxOf(ingredients.size, 1) - 4, 0)
+    }
+
+    private fun getIngredientAt(position: Int): UiRecipeIngredient {
+        return ingredients[getIngredientPosition(position)]
+    }
+
+    private fun getStepAt(position: Int): RecipeStep {
+        return steps[getStepPosition(position)]
     }
 
     private fun showEditIngredientDialog(ingredientId: UUID) {
         EditIngredientDialog.newInstance(ingredientId)
-            .show(parent.supportFragmentManager, TAG_DIALOG_EDIT_INGREDIENT)
+            .show(activity.supportFragmentManager, TAG_DIALOG_EDIT_INGREDIENT)
     }
 
     private fun showEditStepDialog(stepId: UUID) {
         EditStepDialog.newInstance(stepId)
-            .show(parent.supportFragmentManager, TAG_DIALOG_EDIT_INGREDIENT)
+            .show(activity.supportFragmentManager, TAG_DIALOG_EDIT_INGREDIENT)
     }
 
     private fun formatSortOrder(sortOrder: Int): String {
@@ -292,5 +271,14 @@ class EditRecipeAdapter(val parent: FragmentActivity, val viewModel: RecipeDetai
 
     private fun formatDuration(duration: Long): String {
         return String.format(Locale.getDefault(), "%d", duration)
+    }
+    
+    companion object {
+        private const val VIEW_TYPE_DURATION = 1
+        private const val VIEW_TYPE_SOURCE = 2
+        private const val VIEW_TYPE_INGREDIENTS_HEADER = 3
+        private const val VIEW_TYPE_STEPS_HEADER = 4
+        private const val VIEW_TYPE_INGREDIENT = 5
+        private const val VIEW_TYPE_STEP = 6
     }
 }

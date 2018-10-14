@@ -50,7 +50,7 @@ abstract class AppDatabase : RoomDatabase() {
                     .addCallback(object : Callback() {
                         override fun onCreate(db: SupportSQLiteDatabase) {
                             super.onCreate(db)
-                            AppExecutors().diskIO().execute {
+                            AppExecutors().diskIO {
                                 getDatabase(context).lastUpdateDao.upsert(LastUpdate(0L))
                             }
                         }

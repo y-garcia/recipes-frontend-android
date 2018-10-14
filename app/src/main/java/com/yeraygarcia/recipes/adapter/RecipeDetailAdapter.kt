@@ -202,12 +202,13 @@ class RecipeDetailAdapter(
             VIEWTYPE_INGREDIENT -> (holder as IngredientsViewHolder).apply {
                 itemView.isSelected = selectedIngredient == position
                 if (ingredients.isNotEmpty()) {
-                    val currentIngredient = ingredients[position - 2]
-                    itemQuantity.text = currentIngredient.formattedQuantity
-                    itemUnit.text = currentIngredient.formattedUnit
-                    itemIngredientName.text = currentIngredient.name
+                    getIngredientAt(position).apply {
+                        itemQuantity.text = formattedQuantity
+                        itemUnit.text = formattedUnit
+                        itemIngredientName.text = name
+                    }
                 } else {
-                    Timber.d("no ingredients")
+                    Timber.d("No ingredients")
                     itemIngredientName.setText(R.string.no_ingredients)
                 }
             }
@@ -215,10 +216,12 @@ class RecipeDetailAdapter(
             else -> (holder as StepsViewHolder).apply {
                 itemView.isSelected = selectedStep == position
                 if (steps.isNotEmpty()) {
-                    val currentStep = steps[position - ingredients.size - 3]
-                    itemStepNumber.text = formatSortOrder(currentStep.sortOrder)
-                    itemStepDescription.text = currentStep.description
+                    getStepAt(position).apply {
+                        itemStepNumber.text = formatSortOrder(sortOrder)
+                        itemStepDescription.text = description
+                    }
                 } else {
+                    Timber.d("No steps")
                     itemStepDescription.setText(R.string.no_steps)
                 }
             }
@@ -230,20 +233,36 @@ class RecipeDetailAdapter(
 
     }
 
+    private fun getIngredientPosition(position: Int): Int {
+        return maxOf(position - 2, 0)
+    }
+
+    private fun getStepPosition(position: Int): Int {
+        return maxOf(position - maxOf(ingredients.size, 1) - 3, 0)
+    }
+
+    private fun getIngredientAt(position: Int): UiRecipeIngredient {
+        return ingredients[getIngredientPosition(position)]
+    }
+
+    private fun getStepAt(position: Int): RecipeStep {
+        return steps[getStepPosition(position)]
+    }
+
     fun setRecipe(recipe: Recipe?) {
-        Timber.d("setRecipe(recipe)")
+        Timber.d("setRecipe($recipe)")
         this.recipe = recipe
         notifyDataSetChanged()
     }
 
     fun setSteps(steps: List<RecipeStep>) {
-        Timber.d("setSteps(steps(${steps.size}))")
+        Timber.d("setSteps(steps($steps}))")
         this.steps = steps
         notifyDataSetChanged()
     }
 
     fun setIngredients(ingredients: List<UiRecipeIngredient>) {
-        Timber.d("setIngredients(ingredients(${ingredients.size}))")
+        Timber.d("setIngredients(ingredients($ingredients))")
         this.ingredients = ingredients
         notifyDataSetChanged()
     }

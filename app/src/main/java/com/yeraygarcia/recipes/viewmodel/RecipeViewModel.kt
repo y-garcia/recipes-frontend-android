@@ -5,62 +5,55 @@ import android.arch.lifecycle.AndroidViewModel
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.Transformations
-import android.util.LongSparseArray
 import com.yeraygarcia.recipes.database.entity.Recipe
 import com.yeraygarcia.recipes.database.entity.ShoppingListItem
 import com.yeraygarcia.recipes.database.entity.Tag
-import com.yeraygarcia.recipes.database.entity.Unit
-import com.yeraygarcia.recipes.database.entity.custom.UiRecipeIngredient
 import com.yeraygarcia.recipes.database.entity.custom.UiShoppingListItem
 import com.yeraygarcia.recipes.database.remote.Resource
 import com.yeraygarcia.recipes.database.repository.RecipeRepository
 import timber.log.Timber
 import java.util.*
 import java.util.regex.Pattern
+import kotlin.collections.ArrayList
 
 class RecipeViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = RecipeRepository(application)
 
-    private val mTagFilter = MutableLiveData<List<UUID>>()
-    private val mRecipes =
-        Transformations.switchMap(mTagFilter) { tagIds -> repository.getRecipesByTagId(tagIds) }
-    private val mTags: LiveData<List<Tag>>
-    val recipeIdsInShoppingList: LiveData<List<UUID>>
-    val recipesInShoppingList: LiveData<List<Recipe>>
-    val shoppingListItems: LiveData<List<UiShoppingListItem>>
-    val units: LiveData<List<Unit>>
+    val recipeIdsInShoppingList = repository.recipeIdsInShoppingList
+    val recipesInShoppingList = repository.recipesInShoppingList
+    val shoppingListItems = repository.shoppingListItems
+    val units = repository.units
+    val unitsAndIngredientNames = repository.unitsAndIngredientNames
+    val ingredientNames = repository.ingredientNames
+    val unitNames = repository.unitNames
 
-    private val mShoppingListItemsDraft = MutableLiveData<LongSparseArray<UiShoppingListItem>>()
-    private var mShoppingListItem: LiveData<UiShoppingListItem>? = null
-    val unitsAndIngredientNames: LiveData<List<String>>
-    val ingredientNames: LiveData<List<String>>
-    val unitNames: LiveData<List<String>>
-    private var mRecipeIngredient: LiveData<UiRecipeIngredient>? = null
+    private lateinit var shoppingListItem: LiveData<UiShoppingListItem>
 
-    val recipes: LiveData<Resource<List<Recipe>>>
-        get() {
-            Timber.d("getRecipes()")
-            return mRecipes
-        }
-
-    val tags: LiveData<List<Tag>>
-        get() {
-            Timber.d("getTags()")
-            return mTags
-        }
-
-    val tagFilter: MutableLiveData<List<UUID>>
+    val tagFilter = MutableLiveData<List<UUID>>().apply { value = ArrayList() }
         get() {
             Timber.d("getTagFilter()")
-            return mTagFilter
+            return field
+        }
+
+    val recipes: LiveData<Resource<List<Recipe>>> =
+        Transformations.switchMap(tagFilter) { tagIds -> repository.getRecipesByTagId(tagIds) }
+        get() {
+            Timber.d("getRecipes()")
+            return field
+        }
+
+    val tags = repository.tags
+        get() {
+            Timber.d("getTags()")
+            return field
         }
 
     val tagFilterAsArray: ArrayList<String>
         get() {
             Timber.d("getTagFilterAsArray()")
 
-            val tagFilter = mTagFilter.value ?: return ArrayList()
+            val tagFilter = tagFilter.value ?: return ArrayList()
 
             val result = ArrayList<String>(tagFilter.size)
             for (uuid in tagFilter) {
@@ -88,42 +81,26 @@ class RecipeViewModel(application: Application) : AndroidViewModel(application) 
             return regex.toString()
         }
 
-    init {
-        Timber.d("RecipeViewModel(application)")
-
-        mTags = repository.tags
-        mTagFilter.value = ArrayList()
-
-        recipeIdsInShoppingList = repository.recipeIdsInShoppingList
-        recipesInShoppingList = repository.recipesInShoppingList
-        shoppingListItems = repository.shoppingListItems
-        mShoppingListItemsDraft.value = LongSparseArray()
-        units = repository.units
-        unitsAndIngredientNames = repository.unitsAndIngredientNames
-        ingredientNames = repository.ingredientNames
-        unitNames = repository.unitNames
-    }
-
     fun addTagToFilter(tag: Tag) {
         Timber.d("addTagToFilter(${tag.id})")
-        val newTags = mTagFilter.value as MutableList<UUID>? ?: ArrayList()
+        val newTags = tagFilter.value as MutableList<UUID>? ?: ArrayList()
         newTags.add(tag.id)
-        mTagFilter.value = newTags
+        tagFilter.value = newTags
         repository.logTagUsage(tag.id)
     }
 
     fun removeTagFromFilter(tag: Tag) {
         Timber.d("removeTagFromFilter(${tag.id})")
-        val newTags = mTagFilter.value as MutableList<UUID>? ?: ArrayList()
+        val newTags = tagFilter.value as MutableList<UUID>? ?: ArrayList()
         newTags.remove(tag.id)
-        mTagFilter.value = newTags
+        tagFilter.value = newTags
     }
 
     fun setTagFilter(tag: Tag) {
         Timber.d("setSelectedTagIds(tag)")
         val tagFilterList = ArrayList<UUID>()
         tagFilterList.add(tag.id)
-        mTagFilter.value = tagFilterList
+        tagFilter.value = tagFilterList
         repository.logTagUsage(tag.id)
     }
 
@@ -134,7 +111,7 @@ class RecipeViewModel(application: Application) : AndroidViewModel(application) 
             for (uuidString in tagFilter) {
                 uuids.add(UUID.fromString(uuidString))
             }
-            mTagFilter.value = uuids
+            this.tagFilter.value = uuids
         }
     }
 
@@ -176,14 +153,14 @@ class RecipeViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     private fun clearTagFilter() {
-        mTagFilter.value = mutableListOf()
+        tagFilter.value = mutableListOf()
     }
 
     private fun forceRefresh() {
         // TODO this is a hack :-(
-        val tagFilterCopy = mTagFilter.value
+        val tagFilterCopy = tagFilter.value
         clearTagFilter()
-        mTagFilter.value = tagFilterCopy
+        tagFilter.value = tagFilterCopy
     }
 
     fun addItemToShoppingList(newItem: String?) {
@@ -250,29 +227,13 @@ class RecipeViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun getShoppingListItem(id: UUID): LiveData<UiShoppingListItem> {
-        if (mShoppingListItem == null || mShoppingListItem!!.value != null && mShoppingListItem!!.value!!.id !== id) {
-            mShoppingListItem = repository.getShoppingListItemById(id)
+        if (!::shoppingListItem.isInitialized || shoppingListItem.value?.id !== id) {
+            shoppingListItem = repository.getShoppingListItemById(id)
         }
-        return mShoppingListItem as LiveData<UiShoppingListItem>
+        return shoppingListItem
     }
 
     fun updateShoppingListItem(id: UUID, ingredient: String, quantity: Double?, unitId: UUID?) {
         repository.updateShoppingListItem(id, ingredient, quantity, unitId)
-    }
-
-    fun getIngredient(id: UUID): LiveData<UiRecipeIngredient> {
-        if (mRecipeIngredient == null || mRecipeIngredient!!.value != null && mRecipeIngredient!!.value!!.id !== id) {
-            mRecipeIngredient = repository.getUiRecipeIngredient(id)
-        }
-        return mRecipeIngredient as LiveData<UiRecipeIngredient>
-    }
-
-    fun updateRecipeIngredient(
-        id: UUID,
-        ingredientName: String,
-        quantity: Double?,
-        unitId: UUID?
-    ) {
-        repository.updateRecipeIngredient(id, ingredientName, quantity, unitId)
     }
 }

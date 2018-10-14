@@ -9,12 +9,12 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.common.SignInButton
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.tasks.Task
-import com.google.gson.Gson
 import com.yeraygarcia.recipes.database.remote.ResourceData
 import com.yeraygarcia.recipes.database.remote.RetrofitClient
 import com.yeraygarcia.recipes.database.remote.User
 import com.yeraygarcia.recipes.database.remote.Webservice
 import com.yeraygarcia.recipes.util.NetworkUtil
+import com.yeraygarcia.recipes.util.toJson
 import kotlinx.android.synthetic.main.activity_sign_in.*
 import retrofit2.Call
 import retrofit2.Callback
@@ -114,7 +114,7 @@ class SignInActivity : AppCompatActivity() {
                             call: Call<ResourceData<User>>,
                             response: Response<ResourceData<User>>
                         ) {
-                            Timber.d(Gson().toJson(response))
+                            Timber.d(response.toJson())
                             if (response.isSuccessful) {
                                 if (response.body()?.result?.username != null) {
                                     updateUI(account)

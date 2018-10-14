@@ -33,7 +33,7 @@ class ShoppingListFragment : Fragment() {
 
         activity?.let { activity ->
 
-            viewModel = ViewModelProviders.of(this).get(RecipeViewModel::class.java)
+            viewModel = ViewModelProviders.of(activity).get(RecipeViewModel::class.java)
 
             val newItemAdapter = ArrayAdapter(
                 activity,
@@ -58,16 +58,16 @@ class ShoppingListFragment : Fragment() {
                 adapter = shoppingListAdapter
             }
 
-            viewModel.shoppingListItems.observe(this, Observer {
+            viewModel.shoppingListItems.observe(activity, Observer {
                 shoppingListAdapter.shoppingListItems = it ?: emptyList()
             })
-            viewModel.units.observe(this, Observer {
+            viewModel.units.observe(activity, Observer {
                 /* RecipeViewModel.getUnits() needs to be observed in order to fill RecipeViewModel.mUnits
                  * which is used in RecipeViewModel.getUnitIdByName()
                  * which is used in RecipeViewModel.addItemToShoppingList
                  * which is used further up */
             })
-            viewModel.unitsAndIngredientNames.observe(this, Observer {
+            viewModel.unitsAndIngredientNames.observe(activity, Observer {
                 newItemAdapter.clear()
                 newItemAdapter.addAll(it ?: mutableListOf())
             })

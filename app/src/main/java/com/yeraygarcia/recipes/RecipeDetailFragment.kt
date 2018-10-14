@@ -30,7 +30,7 @@ class RecipeDetailFragment : Fragment() {
     private lateinit var recipeDetailAdapter: RecipeDetailAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        Timber.d("onCreate(savedInstanceState)")
+        Timber.d("onCreate($savedInstanceState)")
         super.onCreate(savedInstanceState)
 
         setHasOptionsMenu(true)
@@ -44,27 +44,27 @@ class RecipeDetailFragment : Fragment() {
             val repository = RecipeDetailRepository(activity.application)
             val factory = RecipeDetailViewModelFactory(repository, recipeId)
             val viewModel =
-                ViewModelProviders.of(this, factory).get(RecipeDetailViewModel::class.java)
+                ViewModelProviders.of(activity, factory).get(RecipeDetailViewModel::class.java)
 
             recipeDetailAdapter = RecipeDetailAdapter(activity, viewModel)
 
             // get selected ingredient and step from savedInstanceState (if not empty)
-            savedInstanceState?.let {
-                recipeDetailAdapter.selectedIngredient =
-                        it.getInt(KEY_SELECTED_INGREDIENT, RecyclerView.NO_POSITION)
-                recipeDetailAdapter.selectedStep =
-                        it.getInt(KEY_SELECTED_STEP, RecyclerView.NO_POSITION)
-            }
+            recipeDetailAdapter.selectedIngredient =
+                    savedInstanceState?.getInt(KEY_SELECTED_INGREDIENT, RecyclerView.NO_POSITION)
+                    ?: RecyclerView.NO_POSITION
+            recipeDetailAdapter.selectedStep =
+                    savedInstanceState?.getInt(KEY_SELECTED_STEP, RecyclerView.NO_POSITION)
+                    ?: RecyclerView.NO_POSITION
 
             // observe recipe and populate ui with it
-            viewModel.recipe.observe(this, Observer {
+            viewModel.recipe.observe(activity, Observer {
                 activity.toolbarLayout.title = it?.name
                 recipeDetailAdapter.setRecipe(it)
             })
-            viewModel.recipeSteps.observe(this, Observer {
+            viewModel.recipeSteps.observe(activity, Observer {
                 recipeDetailAdapter.setSteps(it ?: emptyList())
             })
-            viewModel.recipeIngredients.observe(this, Observer {
+            viewModel.recipeIngredients.observe(activity, Observer {
                 recipeDetailAdapter.setIngredients(it ?: emptyList())
             })
         }

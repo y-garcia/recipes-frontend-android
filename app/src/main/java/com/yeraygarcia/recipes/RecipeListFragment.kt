@@ -46,7 +46,7 @@ class RecipeListFragment : Fragment() {
 
         setHasOptionsMenu(true)
 
-        activity?.let { parent ->
+        activity?.let { activity ->
 
             swipeRefreshLayout = rootView.swipeRefreshLayout.apply {
                 setOnRefreshListener {
@@ -55,20 +55,20 @@ class RecipeListFragment : Fragment() {
                 }
             }
 
-            recipeAdapter = RecipeAdapter(parent)
+            recipeAdapter = RecipeAdapter(activity)
             rootView.recyclerViewRecipeList.apply {
-                layoutManager = LinearLayoutManager(parent)
+                layoutManager = LinearLayoutManager(activity)
                 adapter = recipeAdapter
-                addItemDecoration(ShortDivider(parent, DividerItemDecoration.VERTICAL, 16))
+                addItemDecoration(ShortDivider(activity, DividerItemDecoration.VERTICAL, 16))
             }
 
-            val tagAdapter = TagAdapter(parent)
+            val tagAdapter = TagAdapter(activity)
             rootView.recyclerViewTagChips.apply {
-                layoutManager = LinearLayoutManager(parent, LinearLayoutManager.HORIZONTAL, false)
+                layoutManager = LinearLayoutManager(activity, LinearLayoutManager.HORIZONTAL, false)
                 adapter = tagAdapter
             }
 
-            viewModel = ViewModelProviders.of(parent).get(RecipeViewModel::class.java)
+            viewModel = ViewModelProviders.of(activity).get(RecipeViewModel::class.java)
             savedInstanceState?.apply {
                 if (containsKey(EXTRA_TAG_FILTER)) {
                     val tagFilter = getStringArray(EXTRA_TAG_FILTER)

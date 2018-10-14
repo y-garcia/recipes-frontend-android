@@ -9,7 +9,7 @@ import timber.log.Timber
 
 class RetrofitClient private constructor(context: Context) {
 
-    //    private val baseUrl = "http://10.0.2.2/recipes-api/src/api/"
+    //private val baseUrl = "http://10.0.2.2/recipes-api/src/api/"
     private val baseUrl = "https://yeraygarcia.com/recipes-dev/src/api/"
 
     private val gsonConverter = GsonConverterFactory.create()

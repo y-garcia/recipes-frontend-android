@@ -18,12 +18,12 @@ import kotlinx.android.synthetic.main.view_servings_cart.view.*
 import java.util.*
 import kotlin.collections.ArrayList
 
-class RecipeAdapter(parent: FragmentActivity) :
+class RecipeAdapter(activity: FragmentActivity) :
     RecyclerView.Adapter<RecipeAdapter.RecipesViewHolder>(), Filterable {
 
-    private val context = parent
-    private val inflater = parent.layoutInflater
-    private val viewModel = ViewModelProviders.of(parent).get(RecipeViewModel::class.java)
+    private val context = activity
+    private val inflater = activity.layoutInflater
+    private val viewModel = ViewModelProviders.of(activity).get(RecipeViewModel::class.java)
 
     var recipes: List<Recipe> = ArrayList()
         set(value) {

@@ -70,9 +70,9 @@ abstract class NetworkBoundResource<ResultType, RequestType>
             result.removeSource(dbSource)
             when (response) {
                 is ApiSuccessResponse -> {
-                    appExecutors.diskIO().execute {
+                    appExecutors.diskIO {
                         saveCallResult(processResponse(response))
-                        appExecutors.mainThread().execute {
+                        appExecutors.mainThread {
                             // we specially request a new live data,
                             // otherwise we will get immediately last cached value,
                             // which may not be updated with latest results received from network.
@@ -83,7 +83,7 @@ abstract class NetworkBoundResource<ResultType, RequestType>
                     }
                 }
                 is ApiEmptyResponse -> {
-                    appExecutors.mainThread().execute {
+                    appExecutors.mainThread {
                         // reload from disk whatever we had
                         result.addSource(loadFromDb()) { newData ->
                             setValue(Resource.success(newData))

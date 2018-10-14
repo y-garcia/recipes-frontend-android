@@ -3,9 +3,10 @@ package com.yeraygarcia.recipes.database.remote
 import android.content.Context
 import android.support.annotation.MainThread
 import android.support.annotation.WorkerThread
-import com.google.gson.Gson
 import com.yeraygarcia.recipes.AppExecutors
 import com.yeraygarcia.recipes.util.NetworkUtil
+import com.yeraygarcia.recipes.util.fromJson
+import com.yeraygarcia.recipes.util.toJson
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -20,66 +21,58 @@ abstract class Request<Entity>(val context: Context) {
     }
 
     fun send(entity: Entity) {
-        if (canFetch()) {
-            appExecutors.diskIO().execute {
-                val oldEntity = getEntityBeforeUpdate(entity)
+        if (!canFetch()) {
+            return
+        }
 
-                updateLocalDatabase(entity)
+        appExecutors.diskIO {
+            val oldEntity = getEntityBeforeUpdate(entity)
 
-                Timber.d("Sending request to server.")
-                Timber.d(Gson().toJson(entity))
+            updateLocalDatabase(entity)
 
-                val call = sendRequestToServer(entity)
+            Timber.d("Sending request to server.")
+            Timber.d(entity?.toJson())
 
-                call.enqueue(object : Callback<ResourceData<Entity>> {
+            val call = sendRequestToServer(entity)
 
-                    override fun onResponse(
-                        call: Call<ResourceData<Entity>>,
-                        response: Response<ResourceData<Entity>>
-                    ) {
+            call.enqueue(object : Callback<ResourceData<Entity>> {
 
-                        Timber.d("We got a response from the server: ${Gson().toJson(response)}")
+                override fun onResponse(
+                    call: Call<ResourceData<Entity>>,
+                    response: Response<ResourceData<Entity>>
+                ) {
+                    Timber.d("We got a response from the server: ${response.toJson()}")
+                    processResponse(response, entity, oldEntity)
+                }
 
-                        if (response.isSuccessful) {
+                override fun onFailure(call: Call<ResourceData<Entity>>, t: Throwable) {
+                    Timber.d("Call failed: ${t.message}")
+                    onError(errorMessage = t.message.toString())
+                    appExecutors.diskIO { updateLocalDatabase(oldEntity) }
+                }
+            })
+        }
+    }
 
-                            Timber.d("Response was successful: ${response.code()}")
-                            val body = response.body()
+    private fun processResponse(
+        response: Response<ResourceData<Entity>>,
+        entity: Entity,
+        oldEntity: Entity
+    ) {
+        if (response.isSuccessful) {
+            Timber.d("Response was successful: ${response.code()}")
+            onSuccess(response.body()?.result ?: entity)
+        } else {
+            val body = response.errorBody()?.string()
+            val code = response.code().toString()
+            val message = response.message()
 
-                            if (body?.result != null) {
-                                Timber.d("Body contains payload. Execute onSuccess with payload.")
-                                onSuccess(body.result!!)
+            Timber.d("Response was not successful: $code - $body")
 
-                            } else {
-                                Timber.d("Body is empty. Execute onSuccess with entity.")
-                                onSuccess(entity)
-                            }
+            val error = body?.fromJson(ResourceData::class.java)
+            onError(error?.code ?: code, error?.message ?: message)
 
-                        } else {
-                            val errorBody = response.errorBody()?.string()
-
-                            Timber.d("Response was not successful: ${response.code()} - $errorBody")
-
-                            try {
-                                val error = Gson().fromJson(errorBody, ResourceData::class.java)
-                                onError(error.code ?: "0", error.message ?: "Unknown error")
-                            } catch (e: Exception) {
-                                onError(response.code().toString(), response.message())
-                            }
-
-                            appExecutors.diskIO().execute { updateLocalDatabase(oldEntity) }
-                        }
-                    }
-
-                    override fun onFailure(call: Call<ResourceData<Entity>>, t: Throwable) {
-
-                        Timber.d("Call failed: ${t.message}")
-
-                        onError(errorMessage = t.message.toString())
-
-                        appExecutors.diskIO().execute { updateLocalDatabase(oldEntity) }
-                    }
-                })
-            }
+            appExecutors.diskIO { updateLocalDatabase(oldEntity) }
         }
     }
 
