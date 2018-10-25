@@ -18,15 +18,31 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.tasks.Task
 import com.yeraygarcia.recipes.database.remote.RetrofitClient
+import com.yeraygarcia.recipes.util.FragmentInjector
+import com.yeraygarcia.recipes.util.FragmentInjector.Companion.TAG_FRAGMENT_RECIPES
+import com.yeraygarcia.recipes.util.FragmentInjector.Companion.TAG_FRAGMENT_SHOPPING_LIST
+import com.yeraygarcia.recipes.util.FragmentInjector.Companion.TAG_FRAGMENT_TODAY
 import com.yeraygarcia.recipes.viewmodel.RecipeViewModel
 import kotlinx.android.synthetic.main.activity_main.*
 import timber.log.Timber
 
 class MainActivity : AppCompatActivity() {
 
-    private var currentFragment: Fragment? = null
+    var fragmentInjector = FragmentInjector(supportFragmentManager)
+
     private var currentFragmentId: Int = 0
+    private var currentFragment: Fragment? = null
     private lateinit var viewModel: RecipeViewModel
+    private val tags = mapOf(
+        R.id.navigationRecipes to TAG_FRAGMENT_RECIPES,
+        R.id.navigationShoppingList to TAG_FRAGMENT_SHOPPING_LIST,
+        R.id.navigationToday to TAG_FRAGMENT_TODAY
+    )
+    private val titles = mapOf(
+        R.id.navigationRecipes to R.string.title_recipe_list,
+        R.id.navigationShoppingList to R.string.title_shopping_list,
+        R.id.navigationToday to R.string.title_today
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,9 +57,7 @@ class MainActivity : AppCompatActivity() {
         viewModel = ViewModelProviders.of(this).get(RecipeViewModel::class.java)
         viewModel.updateTagUsage()
 
-        currentFragmentId = getFragmentIdFromArguments(savedInstanceState, intent)
-
-        navigation.selectedItemId = currentFragmentId
+        navigation.selectedItemId = getFragmentIdFromArguments(savedInstanceState, intent)
     }
 
     override fun onStart() {
@@ -104,9 +118,7 @@ class MainActivity : AppCompatActivity() {
     override fun onNewIntent(intent: Intent) {
         Timber.d("onNewIntent(intent)")
         super.onNewIntent(intent)
-
-        currentFragmentId = getFragmentIdFromIntent(intent)
-        navigation.selectedItemId = currentFragmentId
+        navigation.selectedItemId = getFragmentIdFromIntent(intent)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -163,39 +175,19 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun selectFragmentByItemId(itemId: Int): Boolean {
-        return when (itemId) {
-            R.id.navigation_recipes -> {
-                val fragment = supportFragmentManager.findFragmentByTag(TAG_FRAGMENT_RECIPES)
-                    ?: RecipeListFragment()
-                selectFragment(fragment, TAG_FRAGMENT_RECIPES)
-                currentFragmentId = itemId
-                toolbar.setTitle(R.string.title_recipe_list)
-                true
-            }
 
-            R.id.navigation_shopping_list -> {
-                val fragment = supportFragmentManager.findFragmentByTag(TAG_FRAGMENT_SHOPPING_LIST)
-                    ?: ShoppingListFragment()
-                selectFragment(fragment, TAG_FRAGMENT_SHOPPING_LIST)
-                toolbar.setTitle(R.string.title_shopping_list)
-                currentFragmentId = itemId
-                true
-            }
-
-            R.id.navigation_today -> {
-                val fragment = supportFragmentManager.findFragmentByTag(TAG_FRAGMENT_TODAY)
-                    ?: TodayListFragment()
-                selectFragment(fragment, TAG_FRAGMENT_TODAY)
-                currentFragmentId = itemId
-                toolbar.setTitle(R.string.title_today)
-                true
-            }
-
-            else -> false
+        tags[itemId]?.let { tag ->
+            selectFragment(tag)
+            currentFragmentId = itemId
+            titles[itemId]?.let { title -> toolbar.setTitle(title) }
+            return true
         }
+
+        return false
     }
 
-    private fun selectFragment(fragment: Fragment, tag: String) {
+    private fun selectFragment(tag: String) {
+        val fragment = fragmentInjector.getFragment(tag)
         if (fragment != currentFragment) {
             supportFragmentManager.beginTransaction()
                 .replace(R.id.fragment_container, fragment, tag)
@@ -207,9 +199,6 @@ class MainActivity : AppCompatActivity() {
     companion object {
         const val EXTRA_FRAGMENT_ID = "extraFragmentId"
         private const val KEY_FRAGMENT_ID = "keyFragmentId"
-        private const val TAG_FRAGMENT_RECIPES = "tagRecipesFragment"
-        private const val TAG_FRAGMENT_SHOPPING_LIST = "tagShoppingListFragment"
-        private const val TAG_FRAGMENT_TODAY = "tagTodayFragment"
-        private const val DEFAULT_FRAGMENT_ID = R.id.navigation_recipes
+        private const val DEFAULT_FRAGMENT_ID = R.id.navigationRecipes
     }
 }

@@ -11,11 +11,13 @@ import com.yeraygarcia.recipes.database.entity.Tag
 import com.yeraygarcia.recipes.database.entity.custom.UiShoppingListItem
 import com.yeraygarcia.recipes.database.remote.Resource
 import com.yeraygarcia.recipes.database.repository.RecipeRepository
+import com.yeraygarcia.recipes.testing.OpenForTesting
 import timber.log.Timber
 import java.util.*
 import java.util.regex.Pattern
 import kotlin.collections.ArrayList
 
+@OpenForTesting
 class RecipeViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = RecipeRepository(application)
@@ -30,7 +32,7 @@ class RecipeViewModel(application: Application) : AndroidViewModel(application) 
 
     private lateinit var shoppingListItem: LiveData<UiShoppingListItem>
 
-    val tagFilter = MutableLiveData<List<UUID>>().apply { value = ArrayList() }
+    final val tagFilter = MutableLiveData<List<UUID>>().apply { value = ArrayList() }
         get() {
             Timber.d("getTagFilter()")
             return field

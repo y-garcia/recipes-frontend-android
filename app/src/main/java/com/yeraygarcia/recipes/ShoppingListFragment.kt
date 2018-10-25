@@ -19,7 +19,7 @@ import timber.log.Timber
 
 class ShoppingListFragment : Fragment() {
 
-    private lateinit var viewModel: RecipeViewModel
+    lateinit var viewModel: RecipeViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -33,7 +33,10 @@ class ShoppingListFragment : Fragment() {
 
         activity?.let { activity ->
 
-            viewModel = ViewModelProviders.of(activity).get(RecipeViewModel::class.java)
+            if (!::viewModel.isInitialized) {
+                Timber.d("ViewModel was empty. Initializing...")
+                viewModel = ViewModelProviders.of(activity).get(RecipeViewModel::class.java)
+            }
 
             val newItemAdapter = ArrayAdapter(
                 activity,
