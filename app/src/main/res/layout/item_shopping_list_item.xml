@@ -6,7 +6,7 @@
     android:layout_height="56dp">
 
     <LinearLayout
-        android:id="@+id/container_shopping_list_item"
+        android:id="@+id/containerShoppingListItem"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
@@ -15,12 +15,12 @@
         android:paddingStart="16dp"
         android:paddingTop="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/checkbox_item_completed"
+        app:layout_constraintEnd_toStartOf="@+id/checkboxItemCompleted"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
         <TextView
-            android:id="@+id/textview_item_name"
+            android:id="@+id/textViewItemName"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"
@@ -37,7 +37,7 @@
             android:orientation="horizontal">
 
             <TextView
-                android:id="@+id/textview_item_quantity"
+                android:id="@+id/textViewItemQuantity"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="4dp"
@@ -47,7 +47,7 @@
                 tools:text="112.50" />
 
             <TextView
-                android:id="@+id/textview_item_unit"
+                android:id="@+id/textViewItemUnit"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
@@ -61,7 +61,7 @@
     </LinearLayout>
 
     <CheckBox
-        android:id="@+id/checkbox_item_completed"
+        android:id="@+id/checkboxItemCompleted"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:paddingEnd="16dp"

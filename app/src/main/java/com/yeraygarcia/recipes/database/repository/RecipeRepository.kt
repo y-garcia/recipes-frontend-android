@@ -223,6 +223,13 @@ class RecipeRepository(application: Application) {
         }
     }
 
+    fun clearAllFromShoppingList() {
+        appExecutors.diskIO {
+            db.shoppingListDao.hideAllRecipeItems()
+            db.shoppingListDao.deleteAllOrphanItems()
+        }
+    }
+
     fun getShoppingListItemById(id: UUID): LiveData<UiShoppingListItem> {
         return db.shoppingListDao.findById(id)
     }

@@ -72,7 +72,7 @@ class RecipeDetailActivity : AppCompatActivity() {
 
     private fun openShoppingListActivity() {
         Intent(this, MainActivity::class.java).apply {
-            putExtra(MainActivity.EXTRA_FRAGMENT_ID, R.id.navigation_shopping_list)
+            putExtra(MainActivity.EXTRA_FRAGMENT_ID, R.id.navigationShoppingList)
             startActivity(this)
         }
     }

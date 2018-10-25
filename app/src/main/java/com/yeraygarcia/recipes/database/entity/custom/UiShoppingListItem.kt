@@ -10,14 +10,14 @@ data class UiShoppingListItem(
     @ColumnInfo(name = "unit_name") var unitName: String?,
     @ColumnInfo(name = "unit_name_plural") var unitNamePlural: String?,
     var name: String,
-    var completed: Boolean,
-    var aisle: String?,
-    var recipe: String?
+    var completed: Boolean = false,
+    var aisle: String? = null,
+    var recipe: String? = null
 ) {
     val formattedQuantity: String
         get() = when (quantity) {
             null -> ""
-            round(quantity!!) -> String.format(Locale.getDefault(), "%d", quantity!!.toInt())
+            round(quantity as Double) -> String.format(Locale.getDefault(), "%d", quantity?.toInt())
             else -> String.format(Locale.getDefault(), "%1$,.2f", quantity)
         }
 

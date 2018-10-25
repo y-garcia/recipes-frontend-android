@@ -13,7 +13,7 @@ import android.widget.AutoCompleteTextView
 import android.widget.EditText
 import android.widget.Toast
 import com.yeraygarcia.recipes.viewmodel.RecipeDetailViewModel
-import kotlinx.android.synthetic.main.dialog_edit_shopping_list_item.view.*
+import kotlinx.android.synthetic.main.dialog_edit_ingredient.view.*
 import java.util.*
 
 class EditIngredientDialog : DialogFragment() {
@@ -30,7 +30,7 @@ class EditIngredientDialog : DialogFragment() {
 
         // setup all views
         val dialogLayout =
-            activity.layoutInflater.inflate(R.layout.dialog_edit_shopping_list_item, null)
+            activity.layoutInflater.inflate(R.layout.dialog_edit_ingredient, null)
 
         val ingredientEditText = dialogLayout.editTextIngredientName
         val ingredientAdapter = ArrayAdapter(

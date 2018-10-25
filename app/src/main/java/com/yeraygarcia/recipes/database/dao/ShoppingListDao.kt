@@ -73,4 +73,10 @@ abstract class ShoppingListDao : BaseDao<ShoppingListItem>() {
 
     @Query("DELETE FROM shopping_list_item WHERE completed = 1 AND recipe_id IS NULL")
     abstract fun deleteCompletedOrphanItems()
+
+    @Query("UPDATE shopping_list_item SET visible = 0 WHERE recipe_id IS NOT NULL")
+    abstract fun hideAllRecipeItems()
+
+    @Query("DELETE FROM shopping_list_item WHERE recipe_id IS NULL")
+    abstract fun deleteAllOrphanItems()
 }

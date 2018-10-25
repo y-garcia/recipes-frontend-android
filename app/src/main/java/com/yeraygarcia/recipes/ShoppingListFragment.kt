@@ -96,21 +96,19 @@ class ShoppingListFragment : Fragment() {
         return rootView
     }
 
-    override fun onPause() {
-        super.onPause()
-        Timber.d("onPause()")
-    }
-
     override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
-        Timber.d("onCreateOptionsMenu(menu, inflated)")
         inflater?.inflate(R.menu.options_menu_shopping_list, menu)
         super.onCreateOptionsMenu(menu, inflater)
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         return when (item?.itemId) {
-            R.id.clear_completed_button -> {
+            R.id.buttonClearCompleted -> {
                 viewModel.clearCompletedFromShoppingList()
+                true
+            }
+            R.id.buttonClearAll -> {
+                viewModel.clearAllFromShoppingList()
                 true
             }
             else -> super.onOptionsItemSelected(item)

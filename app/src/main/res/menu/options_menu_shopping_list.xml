@@ -3,9 +3,15 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/clear_completed_button"
-        android:icon="@drawable/ic_clear_all_white_24px"
+        android:id="@+id/buttonClearAll"
+        android:icon="@drawable/ic_delete_white_24px"
+        android:title="@string/buttonClearAll"
+        app:showAsAction="always|withText" />
+
+    <item
+        android:id="@+id/buttonClearCompleted"
+        android:icon="@drawable/ic_delete_completed_white_24px"
         android:title="@string/clear_completed_button"
-        app:showAsAction="always" />
+        app:showAsAction="ifRoom|withText" />
 
 </menu>

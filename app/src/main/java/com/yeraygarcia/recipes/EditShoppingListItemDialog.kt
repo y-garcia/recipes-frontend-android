@@ -11,7 +11,7 @@ import android.view.WindowManager
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import com.yeraygarcia.recipes.viewmodel.RecipeViewModel
-import kotlinx.android.synthetic.main.dialog_edit_shopping_list_item.view.*
+import kotlinx.android.synthetic.main.dialog_edit_ingredient.view.*
 import java.util.*
 
 class EditShoppingListItemDialog : DialogFragment() {
@@ -25,7 +25,7 @@ class EditShoppingListItemDialog : DialogFragment() {
         shoppingListItemId = getShoppingListItemIdFromArgs()
 
         val dialogLayout =
-            activity.layoutInflater.inflate(R.layout.dialog_edit_shopping_list_item, null)
+            activity.layoutInflater.inflate(R.layout.dialog_edit_ingredient, null)
 
         val ingredientAdapter =
             ArrayAdapter(activity, android.R.layout.simple_dropdown_item_1line, ArrayList<String>())

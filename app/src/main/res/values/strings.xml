@@ -43,6 +43,7 @@
     <string name="edit_button">Edit</string>
     <string name="refresh_button">Refresh</string>
     <string name="signout_button">Sign out</string>
+    <string name="buttonClearAll">Clear all</string>
     <string name="clear_completed_button">Clear completed</string>
 
     <string name="server_client_id">***REMOVED***</string>

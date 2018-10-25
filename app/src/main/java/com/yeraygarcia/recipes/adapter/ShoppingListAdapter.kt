@@ -37,11 +37,11 @@ class ShoppingListAdapter(
     inner class ShoppingListViewHolder internal constructor(itemView: View) :
         RecyclerView.ViewHolder(itemView) {
 
-        val itemQuantity: TextView = itemView.textview_item_quantity
-        val itemUnit: TextView = itemView.textview_item_unit
-        val itemName: TextView = itemView.textview_item_name
-        val itemCompleted: CheckBox = itemView.checkbox_item_completed
-        private val itemContainer: LinearLayout = itemView.container_shopping_list_item
+        val itemQuantity: TextView = itemView.textViewItemQuantity
+        val itemUnit: TextView = itemView.textViewItemUnit
+        val itemName: TextView = itemView.textViewItemName
+        val itemCompleted: CheckBox = itemView.checkboxItemCompleted
+        private val itemContainer: LinearLayout = itemView.containerShoppingListItem
 
         init {
             itemContainer.setOnClickListener { showEditDialog(shoppingListItems[adapterPosition].id) }

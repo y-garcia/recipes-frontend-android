@@ -228,6 +228,10 @@ class RecipeViewModel(application: Application) : AndroidViewModel(application) 
         repository.clearCompletedFromShoppingList()
     }
 
+    fun clearAllFromShoppingList() {
+        repository.clearAllFromShoppingList()
+    }
+
     fun getShoppingListItem(id: UUID): LiveData<UiShoppingListItem> {
         if (!::shoppingListItem.isInitialized || shoppingListItem.value?.id !== id) {
             shoppingListItem = repository.getShoppingListItemById(id)
