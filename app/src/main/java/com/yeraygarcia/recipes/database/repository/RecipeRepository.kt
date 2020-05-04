@@ -20,7 +20,6 @@ import javax.inject.Singleton
 class RecipeRepository(application: Application) {
 
     private val context: Context = application
-    private val appExecutors = AppExecutors()
     private val webservice = RetrofitClient.get(context).create(Webservice::class.java)
     private val db = AppDatabase.getDatabase(context)
 
@@ -31,7 +30,7 @@ class RecipeRepository(application: Application) {
     private var cacheIsDirty = true
 
     val recipes: LiveData<Resource<List<Recipe>>>
-        get() = object : NetworkBoundResource<List<Recipe>, ResourceData<All>>(appExecutors) {
+        get() = object : NetworkBoundResource<List<Recipe>, ResourceData<All>>() {
             override fun loadFromDb(): LiveData<List<Recipe>> {
                 Timber.d("getRecipes().loadFromDb()")
                 return db.recipeDao.findAll()
@@ -70,8 +69,6 @@ class RecipeRepository(application: Application) {
 
     val unitNames: LiveData<List<String>>
         get() = db.unitDao.unitNames
-
-    // Methods
 
     private fun canFetch(): Boolean {
         return NetworkUtil.isOnline(context)
@@ -115,7 +112,7 @@ class RecipeRepository(application: Application) {
 
         return if (tagIds.isEmpty()) {
             recipes
-        } else object : NetworkBoundResource<List<Recipe>, ResourceData<All>>(appExecutors) {
+        } else object : NetworkBoundResource<List<Recipe>, ResourceData<All>>() {
             override fun loadFromDb(): LiveData<List<Recipe>> {
                 Timber.d("getRecipesByTagId($tagIds).loadFromDb()")
                 return db.recipeTagDao.findRecipesByAllTagIds(tagIds, tagIds.size)
@@ -140,16 +137,16 @@ class RecipeRepository(application: Application) {
     }
 
     fun update(recipe: Recipe) {
-        appExecutors.diskIO { db.recipeDao.update(recipe) }
+        AppExecutors.diskIO { db.recipeDao.update(recipe) }
     }
 
     fun logTagUsage(tagId: UUID) {
         val tagUsage = TagUsage(tagId = tagId)
-        appExecutors.diskIO { db.tagUsageDao.insert(tagUsage) }
+        AppExecutors.diskIO { db.tagUsageDao.insert(tagUsage) }
     }
 
     fun updateTagUsage() {
-        appExecutors.diskIO {
+        AppExecutors.diskIO {
             val tags = db.tagUsageDao.tagsWithUpdatedUsage
             db.tagDao.update(tags)
         }
@@ -157,7 +154,7 @@ class RecipeRepository(application: Application) {
 
     fun addToShoppingList(recipe: Recipe) {
         Timber.d("Adding '${recipe.name}' to shopping list")
-        appExecutors.diskIO {
+        AppExecutors.diskIO {
             val shoppingListItems = db.recipeIngredientDao.findShoppingListItemByRecipeId(recipe.id)
             shoppingListItems.forEach { it.id = UUIDTypeConverter.newUUID() }
             db.shoppingListDao.deleteByRecipeId(recipe.id)
@@ -166,18 +163,18 @@ class RecipeRepository(application: Application) {
     }
 
     fun removeFromShoppingList(recipe: Recipe) {
-        appExecutors.diskIO { db.shoppingListDao.deleteByRecipeId(recipe.id) }
+        AppExecutors.diskIO { db.shoppingListDao.deleteByRecipeId(recipe.id) }
     }
 
     fun removeFromShoppingList(shoppingListItem: UiShoppingListItem) {
-        appExecutors.diskIO {
+        AppExecutors.diskIO {
             db.shoppingListDao.deleteById(shoppingListItem.id)
         }
     }
 
     fun updatePortionsInShoppingList(recipe: Recipe) {
         Timber.d("Updating portions for '${recipe.name}' in shopping list")
-        appExecutors.diskIO {
+        AppExecutors.diskIO {
             val recipeId = recipe.id
             val shoppingListItems = db.recipeIngredientDao.findShoppingListItemByRecipeId(recipeId)
             shoppingListItems.forEach { it.id = UUIDTypeConverter.newUUID() }
@@ -188,18 +185,17 @@ class RecipeRepository(application: Application) {
 
     fun update(uiShoppingListItem: UiShoppingListItem) {
         Timber.d("Updating shopping list item")
-        appExecutors.diskIO {
-            val shoppingListItem = db.shoppingListDao.findByIdRaw(uiShoppingListItem.id)
-            if (shoppingListItem != null) {
-                shoppingListItem.completed = uiShoppingListItem.completed
-                Timber.d(shoppingListItem.toString())
-                db.shoppingListDao.update(shoppingListItem)
+        AppExecutors.diskIO {
+            db.shoppingListDao.findByIdRaw(uiShoppingListItem.id)?.let {
+                it.completed = uiShoppingListItem.completed
+                Timber.d(it.toString())
+                db.shoppingListDao.update(it)
             }
         }
     }
 
     fun deleteAll() {
-        appExecutors.diskIO {
+        AppExecutors.diskIO {
             db.tagUsageDao.deleteAll()
             db.recipeTagDao.deleteAll()
             db.recipeStepDao.deleteAll()
@@ -213,18 +209,18 @@ class RecipeRepository(application: Application) {
     }
 
     fun addToShoppingList(item: ShoppingListItem) {
-        appExecutors.diskIO { db.shoppingListDao.insert(item) }
+        AppExecutors.diskIO { db.shoppingListDao.insert(item) }
     }
 
     fun clearCompletedFromShoppingList() {
-        appExecutors.diskIO {
+        AppExecutors.diskIO {
             db.shoppingListDao.hideCompletedRecipeItems()
             db.shoppingListDao.deleteCompletedOrphanItems()
         }
     }
 
     fun clearAllFromShoppingList() {
-        appExecutors.diskIO {
+        AppExecutors.diskIO {
             db.shoppingListDao.hideAllRecipeItems()
             db.shoppingListDao.deleteAllOrphanItems()
         }
@@ -235,7 +231,7 @@ class RecipeRepository(application: Application) {
     }
 
     fun updateShoppingListItem(id: UUID, ingredient: String, quantity: Double?, unitId: UUID?) {
-        appExecutors.diskIO {
+        AppExecutors.diskIO {
             val shoppingListItem = db.shoppingListDao.findByIdRaw(id)
             shoppingListItem?.let {
                 it.name = ingredient

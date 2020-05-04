@@ -58,7 +58,7 @@ class RecipeDetailFragment : Fragment() {
 
             // observe recipe and populate ui with it
             viewModel.recipe.observe(activity, Observer {
-                activity.toolbarLayout.title = it?.name
+                activity.toolbar.title = it?.name
                 recipeDetailAdapter.setRecipe(it)
             })
             viewModel.recipeSteps.observe(activity, Observer {

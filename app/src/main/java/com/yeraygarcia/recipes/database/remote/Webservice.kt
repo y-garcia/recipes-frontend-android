@@ -1,10 +1,12 @@
 package com.yeraygarcia.recipes.database.remote
 
 import android.arch.lifecycle.LiveData
+import com.yeraygarcia.recipes.database.entity.Ingredient
 import com.yeraygarcia.recipes.database.entity.Recipe
 import com.yeraygarcia.recipes.database.entity.RecipeIngredient
 import com.yeraygarcia.recipes.database.entity.RecipeStep
 import com.yeraygarcia.recipes.database.entity.custom.All
+import com.yeraygarcia.recipes.database.entity.custom.SyncDto
 import retrofit2.Call
 import retrofit2.http.*
 
@@ -24,5 +26,14 @@ interface Webservice {
     fun updateRecipeIngredient(@Body recipeIngredient: RecipeIngredient): Call<ResourceData<RecipeIngredient>>
 
     @PUT("recipe-steps")
-    fun updateRecipeStep(@Body newEntity: RecipeStep): Call<ResourceData<RecipeStep>>
+    fun updateRecipeStep(@Body recipeStep: RecipeStep): Call<ResourceData<RecipeStep>>
+
+    @POST("ingredients")
+    fun insertIngredient(@Body ingredient: Ingredient): Call<ResourceData<Ingredient>>
+
+    @POST("recipe-ingredients")
+    fun insertRecipeIngredient(recipeIngredient: RecipeIngredient): Call<ResourceData<RecipeIngredient>>
+
+    @POST("sync")
+    fun sync(@Body dataToSync: SyncDto): Call<ResourceData<SyncDto>>
 }

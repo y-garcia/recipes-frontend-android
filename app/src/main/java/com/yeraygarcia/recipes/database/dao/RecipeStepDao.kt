@@ -9,10 +9,13 @@ import java.util.*
 @Dao
 abstract class RecipeStepDao : BaseDao<RecipeStep>() {
 
-    @Query("DELETE FROM recipe_step")
+    @Query("DELETE FROM $TABLE")
     abstract fun deleteAll()
 
-    @Query("DELETE FROM recipe_step WHERE id NOT IN (:ids)")
+    @Query("DELETE FROM $TABLE WHERE id IN (:ids)")
+    abstract fun deleteByIds(ids: List<UUID>)
+
+    @Query("DELETE FROM $TABLE WHERE id NOT IN (:ids)")
     internal abstract fun deleteIfIdNotIn(ids: List<UUID>)
 
     fun deleteIfNotIn(entities: List<RecipeStep>) {
@@ -23,15 +26,22 @@ abstract class RecipeStepDao : BaseDao<RecipeStep>() {
         deleteIfIdNotIn(ids)
     }
 
-    @Query("SELECT * FROM recipe_step")
+    @Query("SELECT * FROM $TABLE")
     abstract fun findAll(): LiveData<List<RecipeStep>>
 
-    @Query("SELECT * FROM recipe_step WHERE recipe_id = :recipeId")
+    @Query("SELECT * FROM $TABLE WHERE recipe_id = :recipeId")
     abstract fun findByRecipeId(recipeId: UUID): LiveData<List<RecipeStep>>
 
-    @Query("SELECT * FROM recipe_step WHERE id = :id")
+    @Query("SELECT * FROM $TABLE WHERE id = :id")
     abstract fun findById(id: UUID): LiveData<RecipeStep>
 
-    @Query("SELECT * FROM recipe_step WHERE id = :id")
+    @Query("SELECT * FROM $TABLE WHERE id = :id")
     abstract fun findByIdRaw(id: UUID): RecipeStep
+
+    @Query("SELECT * FROM $TABLE WHERE :lastSync = :lastSync")
+    abstract fun findModified(lastSync: Long): List<RecipeStep>
+
+    companion object {
+        const val TABLE = "recipe_step"
+    }
 }

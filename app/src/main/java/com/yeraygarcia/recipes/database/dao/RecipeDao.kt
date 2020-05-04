@@ -9,25 +9,28 @@ import java.util.*
 @Dao
 abstract class RecipeDao : BaseDao<Recipe>() {
 
-    @get:Query("SELECT count(1) = 0 AS is_empty FROM recipe")
+    @get:Query("SELECT count(1) = 0 AS is_empty FROM $TABLE")
     abstract val isEmpty: Boolean
 
-    @Query("DELETE FROM recipe")
+    @Query("DELETE FROM $TABLE")
     abstract fun deleteAll()
 
-    @Query("SELECT * FROM recipe ORDER BY name ASC")
+    @Query("DELETE FROM $TABLE WHERE id IN (:ids)")
+    abstract fun deleteByIds(ids: List<UUID>)
+
+    @Query("SELECT * FROM $TABLE ORDER BY name ASC")
     abstract fun findAll(): LiveData<List<Recipe>>
 
-    @Query("SELECT * FROM recipe WHERE id = :id")
+    @Query("SELECT * FROM $TABLE WHERE id = :id")
     abstract fun findById(id: UUID): LiveData<Recipe>
 
-    @Query("SELECT * FROM recipe WHERE id = :id")
+    @Query("SELECT * FROM $TABLE WHERE id = :id")
     abstract fun findRawById(id: UUID): Recipe
 
-    @Query("SELECT * FROM recipe WHERE id IN (SELECT DISTINCT recipe_id FROM shopping_list_item)")
+    @Query("SELECT * FROM $TABLE WHERE id IN (SELECT DISTINCT recipe_id FROM shopping_list_item)")
     abstract fun findRecipesInShoppingList(): LiveData<List<Recipe>>
 
-    @Query("DELETE FROM recipe WHERE id NOT IN (:ids)")
+    @Query("DELETE FROM $TABLE WHERE id NOT IN (:ids)")
     internal abstract fun deleteIfIdNotIn(ids: List<UUID>)
 
     fun deleteIfNotIn(entities: List<Recipe>) {
@@ -36,5 +39,12 @@ abstract class RecipeDao : BaseDao<Recipe>() {
             ids.add(entity.id)
         }
         deleteIfIdNotIn(ids)
+    }
+
+    @Query("SELECT * FROM $TABLE WHERE :lastSync = :lastSync")
+    abstract fun findModified(lastSync: Long): List<Recipe>
+
+    companion object {
+        const val TABLE = "recipe"
     }
 }

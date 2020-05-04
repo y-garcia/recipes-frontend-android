@@ -15,6 +15,8 @@ import android.view.*
 import android.widget.Toast
 import com.yeraygarcia.recipes.adapter.RecipeAdapter
 import com.yeraygarcia.recipes.adapter.TagAdapter
+import com.yeraygarcia.recipes.database.entity.Recipe
+import com.yeraygarcia.recipes.database.remote.Resource
 import com.yeraygarcia.recipes.database.remote.RetrofitClient
 import com.yeraygarcia.recipes.database.remote.Status
 import com.yeraygarcia.recipes.util.ShortDivider
@@ -27,6 +29,7 @@ class RecipeListFragment : Fragment() {
     private lateinit var recipeAdapter: RecipeAdapter
     private lateinit var viewModel: RecipeViewModel
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
+    private lateinit var recipeObserver: Observer<Resource<List<Recipe>>>
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -69,13 +72,10 @@ class RecipeListFragment : Fragment() {
             }
 
             viewModel = ViewModelProviders.of(activity).get(RecipeViewModel::class.java)
-            savedInstanceState?.apply {
-                if (containsKey(EXTRA_TAG_FILTER)) {
-                    val tagFilter = getStringArray(EXTRA_TAG_FILTER)
-                    viewModel.setTagFilter(tagFilter)
-                }
-            }
-            viewModel.recipes.observe(this, Observer { resource ->
+            viewModel.setTagFilter(
+                savedInstanceState?.getStringArrayList(EXTRA_TAG_FILTER) ?: mutableListOf()
+            )
+            recipeObserver = Observer { resource ->
                 Timber.d("getRecipes().observe($resource)")
                 when (resource?.status) {
                     Status.LOADING -> swipeRefreshLayout.isRefreshing = true
@@ -87,7 +87,8 @@ class RecipeListFragment : Fragment() {
                     }
                 }
                 recipeAdapter.recipes = resource?.data ?: emptyList()
-            })
+            }
+            viewModel.recipes.observe(this, recipeObserver)
             viewModel.tags.observe(this, Observer {
                 Timber.d("getTags().observe(tags)")
                 tagAdapter.tags = it ?: emptyList()
@@ -106,8 +107,8 @@ class RecipeListFragment : Fragment() {
 
     private fun refreshData() {
         context?.let {
-            RetrofitClient.get(it).setIdToken(null)
-            viewModel.refreshAll()
+            RetrofitClient.get(it).clearIdToken()
+            viewModel.refreshAll(this, recipeObserver)
             swipeRefreshLayout.isRefreshing = false
         }
     }
@@ -115,7 +116,7 @@ class RecipeListFragment : Fragment() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         Timber.d("onSaveInstanceState(outState)")
-        outState.putStringArrayList(EXTRA_TAG_FILTER, viewModel.tagFilterAsArray)
+        outState.putStringArrayList(EXTRA_TAG_FILTER, viewModel.tagFilterAsList)
     }
 
     override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {

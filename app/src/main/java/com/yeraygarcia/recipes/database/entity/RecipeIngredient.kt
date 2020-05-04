@@ -51,5 +51,9 @@ data class RecipeIngredient(
 
     @ColumnInfo(name = "sort_order")
     @SerializedName("sort_order")
-    var sortOrder: Int = 0
+    var sortOrder: Int = 0,
+
+    var created: Long = System.currentTimeMillis(),
+
+    var modified: Long = System.currentTimeMillis()
 )

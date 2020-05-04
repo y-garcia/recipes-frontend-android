@@ -1,10 +1,7 @@
 package com.yeraygarcia.recipes.database.dao
 
-import android.arch.persistence.room.Delete
-import android.arch.persistence.room.Insert
+import android.arch.persistence.room.*
 import android.arch.persistence.room.OnConflictStrategy.IGNORE
-import android.arch.persistence.room.Transaction
-import android.arch.persistence.room.Update
 import java.util.*
 
 abstract class BaseDao<T> {

@@ -9,13 +9,16 @@ import java.util.*
 @Dao
 abstract class TagDao : BaseDao<Tag>() {
 
-    @Query("DELETE FROM tag")
+    @Query("DELETE FROM $TABLE")
     abstract fun deleteAll()
 
-    @Query("SELECT * FROM tag ORDER BY usage_count DESC, name COLLATE NOCASE ASC")
+    @Query("DELETE FROM $TABLE WHERE id IN (:ids)")
+    abstract fun deleteByIds(ids: List<UUID>)
+
+    @Query("SELECT * FROM $TABLE ORDER BY usage_count DESC, name COLLATE NOCASE ASC")
     abstract fun findAll(): LiveData<List<Tag>>
 
-    @Query("DELETE FROM tag WHERE id NOT IN (:ids)")
+    @Query("DELETE FROM $TABLE WHERE id NOT IN (:ids)")
     internal abstract fun deleteIfIdNotIn(ids: List<UUID>)
 
     fun deleteIfNotIn(entities: List<Tag>) {
@@ -24,5 +27,12 @@ abstract class TagDao : BaseDao<Tag>() {
             ids.add(entity.id)
         }
         deleteIfIdNotIn(ids)
+    }
+
+    @Query("SELECT * FROM $TABLE WHERE :lastSync = :lastSync")
+    abstract fun findModified(lastSync: Long): List<Tag>
+
+    companion object {
+        const val TABLE = "tag"
     }
 }

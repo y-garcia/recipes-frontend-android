@@ -13,6 +13,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
+import android.widget.Toast
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.common.api.ApiException
@@ -101,6 +102,9 @@ class MainActivity : AppCompatActivity() {
             }
         } catch (e: ApiException) {
             Timber.d("signInResult:failed code=${e.statusCode}")
+            Toast
+                .makeText(this, "SignIn failed with code = ${e.statusCode}", Toast.LENGTH_LONG)
+                .show()
             updateUI(null)
         }
 

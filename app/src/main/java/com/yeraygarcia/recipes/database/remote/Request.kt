@@ -14,8 +14,6 @@ import timber.log.Timber
 
 abstract class Request<Entity>(val context: Context) {
 
-    private val appExecutors = AppExecutors()
-
     private fun canFetch(): Boolean {
         return NetworkUtil.isOnline(context)
     }
@@ -25,7 +23,7 @@ abstract class Request<Entity>(val context: Context) {
             return
         }
 
-        appExecutors.diskIO {
+        AppExecutors.diskIO {
             val oldEntity = getEntityBeforeUpdate(entity)
 
             updateLocalDatabase(entity)
@@ -48,7 +46,7 @@ abstract class Request<Entity>(val context: Context) {
                 override fun onFailure(call: Call<ResourceData<Entity>>, t: Throwable) {
                     Timber.d("Call failed: ${t.message}")
                     onError(errorMessage = t.message.toString())
-                    appExecutors.diskIO { updateLocalDatabase(oldEntity) }
+                    AppExecutors.diskIO { updateLocalDatabase(oldEntity) }
                 }
             })
         }
@@ -72,7 +70,7 @@ abstract class Request<Entity>(val context: Context) {
             val error = body?.fromJson(ResourceData::class.java)
             onError(error?.code ?: code, error?.message ?: message)
 
-            appExecutors.diskIO { updateLocalDatabase(oldEntity) }
+            AppExecutors.diskIO { updateLocalDatabase(oldEntity) }
         }
     }
 

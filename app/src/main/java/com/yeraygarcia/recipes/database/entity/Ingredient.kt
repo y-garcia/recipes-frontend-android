@@ -25,5 +25,9 @@ data class Ingredient(
 
     @ColumnInfo(name = "aisle_id", typeAffinity = ColumnInfo.BLOB)
     @SerializedName("aisle_id")
-    var aisleId: UUID = UUID.fromString("7f8a3138-a072-11e8-9ac4-0a0027000012")
+    var aisleId: UUID = UUID.fromString("7b8ee0d7-ab70-11e8-a87e-e683eb7daae4"),
+
+    var created: Long = System.currentTimeMillis(),
+
+    var modified: Long = System.currentTimeMillis()
 )

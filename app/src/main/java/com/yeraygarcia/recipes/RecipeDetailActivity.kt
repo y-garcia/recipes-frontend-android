@@ -2,20 +2,15 @@ package com.yeraygarcia.recipes
 
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
-import android.content.Context
 import android.content.Intent
-import android.graphics.Rect
 import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentManager
 import android.support.v7.app.AppCompatActivity
 import android.view.MenuItem
-import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
-import android.view.inputmethod.InputMethodManager
-import android.widget.EditText
 import com.yeraygarcia.recipes.database.repository.RecipeDetailRepository
 import com.yeraygarcia.recipes.viewmodel.RecipeDetailViewModel
 import com.yeraygarcia.recipes.viewmodel.RecipeDetailViewModelFactory
@@ -34,11 +29,11 @@ class RecipeDetailActivity : AppCompatActivity() {
 
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-        setSupportActionBar(detail_toolbar)
+        setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        fab_edit_recipe.setOnClickListener { selectFragment(TAG_FRAGMENT_RECIPE_EDIT) }
-        fab_save_recipe.setOnClickListener { selectFragment(TAG_FRAGMENT_RECIPE_DETAIL) }
+        fabEditRecipe.setOnClickListener { selectFragment(TAG_FRAGMENT_RECIPE_EDIT) }
+        fabSaveRecipe.setOnClickListener { selectFragment(TAG_FRAGMENT_RECIPE_DETAIL) }
 
         recipeId = intent.getSerializableExtra(RecipeDetailFragment.ARG_RECIPE_ID) as UUID
 
@@ -51,21 +46,21 @@ class RecipeDetailActivity : AppCompatActivity() {
 
         viewModel.isInShoppingList.observe(this, Observer { isInShoppingList ->
             if (isInShoppingList != null && isInShoppingList) {
-                fab_add_to_cart.setOnClickListener { view ->
+                fabAddToCart.setOnClickListener { view ->
                     viewModel.removeFromShoppingList(recipeId)
                     Snackbar.make(view, R.string.removed_from_shopping_list, Snackbar.LENGTH_LONG)
                         .setAction(R.string.action_open) { openShoppingListActivity() }
                         .show()
                 }
-                fab_add_to_cart.setImageResource(R.drawable.ic_remove_shopping_cart_24px)
+                fabAddToCart.setImageResource(R.drawable.ic_remove_shopping_cart_24px)
             } else {
-                fab_add_to_cart.setOnClickListener { view ->
+                fabAddToCart.setOnClickListener { view ->
                     viewModel.addToShoppingList(recipeId)
                     Snackbar.make(view, R.string.added_to_shopping_list, Snackbar.LENGTH_LONG)
                         .setAction(R.string.action_open) { openShoppingListActivity() }
                         .show()
                 }
-                fab_add_to_cart.setImageResource(R.drawable.ic_add_shopping_cart_24px)
+                fabAddToCart.setImageResource(R.drawable.ic_add_shopping_cart_24px)
             }
         })
     }
@@ -83,12 +78,9 @@ class RecipeDetailActivity : AppCompatActivity() {
     }
 
     private fun getFragmentTagFromArguments(savedInstanceState: Bundle?): String {
-
         // get recipe id from savedInstanceState (if not empty)
-        return if (savedInstanceState != null && savedInstanceState.containsKey(KEY_FRAGMENT_TAG)) {
-            savedInstanceState.getString(KEY_FRAGMENT_TAG, DEFAULT_FRAGMENT_TAG)
-        } else DEFAULT_FRAGMENT_TAG
-
+        return savedInstanceState?.getString(KEY_FRAGMENT_TAG, DEFAULT_FRAGMENT_TAG)
+            ?: DEFAULT_FRAGMENT_TAG
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -105,21 +97,21 @@ class RecipeDetailActivity : AppCompatActivity() {
         return false
     }
 
-    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
-        if (event.action == MotionEvent.ACTION_DOWN) {
-            val v = currentFocus
-            if (v is EditText) {
-                val outRect = Rect()
-                v.getGlobalVisibleRect(outRect)
-                if (!outRect.contains(event.rawX.toInt(), event.rawY.toInt())) {
-                    v.clearFocus()
-                    val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager?
-                    imm?.hideSoftInputFromWindow(v.windowToken, 0)
-                }
-            }
-        }
-        return super.dispatchTouchEvent(event)
-    }
+//    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+//        if (event.action == MotionEvent.ACTION_DOWN) {
+//            val v = currentFocus
+//            if (v is EditText) {
+//                val outRect = Rect()
+//                v.getGlobalVisibleRect(outRect)
+//                if (!outRect.contains(event.rawX.toInt(), event.rawY.toInt())) {
+//                    v.clearFocus()
+//                    val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager?
+//                    imm?.hideSoftInputFromWindow(v.windowToken, 0)
+//                }
+//            }
+//        }
+//        return super.dispatchTouchEvent(event)
+//    }
 
 
     override fun onBackPressed() {
@@ -144,12 +136,12 @@ class RecipeDetailActivity : AppCompatActivity() {
                 )
                 supportFragmentManager
                     .beginTransaction()
-                    .replace(R.id.recipe_detail_container, fragment, tag)
+                    .replace(R.id.recipeDetailContainer, fragment, tag)
                     .commit()
             } else {
                 supportFragmentManager
                     .beginTransaction()
-                    .replace(R.id.recipe_detail_container, fragment, tag)
+                    .replace(R.id.recipeDetailContainer, fragment, tag)
                     .addToBackStack(TAG_FRAGMENT_RECIPE_DETAIL)
                     .commit()
             }
@@ -177,15 +169,15 @@ class RecipeDetailActivity : AppCompatActivity() {
     }
 
     private fun showCartAndEditButtons() {
-        fab_edit_recipe.visibility = View.VISIBLE
-        fab_add_to_cart.visibility = View.VISIBLE
-        fab_save_recipe.visibility = View.GONE
+        fabEditRecipe.visibility = View.VISIBLE
+        fabAddToCart.visibility = View.VISIBLE
+        fabSaveRecipe.visibility = View.GONE
     }
 
     private fun showSaveButton() {
-        fab_edit_recipe.visibility = View.GONE
-        fab_add_to_cart.visibility = View.GONE
-        fab_save_recipe.visibility = View.VISIBLE
+        fabEditRecipe.visibility = View.GONE
+        fabAddToCart.visibility = View.GONE
+        fabSaveRecipe.visibility = View.VISIBLE
     }
 
     companion object {

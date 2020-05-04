@@ -10,13 +10,13 @@ object UUIDTypeConverter {
     @TypeConverter
     @JvmStatic
     fun toUUID(value: ByteArray?): UUID? {
-        return value?.let { convertBinaryToUUID(value) }
+        return value?.let { convertBinaryToUUID(it) }
     }
 
     @TypeConverter
     @JvmStatic
     fun toByteArray(value: UUID?): ByteArray? {
-        return value?.let { convertUUIDToBinary(value) }
+        return value?.let { convertUUIDToBinary(it) }
     }
 
     fun newUUID(): UUID {

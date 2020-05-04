@@ -6,6 +6,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.tasks.Tasks
 import com.yeraygarcia.recipes.R
+import com.yeraygarcia.recipes.util.toJson
 import okhttp3.*
 import okhttp3.Request
 import timber.log.Timber
@@ -26,6 +27,9 @@ class ServiceInterceptor internal constructor(context: Context) : Interceptor, A
     override fun intercept(chain: Interceptor.Chain): Response {
         Timber.d("intercept(chain)")
         var request = chain.request()
+
+        Timber.d("${request.method()} ${request.url()}")
+        Timber.d("Body: ${request.body()?.toJson()}")
 
         if (request.header("No-Authentication") == null && idToken != null) {
             Timber.d("Appending token to header")

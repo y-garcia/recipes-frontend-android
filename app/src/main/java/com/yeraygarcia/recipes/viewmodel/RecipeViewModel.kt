@@ -1,10 +1,8 @@
 package com.yeraygarcia.recipes.viewmodel
 
 import android.app.Application
-import android.arch.lifecycle.AndroidViewModel
-import android.arch.lifecycle.LiveData
-import android.arch.lifecycle.MutableLiveData
-import android.arch.lifecycle.Transformations
+import android.arch.lifecycle.*
+import android.arch.lifecycle.Observer
 import com.yeraygarcia.recipes.database.entity.Recipe
 import com.yeraygarcia.recipes.database.entity.ShoppingListItem
 import com.yeraygarcia.recipes.database.entity.Tag
@@ -51,9 +49,9 @@ class RecipeViewModel(application: Application) : AndroidViewModel(application) 
             return field
         }
 
-    val tagFilterAsArray: ArrayList<String>
+    val tagFilterAsList: ArrayList<String>
         get() {
-            Timber.d("getTagFilterAsArray()")
+            Timber.d("getTagFilterAsList()")
 
             val tagFilter = tagFilter.value ?: return ArrayList()
 
@@ -106,7 +104,7 @@ class RecipeViewModel(application: Application) : AndroidViewModel(application) 
         repository.logTagUsage(tag.id)
     }
 
-    fun setTagFilter(tagFilter: Array<String>?) {
+    fun setTagFilter(tagFilter: List<String>?) {
         Timber.d("setSelectedTagIds(tagFilter)")
         if (tagFilter != null) {
             val uuids = ArrayList<UUID>(tagFilter.size)
@@ -149,20 +147,14 @@ class RecipeViewModel(application: Application) : AndroidViewModel(application) 
         repository.deleteAll()
     }
 
-    fun refreshAll() {
+    fun refreshAll(
+        owner: LifecycleOwner,
+        observer: Observer<Resource<List<Recipe>>>
+    ) {
         repository.invalidateCache()
-        forceRefresh()
-    }
-
-    private fun clearTagFilter() {
-        tagFilter.value = mutableListOf()
-    }
-
-    private fun forceRefresh() {
-        // TODO this is a hack :-(
-        val tagFilterCopy = tagFilter.value
-        clearTagFilter()
-        tagFilter.value = tagFilterCopy
+        // TODO change recipes Transformation to multiple triggers
+//        recipes.removeObservers(owner)
+//        recipes.observe(owner, observer)
     }
 
     fun addItemToShoppingList(newItem: String?) {

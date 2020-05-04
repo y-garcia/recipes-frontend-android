@@ -15,12 +15,12 @@ import com.yeraygarcia.recipes.database.entity.Unit
     entities = [
         Aisle::class, Store::class, Tag::class, Unit::class, Ingredient::class, Placement::class,
         Recipe::class, RecipeIngredient::class, RecipeStep::class, RecipeTag::class, TagUsage::class,
-        ShoppingListItem::class, LastUpdate::class
+        ShoppingListItem::class, LastUpdate::class, Deleted::class
     ],
-    version = 2,
+    version = 4,
     exportSchema = false
 )
-@TypeConverters(UUIDTypeConverter::class)
+@TypeConverters(UUIDTypeConverter::class, DateTypeConverter::class)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract val aisleDao: AisleDao
@@ -34,6 +34,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract val tagUsageDao: TagUsageDao
     abstract val shoppingListDao: ShoppingListDao
     abstract val lastUpdateDao: LastUpdateDao
+    abstract val deletedDao: DeletedDao
 
     companion object {
 
@@ -50,7 +51,7 @@ abstract class AppDatabase : RoomDatabase() {
                     .addCallback(object : Callback() {
                         override fun onCreate(db: SupportSQLiteDatabase) {
                             super.onCreate(db)
-                            AppExecutors().diskIO {
+                            AppExecutors.diskIO {
                                 getDatabase(context).lastUpdateDao.upsert(LastUpdate(0L))
                             }
                         }

@@ -9,6 +9,7 @@ import com.yeraygarcia.recipes.database.entity.custom.UiRecipeIngredient
 import com.yeraygarcia.recipes.database.repository.RecipeDetailRepository
 import timber.log.Timber
 import java.util.*
+import java.util.regex.Pattern
 
 class RecipeDetailViewModel(private val repository: RecipeDetailRepository, recipeId: UUID) :
     ViewModel() {
@@ -84,26 +85,68 @@ class RecipeDetailViewModel(private val repository: RecipeDetailRepository, reci
         repository.updateRecipeIngredient(id, ingredientName, quantity, unitId)
     }
 
-    fun getUnitIdByName(unitName: String?): UUID? {
-        Timber.d("getUnitIdByName(${unitName ?: "null"})")
-        val units = this.units.value
+    fun getUnitIdByName(unitName: String): UUID? {
+        Timber.d("getUnitIdByName($unitName)")
 
-        if (units == null || unitName == null || unitName.isEmpty()) {
-            return null
-        }
+        units.value?.let { units ->
 
-        val lowerCaseName = unitName.toLowerCase()
+            val lowerCaseName = unitName.toLowerCase()
 
-        for (unit in units) {
-            val debugMessage =
-                "$lowerCaseName = ${unit.nameSingular.toLowerCase()} or ${unit.namePlural.toLowerCase()}"
-            if (unit.nameSingular.toLowerCase() == lowerCaseName || unit.namePlural.toLowerCase() == lowerCaseName) {
-                Timber.d("$debugMessage ? true")
-                return unit.id
+            for (unit in units) {
+                val debugMessage =
+                    "$lowerCaseName = ${unit.nameSingular.toLowerCase()} or ${unit.namePlural.toLowerCase()}"
+                if (unit.nameSingular.toLowerCase() == lowerCaseName || unit.namePlural.toLowerCase() == lowerCaseName) {
+                    Timber.d("$debugMessage ? true")
+                    return unit.id
+                }
+                Timber.d("$debugMessage ? false")
             }
-            Timber.d("$debugMessage ? false")
         }
 
         return null
+    }
+
+    private fun getUnitRegex(): String {
+        val units = this.units.value ?: return "[a-zäöü]+"
+        return units.joinToString("|") { unit ->
+            if (unit.nameSingular != unit.namePlural) {
+                "${unit.nameSingular}|${unit.namePlural}"
+            } else {
+                unit.nameSingular
+            }
+        }
+    }
+
+    fun addIngredient(text: CharSequence?, recipeId: UUID) {
+        val ingredientText = text?.toString()?.trim() ?: ""
+
+        if (ingredientText.isNotEmpty()) {
+            val units = getUnitRegex()
+
+            val matcher1 = Pattern
+                .compile("([0-9]+(?:(?:.|,)[0-9]+)?) ?($units) (.+)$", Pattern.CASE_INSENSITIVE)
+                .matcher(ingredientText)
+
+            val matcher2 = Pattern
+                .compile("([0-9]+(?:(?:.|,)[0-9]+)?) (.+)$", Pattern.CASE_INSENSITIVE)
+                .matcher(ingredientText)
+
+            when {
+                matcher1.matches() -> {
+                    val quantity = matcher1.group(1).replace(",", ".").toDouble()
+                    val unit = matcher1.group(2)
+                    val ingredient = matcher1.group(3)
+
+                    repository.insertRecipeIngredient(recipeId, ingredient, quantity, unit)
+                }
+                matcher2.matches() -> {
+                    val quantity = matcher2.group(1).replace(",", ".").toDouble()
+                    val ingredient = matcher2.group(2)
+
+                    repository.insertRecipeIngredient(recipeId, ingredient, quantity)
+                }
+                else -> repository.insertRecipeIngredient(recipeId, ingredientText)
+            }
+        }
     }
 }

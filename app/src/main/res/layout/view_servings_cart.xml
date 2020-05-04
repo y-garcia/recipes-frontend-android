@@ -7,19 +7,19 @@
     android:layout_height="wrap_content">
 
     <ImageView
-        android:id="@+id/imageview_decrease_servings"
+        android:id="@+id/imageViewDecreaseServings"
         android:layout_width="32dp"
         android:layout_height="32dp"
         android:layout_marginEnd="8dp"
         android:background="@color/colorButtonNormal"
         android:contentDescription="@string/decrease_servings"
-        app:layout_constraintBottom_toBottomOf="@+id/imageview_increase_servings"
-        app:layout_constraintEnd_toStartOf="@+id/textview_servings"
-        app:layout_constraintTop_toTopOf="@+id/imageview_increase_servings"
+        app:layout_constraintBottom_toBottomOf="@+id/imageViewIncreaseServings"
+        app:layout_constraintEnd_toStartOf="@+id/textViewServings"
+        app:layout_constraintTop_toTopOf="@+id/imageViewIncreaseServings"
         app:srcCompat="@drawable/ic_remove_24px" />
 
     <TextView
-        android:id="@+id/textview_servings"
+        android:id="@+id/textViewServings"
         android:layout_width="32dp"
         android:layout_height="32dp"
         android:background="@color/colorAccent"
@@ -28,13 +28,13 @@
         android:textAppearance="@style/TextAppearance.AppCompat"
         android:textColor="@android:color/white"
         android:textSize="16sp"
-        app:layout_constraintBottom_toBottomOf="@+id/imageview_increase_servings"
-        app:layout_constraintEnd_toStartOf="@+id/textview_servings_label"
-        app:layout_constraintTop_toTopOf="@+id/imageview_increase_servings"
+        app:layout_constraintBottom_toBottomOf="@+id/imageViewIncreaseServings"
+        app:layout_constraintEnd_toStartOf="@+id/textViewServingsLabel"
+        app:layout_constraintTop_toTopOf="@+id/imageViewIncreaseServings"
         tool:text="4" />
 
     <TextView
-        android:id="@+id/textview_servings_label"
+        android:id="@+id/textViewServingsLabel"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:background="@color/colorAccent"
@@ -46,12 +46,12 @@
         android:textAppearance="@style/TextAppearance.AppCompat"
         android:textColor="@android:color/white"
         android:textSize="16sp"
-        app:layout_constraintBottom_toBottomOf="@+id/imageview_increase_servings"
-        app:layout_constraintEnd_toStartOf="@+id/imageview_increase_servings"
-        app:layout_constraintTop_toTopOf="@+id/imageview_increase_servings" />
+        app:layout_constraintBottom_toBottomOf="@+id/imageViewIncreaseServings"
+        app:layout_constraintEnd_toStartOf="@+id/imageViewIncreaseServings"
+        app:layout_constraintTop_toTopOf="@+id/imageViewIncreaseServings" />
 
     <ImageView
-        android:id="@+id/imageview_increase_servings"
+        android:id="@+id/imageViewIncreaseServings"
         android:layout_width="32dp"
         android:layout_height="32dp"
         android:background="@color/colorAccent"

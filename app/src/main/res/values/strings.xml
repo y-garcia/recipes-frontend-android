@@ -72,6 +72,8 @@
     <string name="minutes">min</string>
     <string name="hint_source">Book, person, link</string>
     <string name="hint_shopping_list_item">250g Butter</string>
+    <string name="hint_new_ingredient">250g Butter</string>
+    <string name="add_ingredient">Add ingredient</string>
     <string name="step_empty_error">Please enter a step description</string>
     <string name="an_error_occurred">An error occurred:</string>
     <string name="hint_step">Cut the onions.</string>

@@ -79,11 +79,11 @@ class RecipeAdapter(activity: FragmentActivity) :
         val itemName: TextView = itemView.textview_recipe_name
         val itemDuration: TextView = itemView.textview_recipe_info
         val itemServingsContainer: ConstraintLayout = itemView.include_servings as ConstraintLayout
-        val itemDecrease: ImageView = itemView.imageview_decrease_servings
-        val itemServings: TextView = itemView.textview_servings
+        val itemDecrease: ImageView = itemView.imageViewDecreaseServings
+        val itemServings: TextView = itemView.textViewServings
         val itemAddToCart: ImageView = itemView.imageview_add_to_cart
-        private val itemServingsLabel: TextView = itemView.textview_servings_label
-        private val itemIncrease: ImageView = itemView.imageview_increase_servings
+        private val itemServingsLabel: TextView = itemView.textViewServingsLabel
+        private val itemIncrease: ImageView = itemView.imageViewIncreaseServings
         private val itemNameContainer: LinearLayout = itemView.linearlayout_recipe_name
 
         init {

@@ -11,6 +11,7 @@ import android.text.style.StyleSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
@@ -21,9 +22,11 @@ import com.yeraygarcia.recipes.R
 import com.yeraygarcia.recipes.database.entity.Recipe
 import com.yeraygarcia.recipes.database.entity.RecipeStep
 import com.yeraygarcia.recipes.database.entity.custom.UiRecipeIngredient
+import com.yeraygarcia.recipes.util.SpaceTokenizer
 import com.yeraygarcia.recipes.viewmodel.RecipeDetailViewModel
 import kotlinx.android.synthetic.main.item_edit_duration.view.*
 import kotlinx.android.synthetic.main.item_edit_ingredient.view.*
+import kotlinx.android.synthetic.main.item_edit_new_ingredient.view.*
 import kotlinx.android.synthetic.main.item_edit_source.view.*
 import kotlinx.android.synthetic.main.item_edit_step.view.*
 import kotlinx.android.synthetic.main.item_header_generic.view.*
@@ -61,6 +64,8 @@ class EditRecipeAdapter(val activity: FragmentActivity, val viewModel: RecipeDet
             notifyDataSetChanged()
         }
 
+    var newIngredientText: String = ""
+
     private var itemCount: Int = -1
 
     fun EditText.onChange(cb: (String) -> Unit) {
@@ -87,7 +92,32 @@ class EditRecipeAdapter(val activity: FragmentActivity, val viewModel: RecipeDet
         }
     }
 
-    internal inner class IngredientsViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    internal inner class IngredientsHeaderViewHolder(itemView: View) :
+        RecyclerView.ViewHolder(itemView) {
+        val itemServings: TextView = itemView.textViewServings
+        val itemDecrease: ImageView = itemView.imageViewDecreaseServings.apply {
+            setOnClickListener {
+                recipe?.let { recipe ->
+                    recipe.decreasePortions()
+                    viewModel.update(recipe)
+                }
+            }
+        }
+
+        init {
+            itemView.imageViewIncreaseServings.apply {
+                setOnClickListener {
+                    recipe?.let { recipe ->
+                        recipe.increasePortions()
+                        viewModel.update(recipe)
+                    }
+                }
+            }
+        }
+    }
+
+    internal inner class IngredientsViewHolder(itemView: View) :
+        RecyclerView.ViewHolder(itemView) {
         val itemIngredientName: TextView = itemView.textview_ingredient_name.apply {
             setOnClickListener {
                 val ingredient = ingredients[getIngredientPosition(adapterPosition)]
@@ -96,22 +126,25 @@ class EditRecipeAdapter(val activity: FragmentActivity, val viewModel: RecipeDet
         }
     }
 
-    internal inner class IngredientsHeaderViewHolder(itemView: View) :
+    internal inner class NewIngredientViewHolder(itemView: View) :
         RecyclerView.ViewHolder(itemView) {
-        val itemServings: TextView = itemView.textview_servings
-        val itemDecrease: ImageView = itemView.imageview_decrease_servings.apply {
-            setOnClickListener {
-                recipe?.let { recipe ->
-                    recipe.decreasePortions()
-                    viewModel.update(recipe)
-                }
-            }
+
+        val itemNewIngredient: TextView = itemView.editTextNewIngredient.apply {
+            val newItemAdapter = ArrayAdapter(
+                activity,
+                android.R.layout.simple_dropdown_item_1line,
+                mutableListOf<String>()
+            )
+            setAdapter(newItemAdapter)
+            setTokenizer(SpaceTokenizer())
+            onChange { newIngredientText = it }
         }
-        val itemIncrease: ImageView = itemView.imageview_increase_servings.apply {
-            setOnClickListener {
+
+        init {
+            itemView.imageButtonAddIngredient.setOnClickListener {
                 recipe?.let { recipe ->
-                    recipe.increasePortions()
-                    viewModel.update(recipe)
+                    viewModel.addIngredient(itemNewIngredient.text, recipe.id)
+                    itemNewIngredient.text = ""
                 }
             }
         }
@@ -137,22 +170,14 @@ class EditRecipeAdapter(val activity: FragmentActivity, val viewModel: RecipeDet
             position == 1 -> VIEW_TYPE_SOURCE
             position == 2 -> VIEW_TYPE_INGREDIENTS_HEADER
             position < ingredientsCount + 3 -> VIEW_TYPE_INGREDIENT
-            position == ingredientsCount + 3 -> VIEW_TYPE_STEPS_HEADER
+            position == ingredientsCount + 3 -> VIEW_TYPE_NEW_INGREDIENT
+            position == ingredientsCount + 4 -> VIEW_TYPE_STEPS_HEADER
             else -> VIEW_TYPE_STEP
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return when (viewType) {
-            VIEW_TYPE_INGREDIENTS_HEADER -> IngredientsHeaderViewHolder(
-                inflater.inflate(R.layout.item_header_ingredients, parent, false)
-            )
-
-            VIEW_TYPE_STEPS_HEADER -> HeaderViewHolder(
-                inflater.inflate(R.layout.item_header_generic, parent, false)
-            )
-
-
             VIEW_TYPE_DURATION -> DurationViewHolder(
                 inflater.inflate(R.layout.item_edit_duration, parent, false)
             )
@@ -161,9 +186,22 @@ class EditRecipeAdapter(val activity: FragmentActivity, val viewModel: RecipeDet
                 inflater.inflate(R.layout.item_edit_source, parent, false)
             )
 
+            VIEW_TYPE_INGREDIENTS_HEADER -> IngredientsHeaderViewHolder(
+                inflater.inflate(R.layout.item_header_ingredients, parent, false)
+            )
+
             VIEW_TYPE_INGREDIENT -> IngredientsViewHolder(
                 inflater.inflate(R.layout.item_edit_ingredient, parent, false)
             )
+
+            VIEW_TYPE_NEW_INGREDIENT -> NewIngredientViewHolder(
+                inflater.inflate(R.layout.item_edit_new_ingredient, parent, false)
+            )
+
+            VIEW_TYPE_STEPS_HEADER -> HeaderViewHolder(
+                inflater.inflate(R.layout.item_header_generic, parent, false)
+            )
+
 
             else -> StepsViewHolder(
                 inflater.inflate(R.layout.item_edit_step, parent, false)
@@ -179,24 +217,12 @@ class EditRecipeAdapter(val activity: FragmentActivity, val viewModel: RecipeDet
     }
 
     private fun calculateItemCount() {
-        itemCount = (if (recipe != null) 4 else 0) +
-                maxOf(ingredients.size, 1) +
-                maxOf(steps.size, 1)
+        itemCount = (if (recipe != null) 5 else 0) + ingredients.size + maxOf(steps.size, 1)
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
 
         when (holder.itemViewType) {
-
-            VIEW_TYPE_INGREDIENTS_HEADER -> (holder as IngredientsHeaderViewHolder).apply {
-                recipe?.apply {
-                    itemServings.text = String.format(Locale.getDefault(), "%d", portions)
-                    itemDecrease.visibility = if (portions > 1) View.VISIBLE else View.GONE
-                }
-            }
-
-            VIEW_TYPE_STEPS_HEADER -> (holder as HeaderViewHolder).itemTitle.setText(R.string.header_steps)
-
             VIEW_TYPE_DURATION -> recipe?.let { it ->
                 val recipe = viewModel.recipeDraft ?: it
                 val duration = formatDuration(recipe.durationInMinutes)
@@ -204,6 +230,13 @@ class EditRecipeAdapter(val activity: FragmentActivity, val viewModel: RecipeDet
             }
 
             VIEW_TYPE_SOURCE -> (holder as SourceViewHolder).itemSource.setText(recipe?.url)
+
+            VIEW_TYPE_INGREDIENTS_HEADER -> (holder as IngredientsHeaderViewHolder).apply {
+                recipe?.apply {
+                    itemServings.text = String.format(Locale.getDefault(), "%d", portions)
+                    itemDecrease.visibility = if (portions > 1) View.VISIBLE else View.GONE
+                }
+            }
 
             VIEW_TYPE_INGREDIENT -> (holder as IngredientsViewHolder).apply {
                 if (ingredients.isNotEmpty()) {
@@ -216,6 +249,12 @@ class EditRecipeAdapter(val activity: FragmentActivity, val viewModel: RecipeDet
                     itemIngredientName.setText(R.string.no_ingredients)
                 }
             }
+
+            VIEW_TYPE_NEW_INGREDIENT -> (holder as NewIngredientViewHolder).apply {
+                itemNewIngredient.text = newIngredientText
+            }
+
+            VIEW_TYPE_STEPS_HEADER -> (holder as HeaderViewHolder).itemTitle.setText(R.string.header_steps)
 
             else -> (holder as StepsViewHolder).apply {
                 if (steps.isNotEmpty()) {
@@ -244,7 +283,7 @@ class EditRecipeAdapter(val activity: FragmentActivity, val viewModel: RecipeDet
     }
 
     private fun getStepPosition(position: Int): Int {
-        return maxOf(position - maxOf(ingredients.size, 1) - 4, 0)
+        return maxOf(position - maxOf(ingredients.size, 1) - 5, 0)
     }
 
     private fun getIngredientAt(position: Int): UiRecipeIngredient {
@@ -272,13 +311,14 @@ class EditRecipeAdapter(val activity: FragmentActivity, val viewModel: RecipeDet
     private fun formatDuration(duration: Long): String {
         return String.format(Locale.getDefault(), "%d", duration)
     }
-    
+
     companion object {
         private const val VIEW_TYPE_DURATION = 1
         private const val VIEW_TYPE_SOURCE = 2
         private const val VIEW_TYPE_INGREDIENTS_HEADER = 3
         private const val VIEW_TYPE_STEPS_HEADER = 4
         private const val VIEW_TYPE_INGREDIENT = 5
-        private const val VIEW_TYPE_STEP = 6
+        private const val VIEW_TYPE_NEW_INGREDIENT = 6
+        private const val VIEW_TYPE_STEP = 7
     }
 }

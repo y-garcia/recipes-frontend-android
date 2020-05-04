@@ -45,9 +45,9 @@ class RecipeDetailAdapter(
     internal inner class IngredientsHeaderViewHolder internal constructor(itemView: View) :
         RecyclerView.ViewHolder(itemView) {
 
-        val itemDecrease: ImageView = itemView.imageview_decrease_servings
-        val itemServings: TextView = itemView.textview_servings
-        private val itemIncrease: ImageView = itemView.imageview_increase_servings
+        val itemDecrease: ImageView = itemView.imageViewDecreaseServings
+        val itemServings: TextView = itemView.textViewServings
+        private val itemIncrease: ImageView = itemView.imageViewIncreaseServings
 
         init {
             itemDecrease.setOnClickListener {

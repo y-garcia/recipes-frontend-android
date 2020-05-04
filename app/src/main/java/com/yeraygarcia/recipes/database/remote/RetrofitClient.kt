@@ -42,6 +42,10 @@ class RetrofitClient private constructor(context: Context) {
         interceptor.idToken = idToken
     }
 
+    fun clearIdToken() {
+        setIdToken(null)
+    }
+
     companion object {
 
         private var retrofitClient: RetrofitClient? = null

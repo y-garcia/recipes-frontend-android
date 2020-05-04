@@ -10,10 +10,7 @@ import com.yeraygarcia.recipes.database.UUIDTypeConverter
 import com.yeraygarcia.recipes.database.entity.*
 import com.yeraygarcia.recipes.database.entity.Unit
 import com.yeraygarcia.recipes.database.entity.custom.UiRecipeIngredient
-import com.yeraygarcia.recipes.database.remote.Request
-import com.yeraygarcia.recipes.database.remote.ResourceData
-import com.yeraygarcia.recipes.database.remote.RetrofitClient
-import com.yeraygarcia.recipes.database.remote.Webservice
+import com.yeraygarcia.recipes.database.remote.*
 import com.yeraygarcia.recipes.util.NetworkUtil
 import com.yeraygarcia.recipes.util.toJson
 import com.yeraygarcia.recipes.viewmodel.RecipeDetailViewModel
@@ -28,7 +25,7 @@ class RecipeDetailRepository(application: Application) {
     private val context: Context = application
     private val db = AppDatabase.getDatabase(context)
     private val webservice = RetrofitClient.get(context).create(Webservice::class.java)
-    private val appExecutors = AppExecutors()
+    private val syncRequest = SyncRequest(context, db, webservice)
 
     val units: LiveData<List<Unit>>
         get() = db.unitDao.findAll()
@@ -104,11 +101,11 @@ class RecipeDetailRepository(application: Application) {
     }
 
     fun removeFromShoppingList(recipeId: UUID) {
-        appExecutors.diskIO { db.shoppingListDao.deleteByRecipeId(recipeId) }
+        AppExecutors.diskIO { db.shoppingListDao.deleteByRecipeId(recipeId) }
     }
 
     fun addToShoppingList(recipeId: UUID) {
-        appExecutors.diskIO {
+        AppExecutors.diskIO {
             Timber.d("Adding recipe with id '$recipeId' to shopping list")
             val shoppingListItems = db.recipeIngredientDao.findShoppingListItemByRecipeId(recipeId)
             shoppingListItems.forEach { it.id = UUIDTypeConverter.newUUID() }
@@ -156,8 +153,8 @@ class RecipeDetailRepository(application: Application) {
     fun updateRecipeIngredient(id: UUID, ingredientName: String, quantity: Double?, unitId: UUID?) {
         Timber.d("updateRecipeIngredient(id, ingredientName, quantity, unitId)")
         if (canFetch()) {
-            appExecutors.diskIO {
-                var ingredientId: UUID? = db.ingredientDao.getIngredientIdByName(ingredientName)
+            AppExecutors.diskIO {
+                var ingredientId: UUID? = db.ingredientDao.findIdByName(ingredientName)
                 if (ingredientId == null) {
                     val ingredient = Ingredient(name = ingredientName)
                     ingredientId = ingredient.id
@@ -190,7 +187,7 @@ class RecipeDetailRepository(application: Application) {
                                 Timber.d("Body contains payload. Update database.")
                             } else {
                                 Timber.d("Body was empty. Abort.")
-                                appExecutors.diskIO {
+                                AppExecutors.diskIO {
                                     db.recipeIngredientDao.update(
                                         oldRecipeIngredient
                                     )
@@ -198,7 +195,7 @@ class RecipeDetailRepository(application: Application) {
                             }
                         } else {
                             Timber.d("Response was not successful: ${response.code()} - ${response.errorBody()}")
-                            appExecutors.diskIO { db.recipeIngredientDao.update(oldRecipeIngredient) }
+                            AppExecutors.diskIO { db.recipeIngredientDao.update(oldRecipeIngredient) }
                         }
                     }
 
@@ -207,13 +204,41 @@ class RecipeDetailRepository(application: Application) {
                         t: Throwable
                     ) {
                         Timber.d("Call failed: ${t.message}")
-                        appExecutors.diskIO {
+                        AppExecutors.diskIO {
                             db.recipeIngredientDao.update(oldRecipeIngredient)
                         }
                     }
                 })
             }
         }
+    }
+
+    fun insertRecipeIngredient(
+        recipeId: UUID,
+        ingredientName: String,
+        quantity: Double? = null,
+        unitName: String? = null
+    ) {
+        AppExecutors.diskIO {
+            val ingredient = db.ingredientDao.insertIfAbsent(ingredientName)
+            val unitId = unitName?.let { db.unitDao.findIdByName(it) }
+            val sortOrder = db.recipeIngredientDao.getLastPosition(recipeId)
+            val recipeIngredient = RecipeIngredient(
+                UUIDTypeConverter.newUUID(),
+                recipeId,
+                ingredient.id,
+                quantity,
+                unitId,
+                sortOrder
+            )
+            db.recipeIngredientDao.insert(recipeIngredient)
+            // TODO (1) test if this works
+            sync()
+        }
+    }
+
+    private fun sync() {
+        syncRequest.send()
     }
 
 }

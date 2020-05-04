@@ -39,10 +39,12 @@ class EditRecipeFragment : Fragment() {
             viewModel =
                     ViewModelProviders.of(activity, factory).get(RecipeDetailViewModel::class.java)
 
-            editRecipeAdapter = EditRecipeAdapter(activity, viewModel)
+            editRecipeAdapter = EditRecipeAdapter(activity, viewModel).apply {
+                newIngredientText = savedInstanceState?.getString(KEY_NEW_INGREDIENT, "") ?: ""
+            }
 
             viewModel.recipe.observe(activity, Observer {
-                activity.toolbarLayout.title = it?.name
+                activity.toolbar.title = it?.name
                 editRecipeAdapter.recipe = it
             })
             viewModel.recipeSteps.observe(activity, Observer {
@@ -57,6 +59,7 @@ class EditRecipeFragment : Fragment() {
     override fun onSaveInstanceState(outState: Bundle) {
         Timber.d("onSaveInstanceState($outState)")
         outState.putSerializable(RecipeDetailFragment.KEY_RECIPE_ID, recipeId)
+        outState.putString(KEY_NEW_INGREDIENT, editRecipeAdapter.newIngredientText)
         super.onSaveInstanceState(outState)
     }
 
@@ -86,6 +89,7 @@ class EditRecipeFragment : Fragment() {
 
         const val ARG_RECIPE_ID = "argRecipeId"
         const val KEY_RECIPE_ID = "keyRecipeId"
+        const val KEY_NEW_INGREDIENT = "keyNewIngredient"
 
         fun newInstance(recipeId: UUID): EditRecipeFragment {
             return EditRecipeFragment().apply {
